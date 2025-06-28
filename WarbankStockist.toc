@@ -1,0 +1,17 @@
+## Interface: 110107
+## Title: Warbank Stockist
+## Notes: Automatically manages item quantities between your bags and the Warband Bank.
+## Version: 1.0
+## Author: Lucky Phil
+
+core.lua
+utils.lua
+inventory.lua
+config.lua
+bank.lua
+
+## SavedVariables: WarbandStorageData
+## SavedVariablesPerCharacter: WarbandStorageCharData
+## Dependencies: Blizzard_Settings
+
+## Category-enUS: Inventory
