@@ -15,3 +15,6 @@ bank.lua
 ## Dependencies: Blizzard_Settings
 
 ## Category-enUS: Inventory
+
+## X-Curse-Project-ID: 1295674
+## X-Wago-ID: rNkPaw6a
