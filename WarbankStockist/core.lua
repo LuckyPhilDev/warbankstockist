@@ -28,6 +28,17 @@ function WarbandStorage:OnEvent(event, ...)
         WarbandStorage.inventory = {}
 
         WarbandStorage:DebugPrint("Loaded saved variables.")
+        
+        -- Store current character's class for proper coloring
+        if WarbandStorage.Utils and WarbandStorage.Utils.StoreCharacterClass then
+            WarbandStorage.Utils:StoreCharacterClass()
+        end
+        
+        -- Initialize settings panel after all modules are loaded
+        if WarbandStorage.UI and WarbandStorage.UI.CreateTabbedSettingsCategory then
+            WarbandStorage.UI:CreateTabbedSettingsCategory()
+        end
+        
         WarbandStorage:DebugPrint("WarbandStorage loaded!")
         
     elseif event == "BANKFRAME_OPENED" then

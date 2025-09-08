@@ -1,0 +1,267 @@
+-- Warband Stockist — Profile Manager
+-- Centralized profile management operations
+
+-- Ensure namespace
+WarbandStorage = WarbandStorage or {}
+WarbandStorage.ProfileManager = WarbandStorage.ProfileManager or {}
+
+local ProfileManager = WarbandStorage.ProfileManager
+local Utils = WarbandStorage.Utils
+
+-- ############################################################
+-- ## Profile Operations
+-- ############################################################
+
+-- Ensure a profile exists with given name
+function ProfileManager:EnsureProfile(name)
+  if not Utils:IsValidValue(name) then 
+    name = WarbandStockistDB.defaultProfile 
+  end
+  
+  WarbandStockistDB.profiles[name] = WarbandStockistDB.profiles[name] or { items = {} }
+  return name, WarbandStockistDB.profiles[name]
+end
+
+-- Get active profile name for current character
+function ProfileManager:GetActiveProfileName()
+  local charKey = Utils:GetCharacterKey()
+  return WarbandStockistDB.assignments[charKey] or WarbandStockistDB.defaultProfile
+end
+
+-- Get active profile data
+function ProfileManager:GetActiveProfile()
+  local profileName = self:GetActiveProfileName()
+  self:EnsureProfile(profileName)
+  return WarbandStockistDB.profiles[profileName], profileName
+end
+
+-- Set active profile for current character
+function ProfileManager:SetActiveProfileForChar(profileName)
+  if not Utils:IsValidValue(profileName) then return false end
+  
+  self:EnsureProfile(profileName)
+  local charKey = Utils:GetCharacterKey()
+  WarbandStockistDB.assignments[charKey] = profileName
+  
+  -- Refresh UI if available
+  self:RefreshUI()
+  
+  return true
+end
+
+-- Create new profile
+function ProfileManager:CreateProfile(name)
+  if not Utils:IsValidValue(name) then return false end
+  
+  local _, profile = self:EnsureProfile(name)
+  self:SetActiveProfileForChar(name)
+  
+  Utils:DebugPrint("Created new profile: " .. name)
+  return true
+end
+
+-- Rename existing profile
+function ProfileManager:RenameProfile(oldName, newName)
+  if not Utils:IsValidValue(oldName) or not Utils:IsValidValue(newName) then 
+    return false 
+  end
+  
+  if oldName == newName then return true end
+  
+  -- Check if old profile exists
+  if not WarbandStockistDB.profiles[oldName] then return false end
+  
+  -- Create new profile with copied data
+  self:EnsureProfile(newName)
+  WarbandStockistDB.profiles[newName].items = Utils:DeepCopy(WarbandStockistDB.profiles[oldName].items)
+  
+  -- Delete old profile
+  WarbandStockistDB.profiles[oldName] = nil
+  
+  -- Update default profile if needed
+  if WarbandStockistDB.defaultProfile == oldName then
+    WarbandStockistDB.defaultProfile = newName
+  end
+  
+  -- Update character assignments
+  for charKey, assignedProfile in pairs(WarbandStockistDB.assignments) do
+    if assignedProfile == oldName then
+      WarbandStockistDB.assignments[charKey] = newName
+    end
+  end
+  
+  self:RefreshUI()
+  Utils:DebugPrint("Renamed profile from '" .. oldName .. "' to '" .. newName .. "'")
+  return true
+end
+
+-- Duplicate profile
+function ProfileManager:DuplicateProfile(sourceName, newName)
+  if not Utils:IsValidValue(sourceName) or not Utils:IsValidValue(newName) then
+    return false
+  end
+  
+  -- Check if source exists
+  if not WarbandStockistDB.profiles[sourceName] then return false end
+  
+  -- Create new profile
+  local _, newProfile = self:EnsureProfile(newName)
+  Utils:SafeWipe(newProfile.items)
+  
+  -- Copy items from source
+  for itemID, quantity in pairs(WarbandStockistDB.profiles[sourceName].items) do
+    newProfile.items[itemID] = quantity
+  end
+  
+  self:SetActiveProfileForChar(newName)
+  Utils:DebugPrint("Duplicated profile '" .. sourceName .. "' as '" .. newName .. "'")
+  return true
+end
+
+-- Delete profile
+function ProfileManager:DeleteProfile(name)
+  if not Utils:IsValidValue(name) then return false end
+  
+  -- Cannot delete default profile
+  if name == WarbandStockistDB.defaultProfile then
+    Utils:DebugPrint("Cannot delete the default profile")
+    return false
+  end
+  
+  -- Check if profile exists
+  if not WarbandStockistDB.profiles[name] then return false end
+  
+  -- Delete the profile
+  WarbandStockistDB.profiles[name] = nil
+  
+  -- Reassign characters using this profile to default
+  for charKey, assignedProfile in pairs(WarbandStockistDB.assignments) do
+    if assignedProfile == name then
+      WarbandStockistDB.assignments[charKey] = WarbandStockistDB.defaultProfile
+    end
+  end
+  
+  self:RefreshUI()
+  Utils:DebugPrint("Deleted profile: " .. name)
+  return true
+end
+
+-- Get all profile names
+function ProfileManager:GetAllProfileNames()
+  local names = {}
+  for profileName in pairs(WarbandStockistDB.profiles) do
+    table.insert(names, profileName)
+  end
+  table.sort(names)
+  return names
+end
+
+-- ############################################################
+-- ## Item Management
+-- ############################################################
+
+-- Add item to current profile
+function ProfileManager:AddItemToProfile(itemID, quantity)
+  if not Utils:IsValidItemID(itemID) or not Utils:IsValidQuantity(quantity) then
+    return false
+  end
+  
+  local profile = self:GetActiveProfile()
+  profile.items[tonumber(itemID)] = tonumber(quantity)
+  
+  self:RefreshUI()
+  Utils:DebugPrint("Added item " .. itemID .. " (qty: " .. quantity .. ") to profile")
+  return true
+end
+
+-- Remove item from current profile
+function ProfileManager:RemoveItemFromProfile(itemID)
+  if not Utils:IsValidItemID(itemID) then return false end
+  
+  local profile = self:GetActiveProfile()
+  profile.items[tonumber(itemID)] = nil
+  
+  self:RefreshUI()
+  Utils:DebugPrint("Removed item " .. itemID .. " from profile")
+  return true
+end
+
+-- Clear all items from current profile
+function ProfileManager:ClearProfileItems()
+  local profile = self:GetActiveProfile()
+  Utils:SafeWipe(profile.items)
+  
+  self:RefreshUI()
+  Utils:DebugPrint("Cleared all items from current profile")
+  return true
+end
+
+-- Get desired stock for current profile
+function ProfileManager:GetDesiredStock()
+  local profile = self:GetActiveProfile()
+  return profile.items or {}
+end
+
+-- ############################################################
+-- ## Character Assignment Management
+-- ############################################################
+
+-- Get all character keys that have assignments
+function ProfileManager:GetAllCharacterKeys()
+  local keys = {}
+  
+  -- Add assigned characters
+  for charKey in pairs(WarbandStockistDB.assignments) do
+    table.insert(keys, charKey)
+  end
+  
+  -- Ensure current character is included
+  local currentChar = Utils:GetCharacterKey()
+  local found = false
+  for _, key in ipairs(keys) do
+    if key == currentChar then
+      found = true
+      break
+    end
+  end
+  
+  if not found then
+    table.insert(keys, currentChar)
+  end
+  
+  table.sort(keys)
+  return keys
+end
+
+-- Unassign character from any profile (use default)
+function ProfileManager:UnassignCharacter(characterKey)
+  if not characterKey then return false end
+  
+  WarbandStockistDB.assignments[characterKey] = nil
+  self:RefreshUI()
+  
+  Utils:DebugPrint("Unassigned character: " .. characterKey)
+  return true
+end
+
+-- ############################################################
+-- ## UI Refresh Coordination
+-- ############################################################
+
+-- Refresh all related UI components
+function ProfileManager:RefreshUI()
+  -- Refresh profile dropdown
+  if WarbandStorage.RefreshProfileDropdown then
+    WarbandStorage.RefreshProfileDropdown()
+  end
+  
+  -- Refresh item list
+  if RefreshItemList then
+    RefreshItemList()
+  end
+  
+  -- Refresh assignments list
+  if RefreshAssignmentsList then
+    RefreshAssignmentsList()
+  end
+end
