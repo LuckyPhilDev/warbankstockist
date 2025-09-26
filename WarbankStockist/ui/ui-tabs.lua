@@ -29,77 +29,14 @@ function RefreshItemList()
   local y = -4
   local index = 0
   for itemID, count in pairs(stock) do
-    local row = CreateFrame("Frame", nil, WarbandStorage.scrollParent)
-    row:SetSize(530, 28)
-    row:SetPoint("TOPLEFT", WarbandStorage.scrollParent, "TOPLEFT", 0, y)
+    
+    local row = createRow(WarbandStorage.scrollParent, index % 2 == 1, itemID, count)
 
-    if index % 2 == 1 then
-      local bg = row:CreateTexture(nil, "BACKGROUND")
-      bg:SetAllPoints()
-      bg:SetColorTexture(0.15, 0.15, 0.2, 0.4)
-    end
-
-    local icon = row:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(22, 22)
-    icon:SetPoint("LEFT", row, "LEFT", 4, 0)
-    local itemIcon = select(5, GetItemInfoInstant(itemID))
-    if itemIcon then 
-      icon:SetTexture(itemIcon) 
-      -- Add border to icon
-      local border = row:CreateTexture(nil, "OVERLAY")
-      border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-      border:SetSize(26, 26)
-      border:SetPoint("CENTER", icon, "CENTER")
-      border:SetVertexColor(0.6, 0.6, 0.6, 1)
-    end
-    icon:SetDesaturated(count == 0)
-    icon:EnableMouse(true)
-    icon:SetScript("OnEnter", function() 
-      GameTooltip:SetOwner(icon, "ANCHOR_RIGHT")
-      GameTooltip:SetItemByID(itemID)
-      GameTooltip:Show() 
-    end)
-    icon:SetScript("OnLeave", GameTooltip_Hide)
-
-    local label = row:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
-    label:SetPoint("LEFT", icon, "RIGHT", 8, 0)
-    label:SetWidth(250)
-    label:SetJustifyH("LEFT")
-
-    local itemName = WarbandStorage.Utils:GetItemName(itemID)
-    local itemText = ("%s (ID: %d)"):format(itemName, itemID)
-    if count == 0 then
-      label:SetText("|cff666666" .. itemText .. "|r")
-    else
-      label:SetText("|cffcccccc" .. itemText .. "|r")
-    end
-
-    local qtyBox = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
-    qtyBox:SetSize(50, 22)
-    qtyBox:SetPoint("LEFT", label, "RIGHT", 15, 0)
-    qtyBox:SetAutoFocus(false)
-    qtyBox:SetNumeric(true)
-    qtyBox:SetText(tostring(count))
-    qtyBox:SetScript("OnEnterPressed", function(self)
-      local val = tonumber(self:GetText())
-      if val ~= nil then 
-        WarbandStorage.ProfileManager:AddItemToProfile(itemID, val)
-      end
-      self:ClearFocus()
-    end)
-    qtyBox:SetScript("OnEscapePressed", function(self) 
-      self:SetText(tostring(count))
-      self:ClearFocus() 
-    end)
-
-    local removeBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-    removeBtn:SetSize(70, 20)
-    removeBtn:SetText(STRINGS.BUTTON_REMOVE)
-    removeBtn:SetPoint("LEFT", qtyBox, "RIGHT", 15, 0)
-    removeBtn:SetScript("OnClick", function()
-      WarbandStorage.ProfileManager:RemoveItemFromProfile(itemID)
-    end)
-
+    local row2 = CreateFrame("Frame", nil, WarbandStorage.scrollParent)
+    row:SetSize(200, 28)
+    row:SetPoint("TOPLEFT", WarbandStorage.scrollParent, "TOPLEFT", 8, y)
+    row:SetPoint("TOPRIGHT", WarbandStorage.scrollParent, "TOPRIGHT", 0, y)
+   
     table.insert(WarbandStorage.scrollItems, row)
     y = y - 28
     index = index + 1
@@ -221,29 +158,3 @@ function WarbandStorage.UI:CreateAssignmentsSection(parent)
   return block
 end
 
--- ############################################################
--- ## Profiles Tab Content
--- ############################################################
-function WarbandStorage.UI:CreateProfilesTabContent(parent, contentWidth)
-  local margin = 10
-  local sectionSpacing = -15
-  local width = 560
-  
-  -- Profile controls at top
-  local profileBlock = self:ProfileControls(parent, width, 80) -- TODO figure out how to dynamically size height.
-  
-  -- Input row for adding items - aligned with profile block
-  local itemInput = self:InputSection(parent, width, 80)
-  itemInput:SetPoint("TOPLEFT", profileBlock, "BOTTOMLEFT", 0, sectionSpacing)
-  
-  local header = self:CreateTrackedItemsHeader(parent, width, 40)
-  header:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
-  
-  -- Create scroll container for tracked items - aligned properly
-  local scrollContainer, scrollFrame, scrollChild = self:CreateScrollContainer(parent, header, contentWidth-20, 130)
-  scrollContainer:ClearAllPoints()
-  scrollContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0) -- TODO Temporary offset, will be adjusted
-  WarbandStorage.scrollParent = scrollChild
-  
-  return profileBlock
-end

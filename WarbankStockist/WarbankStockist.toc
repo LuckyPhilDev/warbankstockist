@@ -4,7 +4,7 @@
 ## Version: 1.1
 ## Author: Lucky Phil
 
-ui-theme.lua
+ui/ui-theme.lua
 common-utils.lua
 frame-factory.lua
 profile-manager.lua
@@ -13,9 +13,11 @@ utils.lua
 config.lua
 character-data.lua
 profiles.lua
-ui-components.lua
-ui-tabs.lua
-settings-panel.lua
+ui/ui-row.lua
+ui/ui-components.lua
+ui/ui-tabs.lua
+ui/profile-panel.lua
+ui/settings-panel.lua
 inventory.lua
 bank.lua
 deposit-commands.lua

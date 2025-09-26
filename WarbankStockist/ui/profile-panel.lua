@@ -1,23 +1,46 @@
--- Warband Stockist — Settings Panel
--- Main settings panel creation and profile controls
 
 -- Ensure namespace and SavedVariables
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Ensure SavedVariables are initialized
-WarbandStockistDB = WarbandStockistDB or {
-  debugEnabled = false,
-  defaultProfile = "Default",
-  profiles = {},
-  assignments = {},
-  characterClasses = {}, -- Store character class info for proper coloring
-}
-
 -- Get theme references
 local THEME_COLORS = WarbandStorage.Theme.COLORS
 local FONTS = WarbandStorage.Theme.FONTS
 local STRINGS = WarbandStorage.Theme.STRINGS
+
+-- ############################################################
+-- ## Profiles Tab Content
+-- ############################################################
+function WarbandStorage.UI:CreateProfilesTabContent(parent)
+  local margin = 10
+  local sectionSpacing = -15
+  local width = 560
+  
+  -- Profile controls at top
+  local profileBlock = self:ProfileControls(parent, width) 
+  profileBlock:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
+  profileBlock:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
+  
+  -- Input row for adding items - aligned with profile block
+  local itemInput = self:InputSection(parent, width, 70)
+  itemInput:SetPoint("TOPLEFT", profileBlock, "BOTTOMLEFT", 0, sectionSpacing)
+  itemInput:SetPoint("TOPRIGHT", profileBlock, "BOTTOMRIGHT", 0, sectionSpacing)
+  
+  local header = self:CreateTrackedItemsHeader(parent, width, 45)
+  header:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
+  header:SetPoint("TOPRIGHT", itemInput, "BOTTOMRIGHT", 0, sectionSpacing)
+  
+  -- Create scroll container for tracked items - aligned properly
+  local scrollContainer, scrollChild = self:CreateScrollContainer(parent)
+  scrollContainer:ClearAllPoints()
+  scrollContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0) -- TODO Temporary offset, will be adjusted
+  scrollContainer:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 0)
+  WarbandStorage.scrollParent = scrollChild
+  
+  return profileBlock
+end
+
+
 
 -- ############################################################
 -- ## Profile Controls
@@ -66,6 +89,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
 
   return block, dropdown
 end
+
 
 -- ############################################################
 -- ## Profile Dialog Setup
@@ -262,6 +286,7 @@ function WarbandStorage.UI:InputSection(parent, width, height)
   return block
 end
 
+
 -- ############################################################
 -- ## Tracked Items Header Component
 -- ############################################################
@@ -274,9 +299,11 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
   -- Tracked items section - aligned with other sections
   local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_TRACKED)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, vertPadding)
+  -- sectionTitle:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, vertPadding)
 
   local header = CreateFrame("Frame", nil, parent)
   header:SetPoint("TOPLEFT", sectionTitle, "BOTTOMLEFT", 0, -sectionSpacing)
+  header:SetPoint("RIGHT", block, "RIGHT", -horzPadding, 0)
   local headerBg = header:CreateTexture(nil, "BACKGROUND")
   headerBg:SetAllPoints()
   headerBg:SetColorTexture(0.2, 0.2, 0.25, 0.6)
@@ -285,198 +312,9 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
   itemHeader:SetPoint("LEFT", header, "LEFT", 30, 0)
 
   local qtyHeader = CreateSubheadingText(header, "Qty")
-  qtyHeader:SetPoint("LEFT", itemHeader, "RIGHT", 270, 0)
+  qtyHeader:SetPoint("LEFT", itemHeader, "RIGHT", 390, 0)
 
   header:SetSize(width, 28)
 
   return block
 end
-
--- ############################################################
--- ## Main Tabbed Settings Panel
--- ############################################################
-function WarbandStorage.UI:CreateTabbedSettingsCategory()
-  -- Ensure functions exist before calling them
-  if WarbandStorage.MigrateLegacyIfNeeded then
-    WarbandStorage:MigrateLegacyIfNeeded()
-  end
-  WarbandStorage.ProfileManager:EnsureProfile(WarbandStockistDB.defaultProfile)
-
-  local panel = CreateFrame("Frame", "WarbandStockistOptionsPanel", UIParent, "BackdropTemplate")
-  panel:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 150, -50)
-  panel:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
-  -- panel:SetSize(220, 520)
-
-  WarbandStorage.FrameFactory:SetupDialogFrame(panel)
-
-  local contentWidth, contentHeight = 580, 360
-
-  -- Header elements
-  local title = panel:CreateFontString(nil, "ARTWORK", FONTS.SECTION)
-  title:SetPoint("TOPLEFT", panel, "TOPLEFT", 20, -20)
-  title:SetText(STRINGS.TITLE)
-  title:SetTextColor(0.9, 0.8, 0.4, 1)
-
-  local debugCheckbox = CreateFrame("CheckButton", nil, panel, "ChatConfigCheckButtonTemplate")
-  debugCheckbox:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -15)
-  debugCheckbox.Text:SetFontObject(FONTS.LABEL)
-  debugCheckbox.Text:SetText(STRINGS.DEBUG_LABEL)
-  debugCheckbox.Text:SetTextColor(0.8, 0.8, 0.8, 1)
-  debugCheckbox:SetScript("OnClick", function(self)
-    WarbandStockistDB.debugEnabled = self:GetChecked()
-    -- Use utils.lua DebugPrint function directly
-    WarbandStorage:DebugPrint("Debug logging " .. (self:GetChecked() and "enabled" or "disabled"))
-  end)
-  debugCheckbox:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.DEBUG_TOOLTIP, 1, 1, 1)
-    GameTooltip:Show()
-  end)
-  debugCheckbox:SetScript("OnLeave", GameTooltip_Hide)
-
-  local helpText = panel:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
-  helpText:SetPoint("TOPLEFT", debugCheckbox, "BOTTOMLEFT", 0, -10)
-  helpText:SetWidth(560)
-  helpText:SetJustifyH("LEFT")
-  helpText:SetText(STRINGS.HELP_TEXT)
-  helpText:SetTextColor(0.7, 0.7, 0.7, 1)
-
-  local depositToggle = CreateFrame("CheckButton", nil, panel, "ChatConfigCheckButtonTemplate")
-  depositToggle:SetPoint("TOPLEFT", helpText, "BOTTOMLEFT", 0, -15)
-  depositToggle.Text:SetFontObject(FONTS.LABEL)
-  depositToggle.Text:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT)
-  depositToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
-  depositToggle:SetScript("OnClick", function(self)
-    WarbandStorageCharData.enableExcessDeposit = self:GetChecked()
-  end)
-  depositToggle:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT_TOOLTIP, 1, 1, 1)
-    GameTooltip:Show()
-  end)
-  depositToggle:SetScript("OnLeave", GameTooltip_Hide)
-
-  -- Create tabs
-  local tabs = self:CreateTabs(panel, depositToggle, contentWidth, contentHeight)
-
-  -- Tab content - use consistent margins
-  self:CreateProfilesTabContent(tabs[1].content, contentWidth)
-  -- TODO alignment
-  self:CreateAssignmentsSection(tabs[2].content)
-  -- local assignmentsFrame =
-  -- assignmentsFrame:SetAllPoints(tabs[2].content)
-
-  -- Panel show handler
-  panel:SetScript("OnShow", function()
-    debugCheckbox:SetChecked(WarbandStockistDB.debugEnabled == true)
-    depositToggle:SetChecked(WarbandStorageCharData.enableExcessDeposit == true)
-    if WarbandStorage.RefreshProfileDropdown then
-      WarbandStorage.RefreshProfileDropdown()
-    end
-    if RefreshAssignmentsList then
-      RefreshAssignmentsList()
-    end
-    if RefreshItemList then
-      RefreshItemList()
-    end
-    self:SelectTab(tabs, 1)
-  end)
-
-  WarbandStorage.SettingsCategory = Settings.RegisterCanvasLayoutCategory(panel, STRINGS.SETTINGS_NAME)
-  Settings.RegisterAddOnCategory(WarbandStorage.SettingsCategory)
-  -- Cache ID for reliable lookups later
-  if WarbandStorage.SettingsCategory then
-    local id = WarbandStorage.SettingsCategory.ID or
-        (type(WarbandStorage.SettingsCategory.GetID) == "function" and WarbandStorage.SettingsCategory:GetID())
-    WarbandStorage.SettingsCategoryID = id
-  end
-end
-
--- ############################################################
--- ## Tab Creation
--- ############################################################
-function WarbandStorage.UI:CreateTabs(parent, anchor)
-  local tabButtonSize = { width = 140, height = 32 }
-  local tabs = {}
-  local tabNames = { "Profiles", "Assignments" }
-  local firstTab = nil
-
-  for i, name in ipairs(tabNames) do
-    local tab = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    tab:SetSize(tabButtonSize.width, tabButtonSize.height)
-    tab:SetBackdrop({
-      bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-      edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-      edgeSize = 8,
-      insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    tab:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", (i - 1) * 145, -25)
-    tab.label = tab:CreateFontString(nil, "OVERLAY", FONTS.TAB)
-    tab.label:SetText(name)
-    tab.label:SetPoint("CENTER", tab, "CENTER")
-    tab:EnableMouse(true)
-
-    -- Add hover effects
-    tab:SetScript("OnEnter", function(self)
-      if not self.isSelected then
-        self:SetBackdropColor(THEME_COLORS.TAB_HOVER[1], THEME_COLORS.TAB_HOVER[2], THEME_COLORS.TAB_HOVER[3],
-          THEME_COLORS.TAB_HOVER[4])
-      end
-    end)
-    tab:SetScript("OnLeave", function(self)
-      if not self.isSelected then
-        self:SetBackdropColor(THEME_COLORS.TAB_INACTIVE[1], THEME_COLORS.TAB_INACTIVE[2], THEME_COLORS.TAB_INACTIVE[3],
-          THEME_COLORS.TAB_INACTIVE[4])
-      end
-    end)
-    tab:SetScript("OnMouseDown", function()
-      for j, t in ipairs(tabs) do t.isSelected = (j == i) end
-      WarbandStorage.UI:SelectTab(tabs, i)
-    end)
-
-    firstTab = firstTab or tab
-
-    -- Content frame with better backdrop
-    tab.content = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    tab.content:SetPoint("TOPLEFT", firstTab, "BOTTOMLEFT", 0, -8)
-    tab.content:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -8, 8)
-    tab.content:SetBackdrop({
-      bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-      edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-      edgeSize = 8,
-      insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    tab.content:SetBackdropColor(THEME_COLORS.CONTENT_BG[1], THEME_COLORS.CONTENT_BG[2], THEME_COLORS.CONTENT_BG[3],
-      THEME_COLORS.CONTENT_BG[4])
-    tab.content:SetBackdropBorderColor(THEME_COLORS.BORDER[1], THEME_COLORS.BORDER[2], THEME_COLORS.BORDER[3],
-      THEME_COLORS.BORDER[4])
-    tab.content:SetFrameLevel(parent:GetFrameLevel() + 1)
-    tab.content:Hide()
-    tabs[i] = tab
-  end
-
-  return tabs
-end
-
--- ############################################################
--- ## Tab Selection
--- ############################################################
-function WarbandStorage.UI:SelectTab(tabs, idx)
-  for i, tab in ipairs(tabs) do
-    if i == idx then
-      tab:SetBackdropColor(THEME_COLORS.TAB_ACTIVE[1], THEME_COLORS.TAB_ACTIVE[2], THEME_COLORS.TAB_ACTIVE[3],
-        THEME_COLORS.TAB_ACTIVE[4])
-      tab:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
-      tab.label:SetTextColor(1, 1, 1, 1)
-      tab.content:Show()
-    else
-      tab:SetBackdropColor(THEME_COLORS.TAB_INACTIVE[1], THEME_COLORS.TAB_INACTIVE[2], THEME_COLORS.TAB_INACTIVE[3],
-        THEME_COLORS.TAB_INACTIVE[4])
-      tab:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
-      tab.label:SetTextColor(0.7, 0.7, 0.7, 1)
-      tab.content:Hide()
-    end
-  end
-end
-
--- Settings panel will be initialized later by the main addon

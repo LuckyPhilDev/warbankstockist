@@ -1,6 +1,0 @@
-commit 8d5baedc7a22a00ccb0053f20780e28b721eba21
-Author: Lucky Phil <jackclubs.dev@gmail.com>
-Date:   Sat Jun 28 21:11:55 2025 +0100
-
-    Initial commit
-
