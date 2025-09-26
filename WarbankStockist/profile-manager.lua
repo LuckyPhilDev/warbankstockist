@@ -29,10 +29,20 @@ function ProfileManager:GetActiveProfileName()
 end
 
 -- Get active profile data
-function ProfileManager:GetActiveProfile()
-  local profileName = self:GetActiveProfileName()
-  self:EnsureProfile(profileName)
-  return WarbandStockistDB.profiles[profileName], profileName
+-- Optionally resolve a specific profile name; otherwise prefer the 'edited' profile if available
+local function resolveProfileName(preferredName)
+  if preferredName and preferredName ~= "" then return preferredName end
+  if WarbandStorage and WarbandStorage.GetEditedProfileName then
+    local edited = WarbandStorage:GetEditedProfileName()
+    if edited and edited ~= "" then return edited end
+  end
+  return ProfileManager:GetActiveProfileName()
+end
+
+function ProfileManager:GetActiveProfile(profileName)
+  local name = resolveProfileName(profileName)
+  self:EnsureProfile(name)
+  return WarbandStockistDB.profiles[name], name
 end
 
 -- Set active profile for current character
@@ -161,12 +171,12 @@ end
 -- ############################################################
 
 -- Add item to current profile
-function ProfileManager:AddItemToProfile(itemID, quantity)
+function ProfileManager:AddItemToProfile(itemID, quantity, profileName)
   if not Utils:IsValidItemID(itemID) or not Utils:IsValidQuantity(quantity) then
     return false
   end
   
-  local profile = self:GetActiveProfile()
+  local profile = self:GetActiveProfile(profileName)
   profile.items[tonumber(itemID)] = tonumber(quantity)
   
   self:RefreshUI()
@@ -175,10 +185,10 @@ function ProfileManager:AddItemToProfile(itemID, quantity)
 end
 
 -- Remove item from current profile
-function ProfileManager:RemoveItemFromProfile(itemID)
+function ProfileManager:RemoveItemFromProfile(itemID, profileName)
   if not Utils:IsValidItemID(itemID) then return false end
   
-  local profile = self:GetActiveProfile()
+  local profile = self:GetActiveProfile(profileName)
   profile.items[tonumber(itemID)] = nil
   
   self:RefreshUI()
@@ -187,8 +197,8 @@ function ProfileManager:RemoveItemFromProfile(itemID)
 end
 
 -- Clear all items from current profile
-function ProfileManager:ClearProfileItems()
-  local profile = self:GetActiveProfile()
+function ProfileManager:ClearProfileItems(profileName)
+  local profile = self:GetActiveProfile(profileName)
   Utils:SafeWipe(profile.items)
   
   self:RefreshUI()
@@ -197,8 +207,8 @@ function ProfileManager:ClearProfileItems()
 end
 
 -- Get desired stock for current profile
-function ProfileManager:GetDesiredStock()
-  local profile = self:GetActiveProfile()
+function ProfileManager:GetDesiredStock(profileName)
+  local profile = self:GetActiveProfile(profileName)
   return profile.items or {}
 end
 

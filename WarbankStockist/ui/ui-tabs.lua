@@ -21,7 +21,12 @@ WarbandStorage.activeProfileDrop = nil
 -- ## Item List Management
 -- ############################################################
 function RefreshItemList()
-  local profile = WarbandStorage:GetActiveProfile()
+  local profile
+  if WarbandStorage.GetEditedProfile then
+    profile = WarbandStorage:GetEditedProfile()
+  else
+    profile = WarbandStorage:GetActiveProfile()
+  end
   local stock = profile.items
   for _, row in ipairs(WarbandStorage.scrollItems or {}) do row:Hide() end
   WarbandStorage.scrollItems = {}

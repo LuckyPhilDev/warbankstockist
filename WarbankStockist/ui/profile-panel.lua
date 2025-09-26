@@ -132,16 +132,21 @@ function WarbandStorage.UI:SetupProfileDialogs()
     maxLetters = 40,
     OnShow = function(self)
       local eb = PopupEditBox(self); if eb then
-        eb:SetText(WarbandStorage:GetActiveProfileName()); eb:HighlightText(); eb:SetFocus();
+        local base = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
+        eb:SetText(base); eb:HighlightText(); eb:SetFocus();
       end
     end,
     OnAccept = function(self)
       local eb = PopupEditBox(self)
       local newName = eb and eb:GetText() or nil
-      local oldName = WarbandStorage:GetActiveProfileName()
+      local oldName = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
       if WarbandStorage.Utils:ValidateProfileName(newName) and newName ~= oldName then
         WarbandStorage.ProfileManager:RenameProfile(oldName, newName)
-        WarbandStorage:SetActiveProfileForChar(newName)
+        if WarbandStorage.SetEditedProfileName then
+          WarbandStorage:SetEditedProfileName(newName)
+        else
+          WarbandStorage:SetActiveProfileForChar(newName)
+        end
       end
     end,
     timeout = 0,
@@ -163,14 +168,23 @@ function WarbandStorage.UI:SetupProfileButtons(newBtn, renameBtn, dupBtn, delBtn
   end)
 
   dupBtn:SetScript("OnClick", function()
-    local curName = WarbandStorage:GetActiveProfileName()
+    local curName = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
     local copyName = curName .. " Copy"
     WarbandStorage.ProfileManager:DuplicateProfile(curName, copyName)
-    WarbandStorage:SetActiveProfileForChar(copyName)
+    if WarbandStorage.SetEditedProfileName then
+      WarbandStorage:SetEditedProfileName(copyName)
+    else
+      WarbandStorage:SetActiveProfileForChar(copyName)
+    end
   end)
 
   delBtn:SetScript("OnClick", function()
-    local _, curName = WarbandStorage:GetActiveProfile()
+    local curProfile, curName
+    if WarbandStorage.GetEditedProfile then
+      curProfile, curName = WarbandStorage:GetEditedProfile()
+    else
+      curProfile, curName = WarbandStorage:GetActiveProfile()
+    end
     if curName == WarbandStockistDB.defaultProfile then
       UIErrorsFrame:AddMessage("Cannot delete the default profile.", 1, 0.2, 0.2)
       return
@@ -188,7 +202,11 @@ function WarbandStorage.UI:SetupProfileButtons(newBtn, renameBtn, dupBtn, delBtn
           end
         end
         WarbandStorage.RefreshProfileDropdown()
-        WarbandStorage:SetActiveProfileForChar(WarbandStockistDB.defaultProfile)
+        if WarbandStorage.SetEditedProfileName then
+          WarbandStorage:SetEditedProfileName(WarbandStockistDB.defaultProfile)
+        else
+          WarbandStorage:SetActiveProfileForChar(WarbandStockistDB.defaultProfile)
+        end
       end,
       timeout = 0,
       whileDead = true,
@@ -269,7 +287,8 @@ function WarbandStorage.UI:InputSection(parent, width, height)
     local itemID = tonumber(itemInput:GetText())
     local qty = tonumber(qtyInput:GetText())
     if WarbandStorage.Utils:ValidateItemInput(itemID, qty) then
-      WarbandStorage.ProfileManager:AddItemToProfile(itemID, qty)
+      local pname = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
+      WarbandStorage.ProfileManager:AddItemToProfile(itemID, qty, pname)
       itemInput:SetText("")
       qtyInput:SetText("")
       WarbandStorage.ProfileManager:RefreshUI()
@@ -279,7 +298,8 @@ function WarbandStorage.UI:InputSection(parent, width, height)
   end)
 
   clearButton:SetScript("OnClick", function()
-    WarbandStorage.ProfileManager:ClearProfileItems()
+    local pname = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
+    WarbandStorage.ProfileManager:ClearProfileItems(pname)
   end)
 
   return block

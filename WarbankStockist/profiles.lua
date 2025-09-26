@@ -8,6 +8,10 @@
 -- Ensure WarbandStorage namespace exists
 WarbandStorage = WarbandStorage or {}
 
+-- Track which profile is currently being edited in the Profiles tab (independent from assignment)
+WarbandStockistDB = WarbandStockistDB or {}
+WarbandStockistDB.lastEditedProfile = WarbandStockistDB.lastEditedProfile or nil
+
 -- ############################################################
 -- ## Small helpers / compat
 -- ############################################################
@@ -21,8 +25,6 @@ local function DebugPrint(msg)
     print("|cff7fd5ff[Warband Stockist]|r " .. tostring(msg))
   end
 end
-
-function WarbandStorage:DebugPrint(msg) DebugPrint(msg) end
 
 local function EnsureProfile(name)
   if not name or name == "" then name = WarbandStockistDB.defaultProfile end
@@ -41,18 +43,7 @@ local function ActiveProfile()
   return WarbandStockistDB.profiles[pname], pname
 end
 
--- ############################################################
--- ## Public API used by other files
--- ############################################################
-function WarbandStorage:GetDesiredStock()
-  local profile = ActiveProfile()
-  return profile.items
-end
-
-function WarbandStorage:IsItemOverridden(_)
-  -- Profiles have single source of truth; no override highlighting.
-  return false
-end
+-- Note: Public API like DebugPrint/GetDesiredStock/IsItemOverridden are defined in other modules.
 
 -- ############################################################
 -- ## Profile Management Functions
@@ -100,6 +91,32 @@ function WarbandStorage:SetActiveProfileForChar(profileName)
   if RefreshItemList then RefreshItemList() end
   if WarbandStorage.RefreshProfileDropdown then WarbandStorage.RefreshProfileDropdown() end
   if RefreshAssignmentsList then RefreshAssignmentsList() end
+end
+
+-- ############################################################
+-- ## Edited Profile (Profiles Tab) — Independent of Assignment
+-- ############################################################
+function WarbandStorage:GetEditedProfileName()
+  local name = WarbandStockistDB.lastEditedProfile
+  if not name or name == "" or not WarbandStockistDB.profiles[name] then
+    return ActiveProfileName()
+  end
+  return name
+end
+
+function WarbandStorage:SetEditedProfileName(name)
+  if not name or name == "" then return end
+  EnsureProfile(name)
+  WarbandStockistDB.lastEditedProfile = name
+  -- Do not change character assignment here; only refresh editor UI
+  if WarbandStorage.RefreshProfileDropdown then WarbandStorage.RefreshProfileDropdown() end
+  if RefreshItemList then RefreshItemList() end
+end
+
+function WarbandStorage:GetEditedProfile()
+  local pname = self:GetEditedProfileName()
+  EnsureProfile(pname)
+  return WarbandStockistDB.profiles[pname], pname
 end
 
 -- ############################################################

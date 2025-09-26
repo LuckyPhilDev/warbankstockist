@@ -83,14 +83,20 @@ function WarbandStorage.UI:CreateDropdown(parent, width)
       for _,name in ipairs(WarbandStorage:GetAllProfileNames()) do
         info.text = name
         info.func = function()
-          WarbandStorage:SetActiveProfileForChar(name)
+          if WarbandStorage.SetEditedProfileName then
+            WarbandStorage:SetEditedProfileName(name)
+          else
+            WarbandStorage:SetActiveProfileForChar(name)
+          end
           UIDropDownMenu_SetText(dd, name)
         end
-        info.checked = (name == WarbandStorage:GetActiveProfileName())
+        local current = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
+        info.checked = (name == current)
         UIDropDownMenu_AddButton(info, level)
       end
     end)
-    UIDropDownMenu_SetText(self, WarbandStorage:GetActiveProfileName())
+    local current = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
+    UIDropDownMenu_SetText(self, current)
   end
   
   dd:Refresh()

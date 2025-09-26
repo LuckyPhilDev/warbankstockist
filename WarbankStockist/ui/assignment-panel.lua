@@ -106,12 +106,7 @@ function RefreshAssignmentsList()
             UIDropDownMenu_SetText(dd, pname)
             if ck == WarbandStorage:GetCharacterKey() then
               RefreshItemList()
-              if WarbandStorage.activeProfileDrop then
-                UIDropDownMenu_SetText(WarbandStorage.activeProfileDrop, pname)
-                if WarbandStorage.activeProfileDrop.Refresh then
-                  WarbandStorage.activeProfileDrop:Refresh()
-                end
-              end
+              -- Do not change the Profiles tab editor dropdown here; editing is independent
             end
           end
           info.checked = (pname == (WarbandStockistDB.assignments[ck] or WarbandStockistDB.defaultProfile))
