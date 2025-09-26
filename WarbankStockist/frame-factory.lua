@@ -6,6 +6,7 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.FrameFactory = WarbandStorage.FrameFactory or {}
 
 local FrameFactory = WarbandStorage.FrameFactory
+local FONTS = WarbandStorage.Theme.FONTS
 
 -- ############################################################
 -- ## Frame Creation Utilities
@@ -19,14 +20,14 @@ local BACKDROP_CONFIGS = {
     edgeSize = 16,
     insets = { left = 8, right = 8, top = 8, bottom = 8 }
   },
-  
+
   panel = {
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
     edgeSize = 8,
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
   },
-  
+
   content = {
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -38,25 +39,25 @@ local BACKDROP_CONFIGS = {
 -- Apply theme colors safely
 local function ApplyThemeColors(frame, colorType, borderType)
   if not frame then return end
-  
+
   -- Safely access theme colors
   local colors = WarbandStorage and WarbandStorage.Theme and WarbandStorage.Theme.COLORS
-  if not colors then 
+  if not colors then
     -- Fallback colors if theme not loaded
     colors = {
-      BACKGROUND = {0.1, 0.1, 0.1, 0.9},
-      CONTENT_BG = {0.05, 0.05, 0.05, 0.8},
-      BORDER = {0.4, 0.4, 0.4, 1.0}
+      BACKGROUND = { 0.1, 0.1, 0.1, 0.9 },
+      CONTENT_BG = { 0.05, 0.05, 0.05, 0.8 },
+      BORDER = { 0.4, 0.4, 0.4, 1.0 }
     }
   end
-  
+
   local bgColor = colors[colorType] or colors["CONTENT_BG"]
   local borderColor = colors[borderType or "BORDER"] or colors["BORDER"]
-  
+
   if bgColor and #bgColor >= 4 then
     frame:SetBackdropColor(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
   end
-  
+
   if borderColor and #borderColor >= 4 then
     frame:SetBackdropBorderColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
   end
@@ -66,19 +67,19 @@ end
 function FrameFactory:CreateStyledFrame(parent, frameType, width, height, colorType)
   frameType = frameType or "panel"
   colorType = colorType or "CONTENT_BG"
-  
+
   local frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-  
+
   if width and height then
     frame:SetSize(width, height)
   end
-  
+
   local backdrop = BACKDROP_CONFIGS[frameType]
   if backdrop then
     frame:SetBackdrop(backdrop)
     ApplyThemeColors(frame, colorType)
   end
-  
+
   return frame
 end
 
@@ -94,7 +95,7 @@ end
 -- Apply theme colors and backdrop to existing frame
 function FrameFactory:SetupDialogFrame(frame)
   if not frame then return end
-  
+
   frame:SetBackdrop(BACKDROP_CONFIGS.dialog)
   ApplyThemeColors(frame, "BACKGROUND")
 end
@@ -105,17 +106,50 @@ function FrameFactory:CreateContentPanel(parent, width, height)
 end
 
 -- Create section header
-function FrameFactory:CreateSectionHeader(parent, text, anchor, offsetX, offsetY)
+function CreateSectionHeader(parent, text)
   local header = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
   header:SetText(text or "")
   header:SetTextColor(0.9, 0.8, 0.4, 1)
-  
-  if anchor then
-    header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", offsetX or 0, offsetY or -10)
-  end
-  
   return header
 end
+
+-- Create subheading Text header
+function CreateSubheadingText(parent, text)
+  local label = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  label:SetText(text or "")
+  label:SetTextColor(0.9, 0.8, 0.4, 1)
+  return label
+end
+
+-- Create default Text header
+function CreateDefaultText(parent, text)
+  local label = parent:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
+  label:SetText(text or "")
+  label:SetTextColor(0.8, 0.8, 0.8, 1)
+  return label
+end
+
+function CreateButton(parent, text, width, height)
+  local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+  button:SetSize(width or 75, height or 22)
+  button:SetText(text or "")
+  return button
+end
+
+function CreateNumericEditText(parent, hoverText, width, height)
+  local input = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+  input:SetSize(width or 100, height or 22)
+  input:SetAutoFocus(false)
+  input:SetNumeric(true)
+  input:SetScript("OnEnter", function(self) 
+    GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
+    GameTooltip:SetText(hoverText, 1,1,1)
+    GameTooltip:Show() 
+  end)
+  input:SetScript("OnLeave", GameTooltip_Hide)
+  return input
+end
+
 
 -- Apply theme colors to existing frame (public method)
 function FrameFactory:ApplyThemeColors(frame, colorType, borderType)
@@ -136,11 +170,11 @@ function FrameFactory:CreateTabFrame(parent, width, height, isActive)
   tab:SetSize(width or 140, height or 32)
   tab:SetBackdrop(BACKDROP_CONFIGS.panel)
   tab:EnableMouse(true)
-  
+
   -- Apply initial colors based on state
   local colorType = isActive and "TAB_ACTIVE" or "TAB_INACTIVE"
   ApplyThemeColors(tab, colorType)
-  
+
   return tab
 end
 
@@ -152,13 +186,13 @@ end
 function FrameFactory:SetupTabHoverEffects(tab)
   local colors = WarbandStorage.Theme and WarbandStorage.Theme.COLORS
   if not colors then return end
-  
+
   tab:SetScript("OnEnter", function(self)
     if not self.isSelected then
       ApplyThemeColors(self, "TAB_HOVER")
     end
   end)
-  
+
   tab:SetScript("OnLeave", function(self)
     if not self.isSelected then
       ApplyThemeColors(self, "TAB_INACTIVE")
@@ -175,7 +209,7 @@ function FrameFactory:SetupTooltip(frame, text, anchor)
       GameTooltip:Show()
     end
   end)
-  
+
   frame:SetScript("OnLeave", function()
     GameTooltip_Hide()
   end)

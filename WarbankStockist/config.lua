@@ -23,6 +23,8 @@ WarbandStockistDB = WarbandStockistDB or {
   profiles = {},
   assignments = {},
   characterClasses = {}, -- Store character class info for proper coloring
+  -- Development helpers (safe to leave false in release)
+  devOpenOnLogin = false,
 }
 
 -- Per-character scratch (kept for any other modules that still read it)

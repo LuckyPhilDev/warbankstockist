@@ -198,52 +198,51 @@ end
 -- ############################################################
 -- ## Assignments Tab Content
 -- ############################################################
-function WarbandStorage.UI:CreateAssignmentsSection(parent, anchor)
+function WarbandStorage.UI:CreateAssignmentsSection(parent)
+  
+  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", 560, 100)
+  block:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", 0, 0)
+
+  local vPadding = -15
   -- Create section title properly positioned within the parent
-  local title = parent:CreateFontString(nil, "OVERLAY", FONTS.SECTION)
-  title:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -15)
+  local title = block:CreateFontString(nil, "OVERLAY", FONTS.SECTION)
+  title:SetPoint("TOPLEFT", block, "TOPLEFT", 10, vPadding)
   title:SetText(STRINGS.SECTION_ASSIGNMENTS)
   title:SetTextColor(0.9, 0.8, 0.4, 1)
 
   -- Create scroll container for assignments positioned below title
-  local scrollContainer, scrollFrame, scrollChild = self:CreateScrollContainer(parent, title, 560, 280)
+  local scrollContainer, scrollChild = self:CreateScrollContainer(block, title, 560, 280)
   scrollContainer:ClearAllPoints()
-  scrollContainer:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 10, -10)
+  scrollContainer:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 10, -30)
   scrollChild:SetSize(520, 1)
   WarbandStorage.assignParent = scrollChild
 
   RefreshAssignmentsList()
-  return scrollContainer
+  return block
 end
 
 -- ############################################################
 -- ## Profiles Tab Content
 -- ############################################################
-function WarbandStorage.UI:CreateProfilesTabContent(tabContent, contentWidth)
+function WarbandStorage.UI:CreateProfilesTabContent(parent, contentWidth)
   local margin = 10
   local sectionSpacing = -15
+  local width = 560
   
   -- Profile controls at top
-  local profileBlock = self:CreateProfileControls(tabContent, tabContent)
-  profileBlock:SetPoint("TOPLEFT", tabContent, "TOPLEFT", margin, sectionSpacing)
+  local profileBlock = self:ProfileControls(parent, width, 80) -- TODO figure out how to dynamically size height.
   
   -- Input row for adding items - aligned with profile block
-  local itemInput, qtyInput = self:CreateInputRow(tabContent, profileBlock)
-  itemInput:ClearAllPoints()
+  local itemInput = self:InputSection(parent, width, 80)
   itemInput:SetPoint("TOPLEFT", profileBlock, "BOTTOMLEFT", 0, sectionSpacing)
   
-  -- Tracked items section - aligned with other sections
-  local sectionTitle = tabContent:CreateFontString(nil, "OVERLAY", FONTS.SECTION)
-  sectionTitle:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
-  sectionTitle:SetText(STRINGS.SECTION_TRACKED)
-  sectionTitle:SetTextColor(0.9, 0.8, 0.4, 1)
-  
-  local header = self:CreateTrackedItemsHeader(tabContent, itemInput)
+  local header = self:CreateTrackedItemsHeader(parent, width, 40)
+  header:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
   
   -- Create scroll container for tracked items - aligned properly
-  local scrollContainer, scrollFrame, scrollChild = self:CreateScrollContainer(tabContent, sectionTitle, contentWidth-20, 130)
+  local scrollContainer, scrollFrame, scrollChild = self:CreateScrollContainer(parent, header, contentWidth-20, 130)
   scrollContainer:ClearAllPoints()
-  scrollContainer:SetPoint("TOPLEFT", sectionTitle, "BOTTOMLEFT", 0, sectionSpacing)
+  scrollContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0) -- TODO Temporary offset, will be adjusted
   WarbandStorage.scrollParent = scrollChild
   
   return profileBlock

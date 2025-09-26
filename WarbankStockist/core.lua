@@ -41,6 +41,19 @@ function WarbandStorage:OnEvent(event, ...)
         
         WarbandStorage:DebugPrint("WarbandStorage loaded!")
         
+            -- Development helper: optionally open settings on login
+            if WarbandStockistDB and WarbandStockistDB.devOpenOnLogin then
+                if C_Timer and C_Timer.After then
+                    C_Timer.After(0.2, function()
+                        if WarbandStorage.OpenSettings then
+                            WarbandStorage:OpenSettings()
+                        end
+                    end)
+                else
+                    if WarbandStorage.OpenSettings then WarbandStorage:OpenSettings() end
+                end
+            end
+        
     elseif event == "BANKFRAME_OPENED" then
         WarbandStorage:DebugPrint("Bank Opened")
         WarbandStorage:CheckAndWithdrawItemsFromWarbank()
@@ -133,6 +146,19 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
     msg = type(msg) == "string" and msg:match("^%s*(.-)%s*$") or msg
     if msg and msg:lower():find("^settings") then
         WarbandStorage:OpenSettings()
+        return
+    end
+
+    -- Dev helper: /wbs devopen [on|off|toggle]
+    if msg and msg:lower():find("^devopen") then
+        local arg = msg:match("^devopen%s+(%S+)%s*")
+        local current = (WarbandStockistDB and WarbandStockistDB.devOpenOnLogin) and true or false
+        if arg then arg = arg:lower() end
+        if arg == "on" then current = true
+        elseif arg == "off" then current = false
+        else current = not current end
+        WarbandStockistDB.devOpenOnLogin = current
+        print(string.format("|cff7fd5ff[Warband Stockist]|r devOpenOnLogin: %s", tostring(current)))
         return
     end
 
