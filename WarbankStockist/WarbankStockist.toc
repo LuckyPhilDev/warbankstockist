@@ -17,6 +17,7 @@ ui/ui-row.lua
 ui/ui-components.lua
 ui/ui-tabs.lua
 ui/profile-panel.lua
+ui/assignment-panel.lua
 ui/settings-panel.lua
 inventory.lua
 bank.lua

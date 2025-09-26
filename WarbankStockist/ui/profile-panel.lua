@@ -47,7 +47,6 @@ end
 -- ############################################################
 function WarbandStorage.UI:ProfileControls(parent, width)
   local vertPadding, horzPadding = 10, 10
-  -- local horzPadding = 10
   local vertSpacing = 10
   local buttonSpacing = 5
   local buttonHeight = 22
