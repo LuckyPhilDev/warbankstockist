@@ -256,8 +256,13 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
     self:SelectTab(tabs, 1)
   end)
 
-  local category = Settings.RegisterCanvasLayoutCategory(panel, STRINGS.SETTINGS_NAME)
-  Settings.RegisterAddOnCategory(category)
+  WarbandStorage.SettingsCategory = Settings.RegisterCanvasLayoutCategory(panel, STRINGS.SETTINGS_NAME)
+  Settings.RegisterAddOnCategory(WarbandStorage.SettingsCategory)
+  -- Cache ID for reliable lookups later
+  if WarbandStorage.SettingsCategory then
+    local id = WarbandStorage.SettingsCategory.ID or (type(WarbandStorage.SettingsCategory.GetID) == "function" and WarbandStorage.SettingsCategory:GetID())
+    WarbandStorage.SettingsCategoryID = id
+  end
 end
 
 -- ############################################################
