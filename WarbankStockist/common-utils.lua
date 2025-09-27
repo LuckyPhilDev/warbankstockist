@@ -41,6 +41,53 @@ function Utils:ValidateItemInput(itemID, quantity)
   return self:IsValidItemID(itemID) and self:IsValidQuantity(quantity)
 end
 
+-- Optional second arg excludeName allows an existing profile with that name (for rename flow)
+-- Returns: boolean isValid, string trimmedName (when valid)
+function Utils:ValidateProfileName(name, excludeName)
+  -- Helper to show an error in the UI (fallback to print)
+  local function showError(msg)
+    if UIErrorsFrame and UIErrorsFrame.AddMessage then
+      UIErrorsFrame:AddMessage(msg, 1, 0.2, 0.2)
+    else
+      print(tostring(msg))
+    end
+  end
+
+  if type(name) ~= "string" then
+    showError("Please enter a profile name.")
+    return false
+  end
+
+  -- Trim whitespace
+  local trimmed = name:match("^%s*(.-)%s*$") or ""
+  if trimmed == "" then
+    showError("Profile name cannot be empty.")
+    return false
+  end
+
+  -- Enforce a reasonable length (dialogs use maxLetters = 40)
+  if #trimmed > 40 then
+    showError("Profile name is too long (max 40 characters).")
+    return false
+  end
+
+  -- Disallow control characters
+  if trimmed:find("[%z\1-\31]") then
+    showError("Profile name contains invalid characters.")
+    return false
+  end
+
+  -- Require uniqueness against existing profiles (except excluded name)
+  if WarbandStockistDB and WarbandStockistDB.profiles and WarbandStockistDB.profiles[trimmed] then
+    if not excludeName or trimmed ~= excludeName then
+      showError(("A profile named '%s' already exists."):format(trimmed))
+      return false
+    end
+  end
+
+  return true, trimmed
+end
+
 -- ############################################################
 -- ## Text Utilities
 -- ############################################################

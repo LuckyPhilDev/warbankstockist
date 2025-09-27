@@ -1,9 +1,8 @@
-
 -- Ensure namespace and SavedVariables
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Get theme references
+-- Get theme referencess
 local THEME_COLORS = WarbandStorage.Theme.COLORS
 local FONTS = WarbandStorage.Theme.FONTS
 local STRINGS = WarbandStorage.Theme.STRINGS
@@ -95,28 +94,37 @@ end
 -- ############################################################
 function WarbandStorage.UI:SetupProfileDialogs()
   -- Helper to read the popup edit box across game versions
-  local function PopupEditBox(self)
-    return (self and (self.editBox or self.EditBox or _G[self:GetName() .. "EditBox"]))
+  local function GetPopupEditText(frame)
+    local eb = frame and (frame.editBox or frame.EditBox or (frame.GetName and _G[frame:GetName() .. "EditBox"]))
+    return eb and eb:GetText() or nil
   end
 
-  StaticPopupDialogs["WBSTOCKIST_NEW_PROFILE"] = StaticPopupDialogs["WBSTOCKIST_NEW_PROFILE"] or {
+  -- New profile
+  StaticPopupDialogs["WBSTOCKIST_NEW_PROFILE"] = {
     text = "Enter new profile name:",
     button1 = OKAY,
     button2 = CANCEL,
     hasEditBox = true,
     maxLetters = 40,
     OnShow = function(self)
-      local eb = PopupEditBox(self); if eb then
-        eb:SetText("")
-        eb:SetFocus()
-      end
+      local eb = self.editBox or self.EditBox or (self.GetName and _G[self:GetName() .. "EditBox"])
+      if eb then eb:SetText(""); eb:SetFocus() end
+    end,
+    EditBoxOnEnterPressed = function(editBox)
+      local parent = editBox and editBox:GetParent()
+      if parent and parent.button1 then parent.button1:Click() end
     end,
     OnAccept = function(self)
-      local eb = PopupEditBox(self)
-      local name = eb and eb:GetText() or nil
-      if WarbandStorage.Utils:ValidateProfileName(name) then
-        WarbandStorage.ProfileManager:CreateProfile(name)
-        WarbandStorage:SetActiveProfileForChar(name)
+      local name = GetPopupEditText(self)
+      local ok, cleaned = WarbandStorage.Utils:ValidateProfileName(name)
+      if ok then
+        -- Create profile without changing assignments; select it for editing in the Profiles tab
+        if WarbandStorage.ProfileManager.CreateProfile then
+          WarbandStorage.ProfileManager:CreateProfile(cleaned)
+        end
+        if WarbandStorage.SetEditedProfileName then
+          WarbandStorage:SetEditedProfileName(cleaned)
+        end
       end
     end,
     timeout = 0,
@@ -124,30 +132,53 @@ function WarbandStorage.UI:SetupProfileDialogs()
     hideOnEscape = true,
   }
 
-  StaticPopupDialogs["WBSTOCKIST_RENAME_PROFILE"] = StaticPopupDialogs["WBSTOCKIST_RENAME_PROFILE"] or {
+  -- Rename profile
+  StaticPopupDialogs["WBSTOCKIST_RENAME_PROFILE"] = {
     text = "Rename profile:",
     button1 = OKAY,
     button2 = CANCEL,
     hasEditBox = true,
     maxLetters = 40,
     OnShow = function(self)
-      local eb = PopupEditBox(self); if eb then
+      local eb = self.editBox or self.EditBox or (self.GetName and _G[self:GetName() .. "EditBox"])
+      if eb then
         local base = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
-        eb:SetText(base); eb:HighlightText(); eb:SetFocus();
+        eb:SetText(base); eb:HighlightText(); eb:SetFocus()
       end
     end,
+    EditBoxOnEnterPressed = function(editBox)
+      local parent = editBox and editBox:GetParent()
+      if parent and parent.button1 then parent.button1:Click() end
+    end,
     OnAccept = function(self)
-      local eb = PopupEditBox(self)
-      local newName = eb and eb:GetText() or nil
+      local newName = GetPopupEditText(self)
       local oldName = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
-      if WarbandStorage.Utils:ValidateProfileName(newName) and newName ~= oldName then
-        WarbandStorage.ProfileManager:RenameProfile(oldName, newName)
+      local ok, cleaned = WarbandStorage.Utils:ValidateProfileName(newName, oldName)
+      if ok and cleaned ~= oldName then
+        WarbandStorage.ProfileManager:RenameProfile(oldName, cleaned)
         if WarbandStorage.SetEditedProfileName then
-          WarbandStorage:SetEditedProfileName(newName)
+          WarbandStorage:SetEditedProfileName(cleaned)
         else
-          WarbandStorage:SetActiveProfileForChar(newName)
+          WarbandStorage:SetActiveProfileForChar(cleaned)
         end
+        if WarbandStorage.RefreshProfileDropdown then WarbandStorage.RefreshProfileDropdown() end
+        if WarbandStorage.ProfileManager.RefreshUI then WarbandStorage.ProfileManager:RefreshUI() end
       end
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+  }
+
+  -- Confirm clearing all tracked items
+  StaticPopupDialogs["WBSTOCKIST_CLEAR_PROFILE_ITEMS"] = StaticPopupDialogs["WBSTOCKIST_CLEAR_PROFILE_ITEMS"] or {
+    text = "Clear all tracked items for profile '%s'?",
+    button1 = OKAY,
+    button2 = CANCEL,
+    OnAccept = function()
+      local pname = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
+      WarbandStorage.ProfileManager:ClearProfileItems(pname)
+      if WarbandStorage.ProfileManager.RefreshUI then WarbandStorage.ProfileManager:RefreshUI() end
     end,
     timeout = 0,
     whileDead = true,
@@ -299,7 +330,7 @@ function WarbandStorage.UI:InputSection(parent, width, height)
 
   clearButton:SetScript("OnClick", function()
     local pname = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
-    WarbandStorage.ProfileManager:ClearProfileItems(pname)
+    StaticPopup_Show("WBSTOCKIST_CLEAR_PROFILE_ITEMS", pname)
   end)
 
   return block

@@ -64,8 +64,8 @@ function ProfileManager:CreateProfile(name)
   if not Utils:IsValidValue(name) then return false end
   
   local _, profile = self:EnsureProfile(name)
-  self:SetActiveProfileForChar(name)
-  
+  -- Do not change character assignments here. Creation should be side-effect free.
+  self:RefreshUI()
   Utils:DebugPrint("Created new profile: " .. name)
   return true
 end
