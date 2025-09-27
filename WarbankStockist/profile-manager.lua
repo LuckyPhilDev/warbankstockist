@@ -14,9 +14,7 @@ local Utils = WarbandStorage.Utils
 
 -- Ensure a profile exists with given name
 function ProfileManager:EnsureProfile(name)
-  if not Utils:IsValidValue(name) then 
-    name = WarbandStockistDB.defaultProfile 
-  end
+  if not Utils:IsValidValue(name) then return nil, nil end
   
   WarbandStockistDB.profiles[name] = WarbandStockistDB.profiles[name] or { items = {} }
   return name, WarbandStockistDB.profiles[name]
@@ -25,7 +23,7 @@ end
 -- Get active profile name for current character
 function ProfileManager:GetActiveProfileName()
   local charKey = Utils:GetCharacterKey()
-  return WarbandStockistDB.assignments[charKey] or WarbandStockistDB.defaultProfile
+  return WarbandStockistDB.assignments[charKey]
 end
 
 -- Get active profile data
@@ -42,7 +40,7 @@ end
 function ProfileManager:GetActiveProfile(profileName)
   local name = resolveProfileName(profileName)
   self:EnsureProfile(name)
-  return WarbandStockistDB.profiles[name], name
+  return WarbandStockistDB.profiles[name] or { items = {} }, name
 end
 
 -- Set active profile for current character
@@ -88,11 +86,6 @@ function ProfileManager:RenameProfile(oldName, newName)
   -- Delete old profile
   WarbandStockistDB.profiles[oldName] = nil
   
-  -- Update default profile if needed
-  if WarbandStockistDB.defaultProfile == oldName then
-    WarbandStockistDB.defaultProfile = newName
-  end
-  
   -- Update character assignments
   for charKey, assignedProfile in pairs(WarbandStockistDB.assignments) do
     if assignedProfile == oldName then
@@ -116,6 +109,7 @@ function ProfileManager:DuplicateProfile(sourceName, newName)
   
   -- Create new profile
   local _, newProfile = self:EnsureProfile(newName)
+  if not newProfile then return false end
   Utils:SafeWipe(newProfile.items)
   
   -- Copy items from source
@@ -123,7 +117,8 @@ function ProfileManager:DuplicateProfile(sourceName, newName)
     newProfile.items[itemID] = quantity
   end
   
-  self:SetActiveProfileForChar(newName)
+  -- Do not change assignments on duplicate; just refresh UI
+  self:RefreshUI()
   Utils:DebugPrint("Duplicated profile '" .. sourceName .. "' as '" .. newName .. "'")
   return true
 end
@@ -132,22 +127,20 @@ end
 function ProfileManager:DeleteProfile(name)
   if not Utils:IsValidValue(name) then return false end
   
-  -- Cannot delete default profile
-  if name == WarbandStockistDB.defaultProfile then
-    Utils:DebugPrint("Cannot delete the default profile")
-    return false
-  end
-  
   -- Check if profile exists
   if not WarbandStockistDB.profiles[name] then return false end
   
   -- Delete the profile
   WarbandStockistDB.profiles[name] = nil
+  -- If this was the legacy migrated global profile, prevent re-migration
+  if name == "Global (Migrated)" then
+    WarbandStockistDB.migratedLegacyGlobal = true
+  end
   
-  -- Reassign characters using this profile to default
+  -- Reassign characters using this profile to Unassigned (nil)
   for charKey, assignedProfile in pairs(WarbandStockistDB.assignments) do
     if assignedProfile == name then
-      WarbandStockistDB.assignments[charKey] = WarbandStockistDB.defaultProfile
+      WarbandStockistDB.assignments[charKey] = nil
     end
   end
   
@@ -219,25 +212,23 @@ end
 -- Get all character keys that have assignments
 function ProfileManager:GetAllCharacterKeys()
   local keys = {}
+  local seen = {}
   
   -- Add assigned characters
-  for charKey in pairs(WarbandStockistDB.assignments) do
-    table.insert(keys, charKey)
+  for charKey in pairs(WarbandStockistDB.assignments or {}) do
+    if charKey and not seen[charKey] then table.insert(keys, charKey); seen[charKey] = true end
+  end
+  
+  -- Add known characters from stored classes
+  if WarbandStockistDB.characterClasses then
+    for charKey,_ in pairs(WarbandStockistDB.characterClasses) do
+      if charKey and not seen[charKey] then table.insert(keys, charKey); seen[charKey] = true end
+    end
   end
   
   -- Ensure current character is included
   local currentChar = Utils:GetCharacterKey()
-  local found = false
-  for _, key in ipairs(keys) do
-    if key == currentChar then
-      found = true
-      break
-    end
-  end
-  
-  if not found then
-    table.insert(keys, currentChar)
-  end
+  if currentChar and not seen[currentChar] then table.insert(keys, currentChar); seen[currentChar] = true end
   
   table.sort(keys)
   return keys

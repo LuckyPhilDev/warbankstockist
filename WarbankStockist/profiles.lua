@@ -11,6 +11,9 @@ WarbandStorage = WarbandStorage or {}
 -- Track which profile is currently being edited in the Profiles tab (independent from assignment)
 WarbandStockistDB = WarbandStockistDB or {}
 WarbandStockistDB.lastEditedProfile = WarbandStockistDB.lastEditedProfile or nil
+-- Persistent flags to ensure legacy migration runs only once
+WarbandStockistDB.migratedLegacyGlobal = WarbandStockistDB.migratedLegacyGlobal or false
+WarbandStockistDB.migratedLegacyChar = WarbandStockistDB.migratedLegacyChar or {}
 
 -- ############################################################
 -- ## Small helpers / compat
@@ -27,18 +30,21 @@ local function DebugPrint(msg)
 end
 
 local function EnsureProfile(name)
-  if not name or name == "" then name = WarbandStockistDB.defaultProfile end
+  if not name or name == "" then return nil, nil end
   WarbandStockistDB.profiles[name] = WarbandStockistDB.profiles[name] or { items = {} }
   return name, WarbandStockistDB.profiles[name]
 end
 
 local function ActiveProfileName()
-  local assigned = WarbandStockistDB.assignments[CharKey()]
-  return assigned or WarbandStockistDB.defaultProfile
+  -- No default fallback: unassigned by default
+  return WarbandStockistDB.assignments[CharKey()]
 end
 
 local function ActiveProfile()
   local pname = ActiveProfileName()
+  if not pname or pname == "" then
+    return { items = {} }, nil
+  end
   EnsureProfile(pname)
   return WarbandStockistDB.profiles[pname], pname
 end
@@ -73,12 +79,20 @@ end
 
 function WarbandStorage:GetAllCharacterKeys()
   local keys = {}
-  for ck,_ in pairs(WarbandStockistDB.assignments) do table.insert(keys, ck) end
-  -- ensure current char shows even if not assigned
+  local seen = {}
+  -- Add assigned characters
+  for ck,_ in pairs(WarbandStockistDB.assignments or {}) do
+    if ck and not seen[ck] then table.insert(keys, ck); seen[ck] = true end
+  end
+  -- Add any known characters from stored classes (seen across sessions)
+  if WarbandStockistDB.characterClasses then
+    for ck,_ in pairs(WarbandStockistDB.characterClasses) do
+      if ck and not seen[ck] then table.insert(keys, ck); seen[ck] = true end
+    end
+  end
+  -- Ensure current character is always present
   local me = CharKey()
-  local found
-  for _,k in ipairs(keys) do if k == me then found = true break end end
-  if not found then table.insert(keys, me) end
+  if me and not seen[me] then table.insert(keys, me); seen[me] = true end
   table.sort(keys)
   return keys
 end
@@ -115,6 +129,9 @@ end
 
 function WarbandStorage:GetEditedProfile()
   local pname = self:GetEditedProfileName()
+  if not pname or pname == "" then
+    return { items = {} }, nil
+  end
   EnsureProfile(pname)
   return WarbandStockistDB.profiles[pname], pname
 end
@@ -122,13 +139,24 @@ end
 -- ############################################################
 -- ## Legacy migration (from global/character list mode)
 -- ############################################################
-local didMigrate
 function WarbandStorage:MigrateLegacyIfNeeded()
-  if didMigrate then return end
-  didMigrate = true
+  -- Run at most once per session, and only if not already persisted
+  if self._didMigrateOnce then return end
+  self._didMigrateOnce = true
+
+  -- Defensive initialization in case saved vars aren’t fully populated yet
+  WarbandStockistDB = WarbandStockistDB or {}
+  WarbandStockistDB.profiles = WarbandStockistDB.profiles or {}
+  WarbandStockistDB.assignments = WarbandStockistDB.assignments or {}
+  WarbandStockistDB.migratedLegacyGlobal = (WarbandStockistDB.migratedLegacyGlobal == true) and true or false
+  WarbandStockistDB.migratedLegacyChar = WarbandStockistDB.migratedLegacyChar or {}
 
   -- Old globals if present
-  if type(WarbandStorageData) == "table" then
+  if not WarbandStockistDB.migratedLegacyGlobal and type(WarbandStorageData) == "table" then
+    -- If the migrated profile already exists from a prior run, mark as migrated to prevent re-creation
+    if WarbandStockistDB.profiles and WarbandStockistDB.profiles["Global (Migrated)"] then
+      WarbandStockistDB.migratedLegacyGlobal = true
+    end
     if type(WarbandStorageData.default) == "table" and next(WarbandStorageData.default) then
       local profName = "Global (Migrated)"
       EnsureProfile(profName)
@@ -136,17 +164,18 @@ function WarbandStorage:MigrateLegacyIfNeeded()
       for k,v in pairs(WarbandStorageData.default) do
         WarbandStockistDB.profiles[profName].items[tonumber(k)] = tonumber(v) or 0
       end
-      -- Make it the default only if user had been using defaults
-      if WarbandStorageCharData.useDefault ~= false then
-        WarbandStockistDB.defaultProfile = profName
-      end
+      -- Do not force any default profile; leave characters Unassigned by default
+      WarbandStockistDB.migratedLegacyGlobal = true
+      DebugPrint("Migrated legacy global defaults into profile '" .. profName .. "'.")
     end
   end
 
   -- Character-specific override -> its own profile, assigned to this character
-  if type(WarbandStorageCharData) == "table" and WarbandStorageCharData.useDefault == false then
+  local cname = CharKey()
+  if not WarbandStockistDB.migratedLegacyChar[cname]
+     and type(WarbandStorageCharData) == "table"
+     and WarbandStorageCharData.useDefault == false then
     if type(WarbandStorageCharData.override) == "table" and next(WarbandStorageCharData.override) then
-      local cname = CharKey()
       local profName = cname .. " (Migrated)"
       EnsureProfile(profName)
       wipe(WarbandStockistDB.profiles[profName].items)
@@ -154,6 +183,8 @@ function WarbandStorage:MigrateLegacyIfNeeded()
         WarbandStockistDB.profiles[profName].items[tonumber(k)] = tonumber(v) or 0
       end
       WarbandStockistDB.assignments[cname] = profName
+      WarbandStockistDB.migratedLegacyChar[cname] = true
+      DebugPrint("Migrated legacy character override into profile '" .. profName .. "' for " .. cname .. ".")
     end
   end
 end

@@ -97,8 +97,24 @@ function RefreshAssignmentsList()
     UIDropDownMenu_SetWidth(dd, 150)
     local function RefreshDD()
       UIDropDownMenu_Initialize(dd, function(frame, level)
-        local info = UIDropDownMenu_CreateInfo()
+        -- Unassigned option
+        do
+          local info = UIDropDownMenu_CreateInfo()
+          info.text = STRINGS.UNASSIGNED
+          info.func = function()
+            WarbandStockistDB.assignments[ck] = nil
+            UIDropDownMenu_SetText(dd, STRINGS.UNASSIGNED)
+            if ck == WarbandStorage:GetCharacterKey() then
+              RefreshItemList()
+            end
+          end
+          info.checked = (WarbandStockistDB.assignments[ck] == nil)
+          UIDropDownMenu_AddButton(info, level)
+        end
+
+        -- All profile options
         for _, pname in ipairs(WarbandStorage:GetAllProfileNames()) do
+          local info = UIDropDownMenu_CreateInfo()
           info.text = pname
           info.func = function()
             WarbandStorage:EnsureProfile(pname)
@@ -109,11 +125,16 @@ function RefreshAssignmentsList()
               -- Do not change the Profiles tab editor dropdown here; editing is independent
             end
           end
-          info.checked = (pname == (WarbandStockistDB.assignments[ck] or WarbandStockistDB.defaultProfile))
+          info.checked = (pname == WarbandStockistDB.assignments[ck])
           UIDropDownMenu_AddButton(info, level)
         end
       end)
-      UIDropDownMenu_SetText(dd, WarbandStockistDB.assignments[ck] or WarbandStockistDB.defaultProfile)
+      local assigned = WarbandStockistDB.assignments[ck]
+      if assigned == nil then
+        UIDropDownMenu_SetText(dd, STRINGS.UNASSIGNED)
+      else
+        UIDropDownMenu_SetText(dd, assigned)
+      end
     end
     dd.Refresh = RefreshDD; RefreshDD()
     dd:SetPoint("LEFT", nameFS, "RIGHT", 20, 0) -- More space between name and dropdown

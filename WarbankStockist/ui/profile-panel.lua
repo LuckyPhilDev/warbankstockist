@@ -216,27 +216,29 @@ function WarbandStorage.UI:SetupProfileButtons(newBtn, renameBtn, dupBtn, delBtn
     else
       curProfile, curName = WarbandStorage:GetActiveProfile()
     end
-    if curName == WarbandStockistDB.defaultProfile then
-      UIErrorsFrame:AddMessage("Cannot delete the default profile.", 1, 0.2, 0.2)
-      return
-    end
     StaticPopupDialogs["WBSTOCKIST_DELETE_PROFILE"] = {
       text = "Delete profile '%s'? This cannot be undone.",
       button1 = OKAY,
       button2 = CANCEL,
       OnAccept = function()
-        WarbandStockistDB.profiles[curName] = nil
-        for ck, pn in pairs(WarbandStockistDB.assignments) do
-          if pn == curName then
-            WarbandStockistDB.assignments[ck] =
-                WarbandStockistDB.defaultProfile
-          end
-        end
-        WarbandStorage.RefreshProfileDropdown()
-        if WarbandStorage.SetEditedProfileName then
-          WarbandStorage:SetEditedProfileName(WarbandStockistDB.defaultProfile)
+        -- Use manager to delete and refresh UI consistently
+        if WarbandStorage.ProfileManager and WarbandStorage.ProfileManager.DeleteProfile then
+          WarbandStorage.ProfileManager:DeleteProfile(curName)
         else
-          WarbandStorage:SetActiveProfileForChar(WarbandStockistDB.defaultProfile)
+          WarbandStockistDB.profiles[curName] = nil
+          for ck, pn in pairs(WarbandStockistDB.assignments) do
+            if pn == curName then
+              WarbandStockistDB.assignments[ck] = nil
+            end
+          end
+          if WarbandStorage.RefreshProfileDropdown then WarbandStorage.RefreshProfileDropdown() end
+          if RefreshAssignmentsList then RefreshAssignmentsList() end
+        end
+        -- After deletion, select a remaining profile for editing, if any
+        local names = WarbandStorage.GetAllProfileNames and WarbandStorage:GetAllProfileNames() or {}
+        local nextName = names[1]
+        if WarbandStorage.SetEditedProfileName and nextName then
+          WarbandStorage:SetEditedProfileName(nextName)
         end
       end,
       timeout = 0,
