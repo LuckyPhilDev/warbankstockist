@@ -1,37 +1,64 @@
-**Warbank Stockist** is a smart inventory management addon for *World of Warcraft* that helps you maintain ideal item quantities across all your characters.
+**Warband Stockist** is a smart inventory management addon for World of Warcraft that keeps chosen items topped up across your characters using the Warband Bank.
 
-It works seamlessly with the **Warband Bank**, letting you automatically *withdraw* needed items and optionally *deposit excess* — keeping your bags in perfect balance without manual sorting or banking hassle.
-
----
-
-### ✨ Features
-
-- ⚙️ **Auto-withdraw:** Pull items from the warband bank to match your configured quantities.
-- 💼 **Auto-deposit (optional):** Push extra items into the bank to free up bag space.
-- 🧾 **Stock lists:** Maintain a global stock profile or create character-specific overrides.
-- 🔄 **Reset support:** Revert overridden items to default settings.
-- 🔍 **Item tooltips:** Hover to preview items directly in the interface.
-- 🛠️ **Debug mode:** Enable detailed logging for power users.
+It automatically withdraws what you’re missing and, if enabled, deposits excess—preferring to merge into existing stacks and using empty slots only when needed.
 
 ---
 
-### 📋 How to Use
+## ✨ Features
 
-1. Open the settings via **Interface → AddOns → Warbank Stockist**.
-2. Choose whether to use the *Global List* or a *Character-Specific List*.
-3. Under **Add Item**, enter an **Item ID** and desired quantity, then click **Add**.
-4. Alternatively, drag an item into the Item ID box to auto-fill its ID.
-5. To remove or reset tracked items, use the corresponding buttons in the **Tracked Items** list.
-6. If desired, enable **Auto Deposit** to push excess items into the warband bank automatically.
-
----
-
-### 🛑 Known Issues & Future Ideas
-
-- **Stack merging limitations:** When depositing & Withdrawing, the addon currently does not always merge items into partially filled stacks in the Warband Bank. This may leave excess items in your inventory if multiple partial stacks exist. - Re-opening the warband bank will help with this.
+- Auto‑withdraw: Match your configured stock when the Warband Bank opens.
+- Auto‑deposit (optional): Move excess items back to the Warband Bank.
+- Profiles + Assignments: Create named profiles and assign them to characters; ignored characters are listed separately and do not auto‑process.
+- Desired = 0 means “keep none”: Items explicitly set to 0 will be deposited automatically.
+- Stack‑first placement: Tries to merge into existing stacks (bags and bank) before using empty slots.
 
 ---
 
-With **Warbank Stockist**, you’ll always be prepared — whether you’re switching specs, gearing alts, or just keeping your bags tidy.
+## 📋 Setup & Usage
 
-> *Note: Requires access to the Warband Bank and works best with consistent item availability.*
+1. Open settings: Interface → AddOns → Warband Stockist (or type /wbs settings).
+2. Profiles tab:
+	- Create/select a profile.
+	- Add items by Item ID and desired quantity. Tip: 0 means “deposit all/keep none”.
+3. Assignments tab:
+	- Assign a profile to each character.
+	- Optional: Mark characters as Ignored; they appear under a divider and won’t be auto‑processed.
+4. Options:
+	- Deposit Excess Items: enable if you want to auto‑deposit anything above the desired amounts.
+	- Debug Logging: prints detailed steps to chat when enabled.
+
+Behavior on bank open
+- Uses the assigned profile for your character.
+- Calculates need/excess from your current inventory (including reagent bag).
+- Withdraws first, then deposits excess if enabled.
+- Placement prefers stacking into existing stacks; otherwise uses the first available empty slot.
+
+---
+
+## 🧰 Commands
+
+- /wbs settings — open the addon’s settings in the game Settings UI.
+
+---
+
+## � Troubleshooting & Debugging
+
+- Enable “Debug Logging” in settings to print detailed messages (desired vs. inventory, queues, slot choices).
+- On bank open you’ll see which profile is used and summary counts.
+- If stack merges appear inconsistent, just keep the bank open—actions are paced; a second pass (reopen bank) may tidy remaining items depending on the in‑game API state.
+
+---
+
+## 🗒️ What’s New (recent updates)
+
+- Switched to Profiles + Assignments; Ignored characters sorted last and visually divided in the Assignments tab.
+- Auto behavior matches manual commands: stack‑first then empty‑slot fallback, with per‑slot max‑stack checks.
+- Reagent bag support: included in scans and as a deposit source.
+- Desired=0 now means “deposit all” for listed items.
+- More robust logging on bank open, withdraw, and deposit flows.
+
+---
+
+With Warband Stockist, you’ll always be prepared—whether you’re switching specs, gearing alts, or just keeping your bags tidy.
+
+> Note: Requires access to the Warband Bank and works best with consistent item availability.
