@@ -73,7 +73,30 @@ function RefreshAssignmentsList()
 
   local y = -8 -- Start with more padding from top
   local index = 0
+  local ignoredSectionShown = false
   for _, ck in ipairs(WarbandStorage:GetAllCharacterKeys()) do
+    local isIgnored = WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[ck]
+    -- Insert a divider before the first ignored character row
+    if isIgnored and not ignoredSectionShown then
+      local divider = CreateFrame("Frame", nil, WarbandStorage.assignParent)
+      divider:SetSize(560, 22)
+      divider:SetPoint("TOPLEFT", WarbandStorage.assignParent, "TOPLEFT", 0, y)
+      divider:SetPoint("TOPRIGHT", WarbandStorage.assignParent, "TOPRIGHT", -20, y)
+
+      local bg = divider:CreateTexture(nil, "BACKGROUND")
+      bg:SetAllPoints()
+      bg:SetColorTexture(0.25, 0.1, 0.1, 0.35)
+
+      local label = divider:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
+      label:SetPoint("LEFT", divider, "LEFT", 10, 0)
+      label:SetText("Ignored Characters")
+      label:SetTextColor(0.85, 0.7, 0.7, 1)
+
+      table.insert(WarbandStorage.assignRows, divider)
+      y = y - 24
+      index = 0 -- reset zebra striping for ignored section
+      ignoredSectionShown = true
+    end
     local row = CreateFrame("Frame", nil, WarbandStorage.assignParent)
     row:SetSize(560, 32)                                              
     row:SetPoint("TOPLEFT", WarbandStorage.assignParent, "TOPLEFT", 0, y) 
@@ -100,6 +123,8 @@ function RefreshAssignmentsList()
     unBtn:SetSize(80, 24)
     unBtn:SetText(STRINGS.UNASSIGN)
     unBtn:SetPoint("RIGHT", igBtn, "LEFT", -5, 0)
+    -- Forward declare so handlers can call it before definition
+    local RefreshDD
     unBtn:SetScript("OnClick", function()
       WarbandStorage.ProfileManager:UnassignCharacter(ck)
       RefreshDD()
@@ -108,7 +133,7 @@ function RefreshAssignmentsList()
 
     local dd = CreateFrame("Frame", nil, row, "UIDropDownMenuTemplate")
     UIDropDownMenu_SetWidth(dd, 150)
-    local function RefreshDD()
+    function RefreshDD()
       UIDropDownMenu_Initialize(dd, function(frame, level)
         -- Unassigned option
         do
@@ -146,7 +171,7 @@ function RefreshAssignmentsList()
 
 
     -- Grey out ignored rows
-    if WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[ck] then
+    if isIgnored then
       if row:GetRegions() then
         -- overlay tint for greyed-out effect
         local overlay = row:CreateTexture(nil, "OVERLAY")
