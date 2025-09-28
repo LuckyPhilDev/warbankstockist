@@ -22,7 +22,7 @@ local THEME_COLORS = {
 -- ############################################################
 -- ## String Constants
 -- ############################################################
-local SETTINGS_NAME                         = "A Warband Stockist"
+local SETTINGS_NAME                         = "Warband Stockist"
 local STR_TITLE                             = "Warband Stockist Settings"
 local STR_DEBUG_LABEL                       = "Enable Debug Logging"
 local STR_DEBUG_TOOLTIP                     = "When enabled, detailed debug messages will be printed to chat."

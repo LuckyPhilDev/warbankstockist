@@ -126,6 +126,9 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
     WarbandStorage.SettingsCategoryID = id
   end
 
+  -- Set default selection even before show, so UI is ready when opened
+  self:SelectTab(tabs, 1)
+
   return WarbandStorage.SettingsCategory
 end
 
@@ -216,12 +219,14 @@ function WarbandStorage.UI:SelectTab(tabs, idx)
       tab:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
       tab.label:SetTextColor(1, 1, 1, 1)
       tab.content:Show()
+      tab.isSelected = true
     else
       tab:SetBackdropColor(THEME_COLORS.TAB_INACTIVE[1], THEME_COLORS.TAB_INACTIVE[2], THEME_COLORS.TAB_INACTIVE[3],
         THEME_COLORS.TAB_INACTIVE[4])
       tab:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
       tab.label:SetTextColor(0.7, 0.7, 0.7, 1)
       tab.content:Hide()
+      tab.isSelected = false
     end
   end
 end
