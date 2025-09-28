@@ -296,39 +296,43 @@ end
 
 -- Find bag slot to place withdrawn item (prioritize existing stacks)
 local function FindBagSlotForItem(targetItemID)
-    -- Check player bags (0-4)
+    -- Helper: get max stack for the specific bag slot (more reliable than item info cache)
+    local function getSlotMaxStack(bagID, slotIndex)
+        if ItemLocation and ItemLocation.CreateFromBagAndSlot then
+            local loc = ItemLocation:CreateFromBagAndSlot(bagID, slotIndex)
+            if loc and C_Item.DoesItemExist(loc) then
+                local m = C_Item.GetItemMaxStackSize(loc)
+                if m and m > 0 then return m end
+            end
+        end
+        -- Fallback to item info
+        return select(8, C_Item.GetItemInfo(targetItemID))
+    end
+
+    -- First pass: look across ALL bags for an existing stack we can merge into
     for bagID = 0, 4 do
         local numSlots = C_Container.GetContainerNumSlots(bagID)
-        
         if numSlots and numSlots > 0 then
-            local emptySlot = nil
-            
             for slotIndex = 1, numSlots do
                 local itemInfo = C_Container.GetContainerItemInfo(bagID, slotIndex)
-                
-                if itemInfo and itemInfo.itemID then
-                    -- Check if this slot contains the same item and can stack more
-                    if itemInfo.itemID == targetItemID then
-                        -- Get max stack size for this item
-                        local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount = C_Item.GetItemInfo(targetItemID)
-                        if itemStackCount and itemInfo.stackCount < itemStackCount then
-                            -- Found existing stack with room for more
-                            return bagID, slotIndex
-                        end
+                if itemInfo and itemInfo.itemID == targetItemID then
+                    local maxStackSize = getSlotMaxStack(bagID, slotIndex)
+                    if maxStackSize and (itemInfo.stackCount or 0) < maxStackSize then
+                        return bagID, slotIndex
                     end
-                elseif not emptySlot then
-                    -- Remember first empty slot we find
-                    emptySlot = slotIndex
                 end
-            end
-            
-            -- Return empty slot in this bag if no stackable slot found
-            if emptySlot then
-                return bagID, emptySlot
             end
         end
     end
-    
+
+    -- Second pass: choose the first available empty slot across bags
+    for bagID = 0, 4 do
+        local freeSlots = C_Container.GetContainerFreeSlots(bagID)
+        if freeSlots and #freeSlots > 0 then
+            return bagID, freeSlots[1]
+        end
+    end
+
     return nil, nil
 end
 
@@ -362,6 +366,9 @@ local function WithdrawItemFromWarbandBank(itemID, quantity)
         return false
     end
     
+    -- Ensure we don't already have something on the cursor
+    ClearCursor()
+
     -- Split off exactly the quantity we want (default 1)
     if bankItemInfo.stackCount and bankItemInfo.stackCount > quantity then
         C_Container.SplitContainerItem(bankBag, bankSlot, quantity)
@@ -377,8 +384,10 @@ local function WithdrawItemFromWarbandBank(itemID, quantity)
         return false
     end
     
-    -- Place item in bag
-    C_Container.PickupContainerItem(targetBag, targetSlot)
+    -- Place item in bag (tiny delay helps ensure merges rather than swaps)
+    C_Timer.After(0.05, function()
+        C_Container.PickupContainerItem(targetBag, targetSlot)
+    end)
     
     return true
 end
