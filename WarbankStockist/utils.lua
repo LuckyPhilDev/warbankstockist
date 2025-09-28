@@ -4,7 +4,8 @@ local THEME_COLORS = WarbandStorage.Theme.COLORS
 
 -- Simple debug print with formatting
 function WarbandStorage:DebugPrint(msg)
-    if WarbandStorageData and WarbandStorageData.debugEnabled then
+    -- Use the main addon's debug toggle so Settings checkbox controls all logs
+    if WarbandStockistDB and WarbandStockistDB.debugEnabled then
         print("|cff00ccff[WBS]:|r " .. tostring(msg))
     end
 end

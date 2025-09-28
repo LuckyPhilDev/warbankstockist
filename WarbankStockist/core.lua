@@ -55,8 +55,24 @@ function WarbandStorage:OnEvent(event, ...)
             end
         
     elseif event == "BANKFRAME_OPENED" then
-        WarbandStorage:DebugPrint("Bank Opened")
-        WarbandStorage:CheckAndWithdrawItemsFromWarbank()
+            WarbandStorage:DebugPrint("Bank Opened")
+            -- Slight delay to ensure bank APIs/tab IDs are available
+            C_Timer.After(0.2, function()
+                -- Log current profile assignment and desired stock size
+                local activeProfileName = WarbandStorage.ProfileManager and WarbandStorage.ProfileManager:GetActiveProfileName() or (WarbandStorage.GetActiveProfileName and WarbandStorage:GetActiveProfileName())
+                if activeProfileName then
+                    WarbandStorage:DebugPrint("Active profile: " .. tostring(activeProfileName))
+                else
+                    WarbandStorage:DebugPrint("No active profile assigned to this character (unassigned)")
+                end
+                -- Show how many desired items we think there are
+                local desired = WarbandStorage.GetDesiredStock and WarbandStorage:GetDesiredStock() or {}
+                local desiredCount = 0
+                for _ in pairs(desired) do desiredCount = desiredCount + 1 end
+                WarbandStorage:DebugPrint(("Desired stock entries: %d"):format(desiredCount))
+                -- Kick off processing
+                WarbandStorage:CheckAndWithdrawItemsFromWarbank()
+            end)
     end
 end
 

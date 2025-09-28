@@ -30,8 +30,17 @@ end
 
 function WarbandStorage:ScanBags()
     local inventory = {}
+    -- Include reagent bag (index 5) when present
+    local REAGENT_BAG = (Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag) or 5
+    local bagIDs = {}
+    for bag = 0, NUM_BAG_SLOTS do table.insert(bagIDs, bag) end
+    local ok = pcall(function() return C_Container.GetContainerNumSlots(REAGENT_BAG) end)
+    if ok then
+        local slots = C_Container.GetContainerNumSlots(REAGENT_BAG)
+        if type(slots) == "number" and slots > 0 then table.insert(bagIDs, REAGENT_BAG) end
+    end
 
-    for bag = 0, 4 do
+    for _, bag in ipairs(bagIDs) do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
             if itemInfo then
@@ -43,7 +52,10 @@ function WarbandStorage:ScanBags()
     end
 
     self.inventory = inventory
-    self:DebugPrint("Bag scan complete.")
+    -- Debug: report bag scan coverage
+    local dbg = {}
+    for _, b in ipairs(bagIDs) do table.insert(dbg, tostring(b)) end
+    self:DebugPrint("Bag scan complete. Scanned bags: " .. table.concat(dbg, ", "))
 end
 
 function WarbandStorage:PrintTrackedInventory()
