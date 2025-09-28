@@ -14,6 +14,8 @@ WarbandStockistDB.lastEditedProfile = WarbandStockistDB.lastEditedProfile or nil
 -- Persistent flags to ensure legacy migration runs only once
 WarbandStockistDB.migratedLegacyGlobal = WarbandStockistDB.migratedLegacyGlobal or false
 WarbandStockistDB.migratedLegacyChar = WarbandStockistDB.migratedLegacyChar or {}
+-- Characters the user wants to hide from attention (ignored in Assignments UI ordering)
+WarbandStockistDB.ignoredCharacters = WarbandStockistDB.ignoredCharacters or {}
 
 -- ############################################################
 -- ## Small helpers / compat
@@ -78,23 +80,20 @@ function WarbandStorage:GetAllProfileNames()
 end
 
 function WarbandStorage:GetAllCharacterKeys()
+  -- Delegate to ProfileManager for consistent ordering (ignored characters last)
+  if WarbandStorage.ProfileManager and WarbandStorage.ProfileManager.GetAllCharacterKeys then
+    return WarbandStorage.ProfileManager:GetAllCharacterKeys()
+  end
+  -- Fallback: simple alphabetical list (should rarely be used)
   local keys = {}
-  local seen = {}
-  -- Add assigned characters
-  for ck,_ in pairs(WarbandStockistDB.assignments or {}) do
-    if ck and not seen[ck] then table.insert(keys, ck); seen[ck] = true end
-  end
-  -- Add any known characters from stored classes (seen across sessions)
-  if WarbandStockistDB.characterClasses then
-    for ck,_ in pairs(WarbandStockistDB.characterClasses) do
-      if ck and not seen[ck] then table.insert(keys, ck); seen[ck] = true end
-    end
-  end
-  -- Ensure current character is always present
-  local me = CharKey()
-  if me and not seen[me] then table.insert(keys, me); seen[me] = true end
+  for ck,_ in pairs(WarbandStockistDB.assignments or {}) do table.insert(keys, ck) end
   table.sort(keys)
   return keys
+end
+
+function WarbandStorage:IsCharacterIgnored(characterKey)
+  if not characterKey then return false end
+  return WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[characterKey] == true
 end
 
 function WarbandStorage:SetActiveProfileForChar(profileName)

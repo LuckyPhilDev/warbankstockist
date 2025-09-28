@@ -230,7 +230,13 @@ function ProfileManager:GetAllCharacterKeys()
   local currentChar = Utils:GetCharacterKey()
   if currentChar and not seen[currentChar] then table.insert(keys, currentChar); seen[currentChar] = true end
   
-  table.sort(keys)
+  table.sort(keys, function(a, b)
+    local ia = WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[a]
+    local ib = WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[b]
+    if ia and not ib then return false end
+    if ib and not ia then return true end
+    return a < b
+  end)
   return keys
 end
 
@@ -239,9 +245,31 @@ function ProfileManager:UnassignCharacter(characterKey)
   if not characterKey then return false end
   
   WarbandStockistDB.assignments[characterKey] = nil
+  -- Keep ignored state as-is when unassigning
   self:RefreshUI()
   
   Utils:DebugPrint("Unassigned character: " .. characterKey)
+  return true
+end
+
+-- Ignore a character (push to bottom, grey out)
+function ProfileManager:IgnoreCharacter(characterKey)
+  if not characterKey then return false end
+  WarbandStockistDB.ignoredCharacters = WarbandStockistDB.ignoredCharacters or {}
+  WarbandStockistDB.ignoredCharacters[characterKey] = true
+  self:RefreshUI()
+  return true
+end
+
+-- Clear ignore when assigning a profile
+function ProfileManager:AssignProfile(characterKey, profileName)
+  if not characterKey or not Utils:IsValidValue(profileName) then return false end
+  self:EnsureProfile(profileName)
+  WarbandStockistDB.assignments[characterKey] = profileName
+  if WarbandStockistDB.ignoredCharacters then
+    WarbandStockistDB.ignoredCharacters[characterKey] = nil
+  end
+  self:RefreshUI()
   return true
 end
 

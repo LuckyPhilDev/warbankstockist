@@ -85,7 +85,7 @@ function RefreshAssignmentsList()
       bg:SetColorTexture(0.15, 0.15, 0.2, 0.4)
     end
 
-    local nameFS = row:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
+  local nameFS = row:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
     nameFS:SetPoint("LEFT", row, "LEFT", 12, 0) -- More left padding for text
     nameFS:SetWidth(220)                        -- Slightly wider for character names
     nameFS:SetJustifyH("LEFT")
@@ -102,11 +102,8 @@ function RefreshAssignmentsList()
           local info = UIDropDownMenu_CreateInfo()
           info.text = STRINGS.UNASSIGNED
           info.func = function()
-            WarbandStockistDB.assignments[ck] = nil
+            WarbandStorage.ProfileManager:UnassignCharacter(ck)
             UIDropDownMenu_SetText(dd, STRINGS.UNASSIGNED)
-            if ck == WarbandStorage:GetCharacterKey() then
-              RefreshItemList()
-            end
           end
           info.checked = (WarbandStockistDB.assignments[ck] == nil)
           UIDropDownMenu_AddButton(info, level)
@@ -117,13 +114,8 @@ function RefreshAssignmentsList()
           local info = UIDropDownMenu_CreateInfo()
           info.text = pname
           info.func = function()
-            WarbandStorage:EnsureProfile(pname)
-            WarbandStockistDB.assignments[ck] = pname
+            WarbandStorage.ProfileManager:AssignProfile(ck, pname)
             UIDropDownMenu_SetText(dd, pname)
-            if ck == WarbandStorage:GetCharacterKey() then
-              RefreshItemList()
-              -- Do not change the Profiles tab editor dropdown here; editing is independent
-            end
           end
           info.checked = (pname == WarbandStockistDB.assignments[ck])
           UIDropDownMenu_AddButton(info, level)
@@ -144,10 +136,29 @@ function RefreshAssignmentsList()
     unBtn:SetText(STRINGS.UNASSIGN)
     unBtn:SetPoint("LEFT", dd, "RIGHT", 15, 0) -- More space between dropdown and button
     unBtn:SetScript("OnClick", function()
-      WarbandStockistDB.assignments[ck] = nil
+      WarbandStorage.ProfileManager:UnassignCharacter(ck)
       RefreshDD()
-      if ck == WarbandStorage:GetCharacterKey() then RefreshItemList() end
     end)
+
+    -- Ignore button
+    local igBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+    igBtn:SetSize(70, 24)
+    igBtn:SetText(STRINGS.IGNORE)
+    igBtn:SetPoint("LEFT", unBtn, "RIGHT", 8, 0)
+    igBtn:SetScript("OnClick", function()
+      WarbandStorage.ProfileManager:IgnoreCharacter(ck)
+    end)
+
+    -- Grey out ignored rows
+    if WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[ck] then
+      if row:GetRegions() then
+        -- overlay tint for greyed-out effect
+        local overlay = row:CreateTexture(nil, "OVERLAY")
+        overlay:SetAllPoints()
+        overlay:SetColorTexture(0.1, 0.1, 0.1, 0.5)
+      end
+      nameFS:SetTextColor(0.6, 0.6, 0.6, 1)
+    end
 
     table.insert(WarbandStorage.assignRows, row)
     y = y - 36 -- Match the new row height (32) plus some spacing
