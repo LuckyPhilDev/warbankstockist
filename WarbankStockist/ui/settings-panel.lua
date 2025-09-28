@@ -23,6 +23,10 @@ local STRINGS = WarbandStorage.Theme.STRINGS
 -- ## Main Tabbed Settings Panel
 -- ############################################################
 function WarbandStorage.UI:CreateTabbedSettingsCategory()
+  -- If already created/registered, don't create a second panel
+  if WarbandStorage.SettingsCategory then
+    return WarbandStorage.SettingsCategory
+  end
   local padding = 20
   local spacing = 10 
 
@@ -37,6 +41,8 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   panel:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT")
 
   WarbandStorage.FrameFactory:SetupDialogFrame(panel)
+  -- Important: keep our panel hidden until the Settings UI shows it
+  panel:Hide()
 
   -- Header elements
   local title = panel:CreateFontString(nil, "ARTWORK", FONTS.SECTION)
@@ -119,6 +125,8 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
         (type(WarbandStorage.SettingsCategory.GetID) == "function" and WarbandStorage.SettingsCategory:GetID())
     WarbandStorage.SettingsCategoryID = id
   end
+
+  return WarbandStorage.SettingsCategory
 end
 
 -- ############################################################

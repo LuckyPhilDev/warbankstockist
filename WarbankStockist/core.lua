@@ -41,16 +41,29 @@ function WarbandStorage:OnEvent(event, ...)
         
         WarbandStorage:DebugPrint("WarbandStorage loaded!")
         
-            -- Development helper: optionally open settings on login
+            -- Optionally open settings on login when explicitly enabled
+            local shouldAutoOpen = false
+            local reason = nil
             if WarbandStockistDB and WarbandStockistDB.devOpenOnLogin then
+                shouldAutoOpen = true
+                reason = "devOpenOnLogin"
+            elseif WarbandStorageCharData and WarbandStorageCharData.autoOpenSettings then
+                shouldAutoOpen = true
+                reason = "autoOpenSettings"
+            end
+            if shouldAutoOpen then
                 if C_Timer and C_Timer.After then
                     C_Timer.After(0.2, function()
                         if WarbandStorage.OpenSettings then
+                            WarbandStorage:DebugPrint("Auto-opening settings on login (" .. tostring(reason) .. ")")
                             WarbandStorage:OpenSettings()
                         end
                     end)
                 else
-                    if WarbandStorage.OpenSettings then WarbandStorage:OpenSettings() end
+                    if WarbandStorage.OpenSettings then
+                        WarbandStorage:DebugPrint("Auto-opening settings on login (" .. tostring(reason) .. ")")
+                        WarbandStorage:OpenSettings()
+                    end
                 end
             end
         
@@ -162,6 +175,20 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
     msg = type(msg) == "string" and msg:match("^%s*(.-)%s*$") or msg
     if msg and msg:lower():find("^settings") then
         WarbandStorage:OpenSettings()
+        return
+    end
+
+    -- /wbs autoopen [on|off|toggle]
+    if msg and msg:lower():find("^autoopen") then
+        local arg = msg:match("^autoopen%s+(%S+)%s*")
+        WarbandStorageCharData = WarbandStorageCharData or {}
+        local current = (WarbandStorageCharData.autoOpenSettings == true)
+        if arg then arg = arg:lower() end
+        if arg == "on" then current = true
+        elseif arg == "off" then current = false
+        else current = not current end
+        WarbandStorageCharData.autoOpenSettings = current
+        print(string.format("|cff7fd5ff[Warband Stockist]|r autoOpenSettings: %s", tostring(current)))
         return
     end
 
