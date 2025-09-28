@@ -7,7 +7,7 @@ local STRINGS = WarbandStorage.Theme.STRINGS
 function WarbandStorage.UI:CreateAssignmentsSection(parent)
   local vertPadding, horzPadding = 10, 10
 
-  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", 560, 100)
+  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", 560, 80)
   block:SetPoint("TOPLEFT", parent, "TOPLEFT")
   block:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT")
   block:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
@@ -35,7 +35,7 @@ function WarbandStorage.UI:CreateAssignmentsHeader(parent)
   local vertPadding, horzPadding = 10, 10
   local sectionSpacing = 10
 
-  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel",300,50)
+  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel",300,35)
 
   local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_ASSIGNMENTS)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
@@ -56,7 +56,7 @@ function WarbandStorage.UI:CreateAssignmentsHeader(parent)
   itemHeader:SetPoint("LEFT", header, "LEFT", 30, 0)
 
   local qtyHeader = CreateSubheadingText(header, STRINGS.ASSIGN_PROFILES)
-  qtyHeader:SetPoint("LEFT", itemHeader, "RIGHT", 390, 0)
+  qtyHeader:SetPoint("LEFT", itemHeader, "RIGHT", 180, 0)
 
   header:SetSize(500, 28)
 
@@ -75,15 +75,9 @@ function RefreshAssignmentsList()
   local index = 0
   for _, ck in ipairs(WarbandStorage:GetAllCharacterKeys()) do
     local row = CreateFrame("Frame", nil, WarbandStorage.assignParent)
-    row:SetSize(520, 32)                                                   -- Slightly taller rows for better spacing
-    row:SetPoint("TOPLEFT", WarbandStorage.assignParent, "TOPLEFT", 12, y) -- More left padding
+    row:SetSize(560, 32)                                              
+    row:SetPoint("TOPLEFT", WarbandStorage.assignParent, "TOPLEFT", 0, y) 
 
-    -- Add alternating row background with rounded corners effect
-    if index % 2 == 1 then
-      local bg = row:CreateTexture(nil, "BACKGROUND")
-      bg:SetAllPoints()
-      bg:SetColorTexture(0.15, 0.15, 0.2, 0.4)
-    end
 
   local nameFS = row:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
     nameFS:SetPoint("LEFT", row, "LEFT", 12, 0) -- More left padding for text
@@ -92,6 +86,25 @@ function RefreshAssignmentsList()
 
     local display = WarbandStorage.Utils:FormatCharacterName(ck)
     nameFS:SetText(display)
+
+    -- Ignore button
+    local igBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+    igBtn:SetSize(70, 24)
+    igBtn:SetText(STRINGS.IGNORE)
+    igBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+    igBtn:SetScript("OnClick", function()
+      WarbandStorage.ProfileManager:IgnoreCharacter(ck)
+    end)
+
+    local unBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+    unBtn:SetSize(80, 24)
+    unBtn:SetText(STRINGS.UNASSIGN)
+    unBtn:SetPoint("RIGHT", igBtn, "LEFT", -5, 0)
+    unBtn:SetScript("OnClick", function()
+      WarbandStorage.ProfileManager:UnassignCharacter(ck)
+      RefreshDD()
+    end)
+
 
     local dd = CreateFrame("Frame", nil, row, "UIDropDownMenuTemplate")
     UIDropDownMenu_SetWidth(dd, 150)
@@ -129,25 +142,8 @@ function RefreshAssignmentsList()
       end
     end
     dd.Refresh = RefreshDD; RefreshDD()
-    dd:SetPoint("LEFT", nameFS, "RIGHT", 20, 0) -- More space between name and dropdown
+    dd:SetPoint("RIGHT", unBtn, "LEFT", 10, 0) 
 
-    local unBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-    unBtn:SetSize(80, 24)                      -- Slightly larger button
-    unBtn:SetText(STRINGS.UNASSIGN)
-    unBtn:SetPoint("LEFT", dd, "RIGHT", 15, 0) -- More space between dropdown and button
-    unBtn:SetScript("OnClick", function()
-      WarbandStorage.ProfileManager:UnassignCharacter(ck)
-      RefreshDD()
-    end)
-
-    -- Ignore button
-    local igBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-    igBtn:SetSize(70, 24)
-    igBtn:SetText(STRINGS.IGNORE)
-    igBtn:SetPoint("LEFT", unBtn, "RIGHT", 8, 0)
-    igBtn:SetScript("OnClick", function()
-      WarbandStorage.ProfileManager:IgnoreCharacter(ck)
-    end)
 
     -- Grey out ignored rows
     if WarbandStockistDB.ignoredCharacters and WarbandStockistDB.ignoredCharacters[ck] then
@@ -158,6 +154,15 @@ function RefreshAssignmentsList()
         overlay:SetColorTexture(0.1, 0.1, 0.1, 0.5)
       end
       nameFS:SetTextColor(0.6, 0.6, 0.6, 1)
+    end
+    row:SetPoint("TOPLEFT", WarbandStorage.assignParent, "TOPLEFT", 0, y)
+    row:SetPoint("TOPRIGHT", WarbandStorage.assignParent, "TOPRIGHT", -20, y)
+
+    -- Add alternating row background with rounded corners effect
+    if index % 2 == 1 then
+      local bg = row:CreateTexture(nil, "BACKGROUND")
+      bg:SetAllPoints()
+      bg:SetColorTexture(0.15, 0.15, 0.2, 0.4)
     end
 
     table.insert(WarbandStorage.assignRows, row)
