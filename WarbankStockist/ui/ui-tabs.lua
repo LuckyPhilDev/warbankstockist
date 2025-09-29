@@ -36,8 +36,6 @@ function RefreshItemList()
   for itemID, count in pairs(stock) do
     
     local row = createRow(WarbandStorage.scrollParent, index % 2 == 1, itemID, count)
-
-    local row2 = CreateFrame("Frame", nil, WarbandStorage.scrollParent)
     row:SetSize(200, 28)
     row:SetPoint("TOPLEFT", WarbandStorage.scrollParent, "TOPLEFT", 8, y)
     row:SetPoint("TOPRIGHT", WarbandStorage.scrollParent, "TOPRIGHT", 0, y)

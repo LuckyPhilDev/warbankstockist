@@ -16,16 +16,18 @@ function createRow(parent, lightBg, itemID, count)
     local icon = row:CreateTexture(nil, "ARTWORK")
     icon:SetSize(22, 22)
     icon:SetPoint("LEFT", row, "LEFT", 4, 0)
-     local itemIcon = select(5, GetItemInfoInstant(itemID))
-    if itemIcon then 
-      icon:SetTexture(itemIcon) 
+    local itemIcon
+    if C_Item and C_Item.GetItemIconByID then
+      itemIcon = C_Item.GetItemIconByID(itemID)
     end
-    icon:SetDesaturated(count == 0)
+    if itemIcon then icon:SetTexture(itemIcon) end
+  icon:SetDesaturated((count or 0) == 0)
     icon:EnableMouse(true)
-    icon:SetScript("OnEnter", function() 
-      GameTooltip:SetOwner(icon, "ANCHOR_RIGHT")
-      GameTooltip:SetItemByID(itemID)
-      GameTooltip:Show() 
+    icon:SetScript("OnEnter", function()
+      if GameTooltip_SetDefaultAnchor and GameTooltip then
+        GameTooltip_SetDefaultAnchor(GameTooltip, row)
+        if itemID and GameTooltip.SetItemByID then GameTooltip:SetItemByID(itemID) end
+      end
     end)
     icon:SetScript("OnLeave", GameTooltip_Hide)
 
@@ -37,7 +39,7 @@ function createRow(parent, lightBg, itemID, count)
 
     local qtyBox = CreateNumericEditText(row, nil, 50, 22)
     qtyBox:SetPoint("RIGHT", removeBtn, "LEFT", -15, 0)
-    qtyBox:SetText(tostring(count))
+  qtyBox:SetText(tostring(count or 0))
     qtyBox:SetScript("OnEnterPressed", function(self)
       local val = tonumber(self:GetText())
       if val ~= nil then 
@@ -46,7 +48,7 @@ function createRow(parent, lightBg, itemID, count)
       self:ClearFocus()
     end)
     qtyBox:SetScript("OnEscapePressed", function(self) 
-      self:SetText(tostring(count))
+      self:SetText(tostring(count or 0))
       self:ClearFocus() 
     end)
     
@@ -56,8 +58,10 @@ function createRow(parent, lightBg, itemID, count)
     label:SetJustifyH("LEFT")
 
     local itemName = WarbandStorage.Utils:GetItemName(itemID)
-    local itemText = ("%s (ID: %d)"):format(itemName, itemID)
-    if count == 0 then
+    local safeID = (itemID ~= nil) and tostring(itemID) or "?"
+    local safeName = itemName or ("Item " .. safeID)
+    local itemText = safeName .. " (ID: " .. safeID .. ")"
+    if (count or 0) == 0 then
       label:SetText("|cff666666" .. itemText .. "|r")
     else
       label:SetText("|cffcccccc" .. itemText .. "|r")
