@@ -1,0 +1,8 @@
+package-as: WarbankStockist
+
+move-folders:
+  Warband Stockist/WarbankStockist: WarbankStockist
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

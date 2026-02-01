@@ -1,0 +1,26 @@
+name: Package & Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed so changelog/versioning works properly
+
+      - name: Package and upload
+        run: |
+          bash <(curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh)
+        env:
+          CF_API_KEY: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          # Optional: also attach the zip to a GitHub Release.
+          # Docs say it expects a GitHub PAT in GITHUB_OAUTH.
+          # If you don't care about GitHub releases, delete these two lines.
+          GITHUB_OAUTH: ${{ secrets.GITHUB_OAUTH }}
