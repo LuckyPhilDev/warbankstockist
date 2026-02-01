@@ -77,6 +77,16 @@ function Utils:ValidateProfileName(name, excludeName)
     return false
   end
 
+  -- Disallow reserved default profile name except when not changing it
+  local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
+  if trimmed == reserved then
+    -- Only allowed if we're effectively not changing the name (excludeName matches exactly)
+    if not excludeName or excludeName ~= reserved then
+      showError(("The profile name '%s' is reserved."):format(reserved))
+      return false
+    end
+  end
+
   -- Require uniqueness against existing profiles (except excluded name)
   if WarbandStockistDB and WarbandStockistDB.profiles and WarbandStockistDB.profiles[trimmed] then
     if not excludeName or trimmed ~= excludeName then

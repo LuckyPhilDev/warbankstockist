@@ -34,6 +34,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   if WarbandStorage.MigrateLegacyIfNeeded then
     WarbandStorage:MigrateLegacyIfNeeded()
   end
+  -- Ensure reserved default profile exists so lists/dropdowns have it
   WarbandStorage.ProfileManager:EnsureProfile(WarbandStockistDB.defaultProfile)
 
   local panel = CreateFrame("Frame", "WarbandStockistOptionsPanel", UIParent, "BackdropTemplate")

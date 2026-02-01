@@ -60,6 +60,11 @@ end
 -- Create new profile
 function ProfileManager:CreateProfile(name)
   if not Utils:IsValidValue(name) then return false end
+  local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
+  if name == reserved then
+    Utils:DebugPrint("The reserved default profile already exists and cannot be created manually.")
+    return false
+  end
   
   local _, profile = self:EnsureProfile(name)
   -- Do not change character assignments here. Creation should be side-effect free.
@@ -72,6 +77,11 @@ end
 function ProfileManager:RenameProfile(oldName, newName)
   if not Utils:IsValidValue(oldName) or not Utils:IsValidValue(newName) then 
     return false 
+  end
+  local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
+  if newName == reserved then
+    Utils:DebugPrint("Cannot rename a profile to the reserved default profile name.")
+    return false
   end
   
   if oldName == newName then return true end

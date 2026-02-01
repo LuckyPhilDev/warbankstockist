@@ -1,4 +1,4 @@
-## Interface: 110200
+## Interface: 120000
 ## Title: Warbank Stockist
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
 ## Version: 1.1

@@ -34,6 +34,30 @@ function WarbandStorage:OnEvent(event, ...)
             WarbandStorage.Utils:StoreCharacterClass()
         end
         
+        -- Ensure reserved default profile exists
+        do
+            WarbandStockistDB.profiles = WarbandStockistDB.profiles or {}
+            local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
+            WarbandStockistDB.profiles[reserved] = WarbandStockistDB.profiles[reserved] or { items = {} }
+        end
+
+        -- Auto-assign default profile to new characters (first-seen) while preserving Unassigned if user sets it
+        do
+            WarbandStockistDB.assignments = WarbandStockistDB.assignments or {}
+            WarbandStockistDB._seenCharacters = WarbandStockistDB._seenCharacters or {}
+            local charKey = WarbandStorage.Utils:GetCharacterKey()
+            local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
+            if not WarbandStockistDB._seenCharacters[charKey] then
+                -- First time we see this character in SavedVariables for this account
+                if WarbandStockistDB.assignments[charKey] == nil then
+                    -- Assign default profile by default; user can still set Unassigned later
+                    WarbandStockistDB.assignments[charKey] = reserved
+                    WarbandStorage:DebugPrint("Assigned default profile to new character: " .. tostring(charKey))
+                end
+                WarbandStockistDB._seenCharacters[charKey] = true
+            end
+        end
+
         -- Initialize settings panel after all modules are loaded
         if WarbandStorage.UI and WarbandStorage.UI.CreateTabbedSettingsCategory then
             WarbandStorage.UI:CreateTabbedSettingsCategory()
