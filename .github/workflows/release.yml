@@ -14,6 +14,12 @@ jobs:
         with:
           fetch-depth: 0   # needed so changelog/versioning works properly
 
+      - name: Update version in .toc file
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -i "s/^## Version:.*/## Version: $VERSION/" "WarbankStockist/WarbankStockist.toc"
+          echo "Updated .toc version to $VERSION"
+
       - name: Package and upload
         run: |
           bash <(curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh)
