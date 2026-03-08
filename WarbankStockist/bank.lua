@@ -133,8 +133,9 @@ function WarbandStorage:FindEmptyBagSlot()
     return nil, nil
 end
 
-function WarbandStorage:WithdrawItemFromWarbank(itemID, needed)
-    self:DebugPrint(string.format("Withdrawing %d of item %d", needed, itemID))
+function WarbandStorage:WithdrawItemFromWarbank(itemID, needed, retries)
+    retries = retries or 3
+    self:DebugPrint(string.format("Withdrawing %d of item %d (retries left: %d)", needed, itemID, retries))
 
     local tabIDs = C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account)
     if not tabIDs then
@@ -181,9 +182,14 @@ function WarbandStorage:WithdrawItemFromWarbank(itemID, needed)
 
                             local remaining = needed - toWithdraw
                             if remaining > 0 then
-                                C_Timer.After(withdrawDelay, function()
-                                    self:WithdrawItemFromWarbank(itemID, remaining)
-                                end)
+                                local nextRetries = retries - 1
+                                if nextRetries <= 0 then
+                                    self:DebugPrint(("Max retries reached for item %d; aborting withdrawal."):format(itemID))
+                                else
+                                    C_Timer.After(withdrawDelay, function()
+                                        self:WithdrawItemFromWarbank(itemID, remaining, nextRetries)
+                                    end)
+                                end
                             end
                         end)
                     end)
@@ -292,12 +298,9 @@ end
 function WarbandStorage:FindEmptyBankSlot()
     local tabIDs = C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account)
     for _, bankBag in ipairs(tabIDs) do
-        local numSlots = C_Container.GetContainerNumSlots(bankBag)
-        for slot = 1, numSlots do
-            local info = C_Container.GetContainerItemInfo(bankBag, slot)
-            if not info then
-                return bankBag, slot
-            end
+        local freeSlots = C_Container.GetContainerFreeSlots(bankBag)
+        if freeSlots and #freeSlots > 0 then
+            return bankBag, freeSlots[1]
         end
     end
     return nil, nil
@@ -311,7 +314,12 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local info = C_Container.GetContainerItemInfo(bag, slot)
             if info and info.itemID == itemID then
-                table.insert(bagSlots, { bag = bag, slot = slot, count = info.stackCount })
+                local loc = ItemLocation:CreateFromBagAndSlot(bag, slot)
+                if C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc) then
+                    table.insert(bagSlots, { bag = bag, slot = slot, count = info.stackCount })
+                else
+                    self:DebugPrint(("Item %d at %d:%d not allowed in Account bank; skipping"):format(itemID, bag, slot))
+                end
             end
         end
     end
@@ -346,6 +354,12 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
             ClearCursor()
             local lockInfo = select(3, C_Container.GetContainerItemInfo(bag, slot))
             self:DebugPrint(("Pre-split: Item lock state at %d:%d: %s"):format(bag, slot, tostring(lockInfo)))
+
+            if lockInfo == true then
+                self:DebugPrint(("Skipping locked item at %d:%d"):format(bag, slot))
+                depositNext(index + 1, remaining)
+                return
+            end
 
             if toMove < stackCount then
                 -- Split off the portion we want directly to the cursor, then place into bank
