@@ -3,6 +3,9 @@ package-as: WarbankStockist
 move-folders:
   Warband Stockist/WarbankStockist: WarbankStockist
 
+externals:
+  WarbankStockist/Luckys_Utils: https://github.com/LuckyPhilDev/LuckyUtils
+
 manual-changelog:
   filename: CHANGELOG.md
   markup-type: markdown

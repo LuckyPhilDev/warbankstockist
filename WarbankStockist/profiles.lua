@@ -25,11 +25,9 @@ local function CharKey()
   return string.format("%s-%s", name or UnitName("player") or "", realm or GetRealmName() or "")
 end
 
-local function DebugPrint(msg)
-  if WarbandStockistDB.debugEnabled then
-    print("|cff7fd5ff[Warband Stockist]|r " .. tostring(msg))
-  end
-end
+local DebugPrint = LuckyLog:New("|cff7fd5ff[Warband Stockist]|r", function()
+  return WarbandStockistDB and WarbandStockistDB.debugEnabled
+end)
 
 local function EnsureProfile(name)
   if not name or name == "" then return nil, nil end

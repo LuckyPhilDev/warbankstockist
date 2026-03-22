@@ -151,11 +151,13 @@ function Utils:FormatItemText(itemID, itemName, quantity)
   end
 end
 
--- Safe debug print
+-- Debug print via LuckyLog
+local _utilsLog = LuckyLog:New("|cff7fd5ff[Warband Stockist]|r", function()
+  return WarbandStockistDB and WarbandStockistDB.debugEnabled
+end)
+
 function Utils:DebugPrint(message)
-  if WarbandStockistDB and WarbandStockistDB.debugEnabled then
-    print("|cff7fd5ff[Warband Stockist]|r " .. tostring(message))
-  end
+  _utilsLog(tostring(message))
 end
 
 -- ############################################################

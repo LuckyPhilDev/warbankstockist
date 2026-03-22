@@ -2,12 +2,13 @@ WarbandStorageData = WarbandStorageData or {}
 
 local THEME_COLORS = WarbandStorage.Theme.COLORS
 
--- Simple debug print with formatting
+-- Debug print via LuckyLog
+local _wbsLog = LuckyLog:New("|cff00ccff[WBS]:|r", function()
+    return WarbandStockistDB and WarbandStockistDB.debugEnabled
+end)
+
 function WarbandStorage:DebugPrint(msg)
-    -- Use the main addon's debug toggle so Settings checkbox controls all logs
-    if WarbandStockistDB and WarbandStockistDB.debugEnabled then
-        print("|cff00ccff[WBS]:|r " .. tostring(msg))
-    end
+    _wbsLog(tostring(msg))
 end
 
 function WarbandStorage:IsItemOverridden(itemID)

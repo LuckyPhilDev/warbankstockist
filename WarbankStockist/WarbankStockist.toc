@@ -4,6 +4,8 @@
 ## Version: 1.1
 ## Author: Lucky Phil
 
+Luckys_Utils\embeds.xml
+
 ui/ui-theme.lua
 common-utils.lua
 frame-factory.lua
@@ -26,6 +28,7 @@ deposit-commands.lua
 ## SavedVariables: WarbandStockistDB, WarbandStorageData
 ## SavedVariablesPerCharacter: WarbandStorageCharData
 
+## OptionalDeps: Luckys_Utils
 ## Dependencies: Blizzard_Settings
 
 ## Category-enUS: Inventory
