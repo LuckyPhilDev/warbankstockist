@@ -22,8 +22,8 @@ local THEME_COLORS = {
 -- ############################################################
 -- ## String Constants
 -- ############################################################
-local SETTINGS_NAME                         = "Warband Stockist"
-local STR_TITLE                             = "Warband Stockist Settings"
+local SETTINGS_NAME                         = "Lucky's Warbank Stockist"
+local STR_TITLE                             = "Lucky's Warbank Stockist Settings"
 local STR_DEBUG_LABEL                       = "Enable Debug Logging"
 local STR_DEBUG_TOOLTIP                     = "When enabled, detailed debug messages will be printed to chat."
 local STR_HELP_TEXT                         = "This addon keeps chosen items topped up from your Warband Bank. Create profiles (e.g. 'Raider') and assign them to characters. Each profile has its own item list."
