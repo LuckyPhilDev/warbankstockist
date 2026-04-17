@@ -3,8 +3,10 @@
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
 ## Version: 1.3.0
 ## Author: Lucky Phil
-
-Luckys_Utils\embeds.xml
+## SavedVariables: WarbandStockistDB, WarbandStorageData
+## SavedVariablesPerCharacter: WarbandStorageCharData
+## Dependencies: Luckys_Utils,Blizzard_Settings
+## X-Curse-Project-ID: 1295674
 
 ui/ui-theme.lua
 common-utils.lua
@@ -25,13 +27,4 @@ inventory.lua
 bank.lua
 deposit-commands.lua
 
-## SavedVariables: WarbandStockistDB, WarbandStorageData
-## SavedVariablesPerCharacter: WarbandStorageCharData
-
-## OptionalDeps: Luckys_Utils
-## Dependencies: Blizzard_Settings
-
-## Category-enUS: Inventory
-
-## X-Curse-Project-ID: 1295674
 ## X-Wago-ID: rNkPaw6a
