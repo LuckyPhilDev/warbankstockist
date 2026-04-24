@@ -1,3 +1,8 @@
+## v1.3.3
+
+### Improved
+- Improved CI
+
 ## v1.3.2
 
 ### Improved

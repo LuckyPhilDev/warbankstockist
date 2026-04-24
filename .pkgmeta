@@ -1,4 +1,4 @@
-package-as: WarbankStockist
+package-as: Luckys_Warbank_Stockist
 
 manual-changelog:
   filename: CHANGELOG.md
