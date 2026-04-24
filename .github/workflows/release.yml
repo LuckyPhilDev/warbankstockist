@@ -17,7 +17,7 @@ jobs:
       - name: Update version in .toc file
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          sed -i "s/^## Version:.*/## Version: $VERSION/" "WarbankStockist/WarbankStockist.toc"
+          sed -i "s/^## Version:.*/## Version: $VERSION/" "Luckys_Warbank_Stockist/Luckys_Warbank_Stockist.toc"
           echo "Updated .toc version to $VERSION"
 
       - name: Package and upload
@@ -30,3 +30,31 @@ jobs:
           # Docs say it expects a GitHub PAT in GITHUB_OAUTH.
           # If you don't care about GitHub releases, delete these two lines.
           GITHUB_OAUTH: ${{ secrets.GITHUB_OAUTH }}
+
+      - name: Notify Discord on success
+        if: success()
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          NOTES=$(awk '/^## /{c++; if(c==2) exit} c==1 && !/^## /' CHANGELOG.md | sed '/./,$!d')
+          URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/v$VERSION"
+          PAYLOAD=$(jq -n \
+            --arg title "Warbank Stockist v$VERSION released" \
+            --arg url "$URL" \
+            --arg desc "$NOTES" \
+            '{embeds:[{title:$title, url:$url, description:$desc, color:3066993}]}')
+          curl -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "${{ secrets.DISCORD_WEBHOOK }}"
+
+      - name: Notify Discord on failure
+        if: failure()
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          RUN_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          PAYLOAD=$(jq -n \
+            --arg title "Warbank Stockist v$VERSION — release failed" \
+            --arg url "$RUN_URL" \
+            '{embeds:[{title:$title, url:$url, color:15158332}]}')
+          curl -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "${{ secrets.DISCORD_WEBHOOK }}"
