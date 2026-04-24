@@ -1,5 +1,8 @@
 package-as: Luckys_Warbank_Stockist
 
+move-folders:
+  Luckys_Warbank_Stockist/Luckys_Warbank_Stockist: Luckys_Warbank_Stockist
+
 manual-changelog:
   filename: CHANGELOG.md
   markup-type: markdown
