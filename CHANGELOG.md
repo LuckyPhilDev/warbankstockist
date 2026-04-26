@@ -1,14 +1,9 @@
-## v1.3.3
+## v1.4.0
+
+### Fixed
+- Reliably withdraws multiple items at once instead of stalling after the first.
+- Recovers cleanly when a bank slot is briefly locked by an in-flight move.
+- Avoids placing two withdrawn items into the same empty bag slot.
 
 ### Improved
-- Improved CI
-
-## v1.3.2
-
-### Improved
-- Improved CI
-
-## v1.3.1
-
-### Added
-- Version increased for new patch
+- Faster withdrawals for full stacks — moved directly without cursor handoff.
