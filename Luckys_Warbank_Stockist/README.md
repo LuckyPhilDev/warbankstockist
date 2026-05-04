@@ -1,3 +1,5 @@
+[Join the Discord](https://discord.gg/87HRHcAYP)
+
 **Warband Stockist** is a smart inventory management addon for World of Warcraft that keeps chosen items topped up across your characters using the Warband Bank.
 
 It automatically withdraws what you’re missing and, if enabled, deposits excess—preferring to merge into existing stacks and using empty slots only when needed.
