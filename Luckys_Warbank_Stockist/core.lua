@@ -107,8 +107,9 @@ function WarbandStorage:OnEvent(event, ...)
                 local desiredCount = 0
                 for _ in pairs(desired) do desiredCount = desiredCount + 1 end
                 WarbandStorage:DebugPrint(("Desired stock entries: %d"):format(desiredCount))
-                -- Kick off processing
+                -- Kick off item processing, then balance gold once done
                 WarbandStorage:CheckAndWithdrawItemsFromWarbank()
+                WarbandStorage:ManageGoldWithWarbank()
             end)
     end
 end

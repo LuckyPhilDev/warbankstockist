@@ -491,3 +491,123 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
 
     depositNext(1, amountToDeposit)
 end
+
+-- ############################################################
+-- ## Gold Management — deposit/withdraw to hit a target
+-- ############################################################
+
+--- Resolves the gold target (whole gold pieces) for the current character.
+--- Priority: per-character override > level bracket > nil (disabled).
+local function ResolveGoldTarget()
+    local gm = WarbandStockistDB and WarbandStockistDB.goldManagement
+    if not gm then return nil end
+
+    -- Ensure sub-tables exist (handles saves from before feature existed)
+    gm.brackets  = gm.brackets  or {}
+    gm.overrides = gm.overrides or {}
+
+    -- Build the current character key the same way the rest of the addon does
+    local name, realm = UnitFullName("player")
+    local charKey = string.format("%s-%s",
+        name  or UnitName("player") or "",
+        realm or GetRealmName()     or "")
+
+    -- 1. Per-character override takes priority
+    local override = gm.overrides[charKey]
+    if override ~= nil then
+        return tonumber(override) or 0
+    end
+
+    -- 2. Find the first bracket that covers the player's level
+    local level = UnitLevel("player") or 0
+    for _, bracket in ipairs(gm.brackets) do
+        local lo = tonumber(bracket.minLevel) or 0
+        local hi = tonumber(bracket.maxLevel) or 0
+        if level >= lo and level <= hi then
+            return tonumber(bracket.gold) or 0
+        end
+    end
+
+    -- 3. Nothing matched → feature disabled for this character
+    return nil
+end
+
+--- Adjusts the current character's gold against the Warband Bank so that the
+--- player holds exactly the resolved target gold (in whole gold pieces).
+---
+--- * Override > bracket > disabled (no match).
+--- * Excess gold is deposited; shortfall is withdrawn.
+--- * The warband-bank cap (9,999,999g 99s 99c) is respected on deposits.
+function WarbandStorage:ManageGoldWithWarbank()
+    local targetGold = ResolveGoldTarget()
+    if targetGold == nil then
+        self:DebugPrint("Gold management: no bracket or override matches this character.")
+        return
+    end
+    if targetGold <= 0 then
+        self:DebugPrint("Gold management: target is 0, skipping.")
+        return
+    end
+
+    if not C_Bank.CanDepositMoney(Enum.BankType.Account) then
+        self:DebugPrint("Cannot access Warband Bank for gold management.")
+        return
+    end
+
+    local targetCopper  = targetGold * 10000
+    local currentCopper = GetMoney()
+    local wbCopper      = C_Bank.FetchDepositedMoney(Enum.BankType.Account) or 0
+    local WB_CAP        = 999999990000  -- 9,999,999g 99s 90c
+
+    self:DebugPrint(string.format(
+        "Gold management: have %dg, target %dg, warbank has %dg",
+        math.floor(currentCopper / 10000),
+        targetGold,
+        math.floor(wbCopper / 10000)
+    ))
+
+    local diff = currentCopper - targetCopper
+
+    if diff > 0 then
+        -- Player has more than target → deposit the excess
+        if wbCopper >= WB_CAP then
+            self:DebugPrint("Warband bank is at gold cap; skipping deposit.")
+            return
+        end
+        local toDeposit = diff
+        if wbCopper + toDeposit > WB_CAP then
+            toDeposit = WB_CAP - wbCopper
+        end
+        if toDeposit > 0 then
+            C_Bank.DepositMoney(Enum.BankType.Account, toDeposit)
+            print(string.format(
+                "|cff7fd5ff[Warband Stockist]|r Deposited %dg %ds %dc to Warband Bank.",
+                math.floor(toDeposit / 10000),
+                math.floor((toDeposit % 10000) / 100),
+                toDeposit % 100
+            ))
+        end
+    elseif diff < 0 then
+        -- Player has less than target → withdraw the shortfall
+        local toWithdraw = math.abs(diff)
+        if wbCopper == 0 then
+            self:DebugPrint("Warband bank has no gold to withdraw.")
+            return
+        end
+        if toWithdraw > wbCopper then
+            toWithdraw = wbCopper
+        end
+        if toWithdraw > 0 then
+            C_Bank.WithdrawMoney(Enum.BankType.Account, toWithdraw)
+            print(string.format(
+                "|cff7fd5ff[Warband Stockist]|r Withdrew %dg %ds %dc from Warband Bank.",
+                math.floor(toWithdraw / 10000),
+                math.floor((toWithdraw % 10000) / 100),
+                toWithdraw % 100
+            ))
+        end
+    else
+        self:DebugPrint("Gold is already at target; no gold movement needed.")
+    end
+end
+

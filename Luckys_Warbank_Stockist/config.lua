@@ -11,6 +11,10 @@
 -- ##       [profileName] = { items = { [itemID] = qty, ... } },
 -- ##     },
 -- ##     assignments = { ["Realm-Character"] = profileName },
+-- ##     goldManagement = {
+-- ##       brackets = { { minLevel=1, maxLevel=79, gold=500 }, ... },
+-- ##       overrides = { ["Name-Realm"] = goldAmount },
+-- ##     },
 -- ##   }
 -- ############################################################
 
@@ -23,6 +27,14 @@ WarbandStockistDB = WarbandStockistDB or {
   profiles = {},
   assignments = {},
   characterClasses = {}, -- Store character class info for proper coloring
+  -- Gold management: level brackets and per-character overrides.
+  -- Brackets: ordered list of { minLevel, maxLevel, gold } (whole gold pieces).
+  -- Overrides: keyed by "Name-Realm", whole gold pieces; takes priority over brackets.
+  -- A character with no matching bracket AND no override gets no gold management.
+  goldManagement = {
+    brackets = {},
+    overrides = {},
+  },
   -- Development helpers (safe to leave false in release)
   devOpenOnLogin = false,
 }

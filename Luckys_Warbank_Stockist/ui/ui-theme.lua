@@ -53,6 +53,21 @@ local STR_SECTION_TRACKED                   = "Tracked Items"
 local STR_BUTTON_REMOVE                     = "Remove"
 local STR_ENABLE_EXCESS_DEPOSIT             = "Deposit Excess Items"
 local STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP     = "If enabled, items in excess of configured stock will be deposited into the Warband Bank when it is open."
+-- Gold management tab
+local STR_GOLD_TAB_NAME                     = "Gold"
+local STR_SECTION_GOLD_BRACKETS             = "Level Brackets"
+local STR_GOLD_BRACKET_HINT                 = "Characters whose level falls within a bracket automatically have their gold balanced when at the Warband Bank. Overrides below always take priority."
+local STR_GOLD_BRACKET_COL_MIN              = "Min Lvl"
+local STR_GOLD_BRACKET_COL_MAX              = "Max Lvl"
+local STR_GOLD_BRACKET_COL_GOLD             = "Gold (g)"
+local STR_GOLD_BRACKET_ADD                  = "Add Bracket"
+local STR_GOLD_BRACKET_REMOVE               = "Remove"
+local STR_SECTION_GOLD_OVERRIDES            = "Character Overrides"
+local STR_GOLD_OVERRIDE_HINT                = "Set a specific gold amount for an individual character, overriding any bracket. Leave blank or set 0 to remove."
+local STR_GOLD_OVERRIDE_COL_CHAR            = "Character"
+local STR_GOLD_OVERRIDE_COL_GOLD            = "Gold (g)"
+local STR_GOLD_OVERRIDE_ADD                 = "Add Override"
+local STR_GOLD_OVERRIDE_REMOVE              = "Remove"
 
 -- ############################################################
 -- ## Export Theme API
@@ -104,4 +119,19 @@ WarbandStorage.Theme.STRINGS = {
   BUTTON_REMOVE = STR_BUTTON_REMOVE,
   ENABLE_EXCESS_DEPOSIT = STR_ENABLE_EXCESS_DEPOSIT,
   ENABLE_EXCESS_DEPOSIT_TOOLTIP = STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP,
+  -- Gold tab
+  GOLD_TAB_NAME = STR_GOLD_TAB_NAME,
+  SECTION_GOLD_BRACKETS = STR_SECTION_GOLD_BRACKETS,
+  GOLD_BRACKET_HINT = STR_GOLD_BRACKET_HINT,
+  GOLD_BRACKET_COL_MIN = STR_GOLD_BRACKET_COL_MIN,
+  GOLD_BRACKET_COL_MAX = STR_GOLD_BRACKET_COL_MAX,
+  GOLD_BRACKET_COL_GOLD = STR_GOLD_BRACKET_COL_GOLD,
+  GOLD_BRACKET_ADD = STR_GOLD_BRACKET_ADD,
+  GOLD_BRACKET_REMOVE = STR_GOLD_BRACKET_REMOVE,
+  SECTION_GOLD_OVERRIDES = STR_SECTION_GOLD_OVERRIDES,
+  GOLD_OVERRIDE_HINT = STR_GOLD_OVERRIDE_HINT,
+  GOLD_OVERRIDE_COL_CHAR = STR_GOLD_OVERRIDE_COL_CHAR,
+  GOLD_OVERRIDE_COL_GOLD = STR_GOLD_OVERRIDE_COL_GOLD,
+  GOLD_OVERRIDE_ADD = STR_GOLD_OVERRIDE_ADD,
+  GOLD_OVERRIDE_REMOVE = STR_GOLD_OVERRIDE_REMOVE,
 }

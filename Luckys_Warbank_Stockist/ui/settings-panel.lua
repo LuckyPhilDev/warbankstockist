@@ -90,17 +90,16 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   end)
   depositToggle:SetScript("OnLeave", GameTooltip_Hide)
 
-  -- Create tabs
+  -- Create tabs (Profiles | Assignments | Gold)
   local block, tabs = self:CreateTabs(panel)
-  block:SetPoint("TOPLEFT", depositToggle, "BOTTOMLEFT", 0, 0)
+  block:SetPoint("TOPLEFT", depositToggle, "BOTTOMLEFT", 0, -spacing)
   block:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", 0, 0)
 
-  -- Tab content - use consistent margins
+  -- Tab content
   self:CreateProfilesTabContent(tabs[1].content)
-  -- TODO alignment
   self:CreateAssignmentsSection(tabs[2].content)
-  -- local assignmentsFrame =
-  -- assignmentsFrame:SetAllPoints(tabs[2].content)
+  self:CreateGoldTabContent(tabs[3].content)
+
 
   -- Panel show handler
   panel:SetScript("OnShow", function()
@@ -114,6 +113,12 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
     end
     if RefreshItemList then
       RefreshItemList()
+    end
+    if WarbandStorage.RefreshGoldBracketList then
+      WarbandStorage.RefreshGoldBracketList()
+    end
+    if WarbandStorage.RefreshGoldOverrideList then
+      WarbandStorage.RefreshGoldOverrideList()
     end
     self:SelectTab(tabs, 1)
   end)
@@ -141,7 +146,7 @@ function WarbandStorage.UI:CreateTabs(parent)
 
   local tabButtonSize = { width = 140, height = 32 }
   local tabs = {}
-  local tabNames = { "Profiles", "Assignments" }
+  local tabNames = { "Profiles", "Assignments", STRINGS.GOLD_TAB_NAME }
   local firstTab = nil
 
   for i, name in ipairs(tabNames) do
