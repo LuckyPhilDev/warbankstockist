@@ -13,6 +13,8 @@ It automatically withdraws what you’re missing and, if enabled, deposits exces
 - Profiles + Assignments: Create named profiles and assign them to characters; ignored characters are listed separately and do not auto‑process.
 - Desired = 0 means “keep none”: Items explicitly set to 0 will be deposited automatically.
 - Stack‑first placement: Tries to merge into existing stacks (bags and bank) before using empty slots.
+- Gold management: Set a target gold amount per level bracket; characters are topped up or drained automatically when the Warband Bank opens.
+- Per‑character gold overrides: Pin a specific gold target for one character, taking priority over any bracket.
 
 ---
 
@@ -25,7 +27,11 @@ It automatically withdraws what you’re missing and, if enabled, deposits exces
 3. Assignments tab:
 	- Assign a profile to each character.
 	- Optional: Mark characters as Ignored; they appear under a divider and won’t be auto‑processed.
-4. Options:
+4. Gold tab:
+	- Add level brackets with a target gold amount (e.g. level 1–79 → 500g).
+	- Optionally add a per‑character override to pin a specific amount for one character.
+	- On bank open, gold is automatically withdrawn or deposited to hit the target.
+5. Options:
 	- Deposit Excess Items: enable if you want to auto‑deposit anything above the desired amounts.
 	- Debug Logging: prints detailed steps to chat when enabled.
 
@@ -53,11 +59,10 @@ Behavior on bank open
 
 ## 🗒️ What’s New (recent updates)
 
+- Gold management: set a target gold per level bracket; characters are automatically topped up or drained on bank open.
+- Per‑character gold overrides for characters that need a pinned amount regardless of level.
 - Switched to Profiles + Assignments; Ignored characters sorted last and visually divided in the Assignments tab.
 - Auto behavior matches manual commands: stack‑first then empty‑slot fallback, with per‑slot max‑stack checks.
-- Reagent bag support: included in scans and as a deposit source.
-- Desired=0 now means “deposit all” for listed items.
-- More robust logging on bank open, withdraw, and deposit flows.
 
 ---
 

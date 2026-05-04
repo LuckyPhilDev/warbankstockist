@@ -1,9 +1,5 @@
-## v1.4.0
+## v1.5.0
 
-### Fixed
-- Reliably withdraws multiple items at once instead of stalling after the first.
-- Recovers cleanly when a bank slot is briefly locked by an in-flight move.
-- Avoids placing two withdrawn items into the same empty bag slot.
-
-### Improved
-- Faster withdrawals for full stacks — moved directly without cursor handoff.
+### Added
+- Gold management: set a target gold amount per level bracket, and characters are automatically topped up or drained when they open the Warband Bank.
+- Per-character gold overrides: pin a specific gold target for a single character, taking priority over any bracket.
