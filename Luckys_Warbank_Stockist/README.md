@@ -1,71 +1,50 @@
+# Warband Stockist
+
+Keeps chosen items and gold topped up across your characters using the Warband Bank.
+
+![Warband Stockist](../images/warbank_stock.png)
+
 [Join the Discord](https://discord.gg/87HRHcAYP)
 
-**Warband Stockist** is a smart inventory management addon for World of Warcraft that keeps chosen items topped up across your characters using the Warband Bank.
+## Features
 
-It automatically withdraws what you’re missing and, if enabled, deposits excess—preferring to merge into existing stacks and using empty slots only when needed.
+- **Auto-withdraw.** Pulls items from the Warband Bank to match your configured stock when the bank opens.
+- **Auto-deposit.** Optional. Moves excess items back to the Warband Bank, including any item set to a desired quantity of 0.
+- **Profiles and assignments.** Create named profiles of items and assign one to each character. Ignored characters are listed separately and never auto-process.
+- **Gold management.** Set a target gold amount per level bracket. Characters are automatically topped up or drained when the Warband Bank opens.
+- **Per-character gold overrides.** Pin a specific gold target for a single character, taking priority over any bracket.
+- **Stack-first placement.** Prefers merging into existing stacks before using empty slots, in both bags and bank.
+- **Minimap button.** Quick access to settings. Left or right click to open, shift+drag to move.
 
----
+## Installation
 
-## ✨ Features
+Install from [CurseForge](https://www.curseforge.com/wow/addons/warband-stockist), or extract the addon folder into `World of Warcraft\_retail_\Interface\AddOns\`.
 
-- Auto‑withdraw: Match your configured stock when the Warband Bank opens.
-- Auto‑deposit (optional): Move excess items back to the Warband Bank.
-- Profiles + Assignments: Create named profiles and assign them to characters; ignored characters are listed separately and do not auto‑process.
-- Desired = 0 means “keep none”: Items explicitly set to 0 will be deposited automatically.
-- Stack‑first placement: Tries to merge into existing stacks (bags and bank) before using empty slots.
-- Gold management: Set a target gold amount per level bracket; characters are topped up or drained automatically when the Warband Bank opens.
-- Per‑character gold overrides: Pin a specific gold target for one character, taking priority over any bracket.
+Requires: [Luckys_Utils](https://www.curseforge.com/wow/addons/luckys-utils) (bundled in the CurseForge release, install separately for manual installs).
 
----
+## Usage
 
-## 📋 Setup & Usage
+1. Open settings via the minimap button, the addon menu, or `/wbs settings`.
+2. On the **Profiles** tab, create a profile and add items by ID with desired quantities. A quantity of 0 means deposit everything.
+3. On the **Assignments** tab, assign a profile to each character. Mark any character as Ignored to skip it.
+4. On the **Gold** tab, add level brackets with target gold amounts, and optionally pin per-character overrides.
+5. Open the Warband Bank on any assigned character. Items and gold are reconciled automatically.
 
-1. Open settings: Interface → AddOns → Warband Stockist (or type /wbs settings).
-2. Profiles tab:
-	- Create/select a profile.
-	- Add items by Item ID and desired quantity. Tip: 0 means “deposit all/keep none”.
-3. Assignments tab:
-	- Assign a profile to each character.
-	- Optional: Mark characters as Ignored; they appear under a divider and won’t be auto‑processed.
-4. Gold tab:
-	- Add level brackets with a target gold amount (e.g. level 1–79 → 500g).
-	- Optionally add a per‑character override to pin a specific amount for one character.
-	- On bank open, gold is automatically withdrawn or deposited to hit the target.
-5. Options:
-	- Deposit Excess Items: enable if you want to auto‑deposit anything above the desired amounts.
-	- Debug Logging: prints detailed steps to chat when enabled.
+## Slash Commands
 
-Behavior on bank open
-- Uses the assigned profile for your character.
-- Calculates need/excess from your current inventory (including reagent bag).
-- Withdraws first, then deposits excess if enabled.
-- Placement prefers stacking into existing stacks; otherwise uses the first available empty slot.
+| Command | Action |
+|---|---|
+| `/wbs` | Scan bags and report tracked inventory and missing items. |
+| `/wbs settings` | Open the settings panel. |
+| `/wbs autoopen [on\|off\|toggle]` | Toggle whether settings auto-open on login for this character. |
+| `/wbdeposit <itemID>` | Deposit all of a specific item to the Warband Bank. |
+| `/wbwithdraw <itemID>` | Withdraw a specific item from the Warband Bank. |
+| `/wbhelp` | List available commands. |
 
----
+## Settings
 
-## 🧰 Commands
+Settings live under Interface, AddOns, Warband Stockist, or via `/wbs settings`. Configure profiles, character assignments, gold targets, deposit behaviour, and debug logging from the in-game panel.
 
-- /wbs settings — open the addon’s settings in the game Settings UI.
+## Author
 
----
-
-## � Troubleshooting & Debugging
-
-- Enable “Debug Logging” in settings to print detailed messages (desired vs. inventory, queues, slot choices).
-- On bank open you’ll see which profile is used and summary counts.
-- If stack merges appear inconsistent, just keep the bank open—actions are paced; a second pass (reopen bank) may tidy remaining items depending on the in‑game API state.
-
----
-
-## 🗒️ What’s New (recent updates)
-
-- Gold management: set a target gold per level bracket; characters are automatically topped up or drained on bank open.
-- Per‑character gold overrides for characters that need a pinned amount regardless of level.
-- Switched to Profiles + Assignments; Ignored characters sorted last and visually divided in the Assignments tab.
-- Auto behavior matches manual commands: stack‑first then empty‑slot fallback, with per‑slot max‑stack checks.
-
----
-
-With Warband Stockist, you’ll always be prepared—whether you’re switching specs, gearing alts, or just keeping your bags tidy.
-
-> Note: Requires access to the Warband Bank and works best with consistent item availability.
+Lucky Phil

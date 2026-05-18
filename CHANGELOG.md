@@ -1,5 +1,4 @@
-## v1.5.0
+## v1.6.0
 
 ### Added
-- Gold management: set a target gold amount per level bracket, and characters are automatically topped up or drained when they open the Warband Bank.
-- Per-character gold overrides: pin a specific gold target for a single character, taking priority over any bracket.
+- Minimap button for quick access to settings. Left or right click to open, shift+drag to move.
