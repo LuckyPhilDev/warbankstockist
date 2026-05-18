@@ -24,6 +24,7 @@ ui/profile-panel.lua
 ui/assignment-panel.lua
 ui/gold-panel.lua
 ui/settings-panel.lua
+minimap.lua
 inventory.lua
 bank.lua
 deposit-commands.lua

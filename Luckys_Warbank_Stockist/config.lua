@@ -37,6 +37,7 @@ WarbandStockistDB = WarbandStockistDB or {
   },
   -- Development helpers (safe to leave false in release)
   devOpenOnLogin = false,
+  minimap = {},
 }
 
 -- Per-character scratch (kept for any other modules that still read it)

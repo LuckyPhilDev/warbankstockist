@@ -62,6 +62,16 @@ function WarbandStorage:OnEvent(event, ...)
         if WarbandStorage.UI and WarbandStorage.UI.CreateTabbedSettingsCategory then
             WarbandStorage.UI:CreateTabbedSettingsCategory()
         end
+
+        -- Minimap button
+        if WarbandStorage.Minimap then
+            WarbandStorage.Minimap:Init(WarbandStockistDB)
+            if not WarbandStorage.Minimap.button then
+                C_Timer.After(1, function()
+                    WarbandStorage.Minimap:Init(WarbandStockistDB)
+                end)
+            end
+        end
         
         WarbandStorage:DebugPrint("WarbandStorage loaded!")
         
