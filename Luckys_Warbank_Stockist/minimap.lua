@@ -12,6 +12,7 @@ function WarbandStorage.Minimap:Init(db)
         icon    = ICON,
         dbKey   = "minimap",
         db      = db,
+        defaultAngle = 235,
         onClick = function(_, mouseBtn)
             if mouseBtn == "LeftButton" or mouseBtn == "RightButton" then
                 WarbandStorage:OpenSettings()
@@ -21,7 +22,7 @@ function WarbandStorage.Minimap:Init(db)
             tt:AddLine("|cffffd100Warband Stockist|r")
             tt:AddLine(" ")
             tt:AddLine("Click: Open settings", 0.91, 0.86, 0.78)
-            tt:AddLine("Shift+drag: Move button", 0.54, 0.49, 0.42)
+            tt:AddLine("Drag: Move button", 0.54, 0.49, 0.42)
         end,
     })
 end

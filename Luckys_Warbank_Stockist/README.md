@@ -14,7 +14,7 @@ Keeps chosen items and gold topped up across your characters using the Warband B
 - **Gold management.** Set a target gold amount per level bracket. Characters are automatically topped up or drained when the Warband Bank opens.
 - **Per-character gold overrides.** Pin a specific gold target for a single character, taking priority over any bracket.
 - **Stack-first placement.** Prefers merging into existing stacks before using empty slots, in both bags and bank.
-- **Minimap button.** Quick access to settings. Left or right click to open, shift+drag to move.
+- **Minimap button.** Quick access to settings. Left or right click to open, drag to move.
 
 ## Installation
 

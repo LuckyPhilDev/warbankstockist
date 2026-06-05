@@ -90,9 +90,26 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   end)
   depositToggle:SetScript("OnLeave", GameTooltip_Hide)
 
+  local minimapToggle = CreateFrame("CheckButton", nil, panel, "ChatConfigCheckButtonTemplate")
+  minimapToggle:SetPoint("TOPLEFT", depositToggle, "BOTTOMLEFT", 0, -spacing)
+  minimapToggle.Text:SetFontObject(FONTS.LABEL)
+  minimapToggle.Text:SetText(STRINGS.SHOW_MINIMAP)
+  minimapToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
+  minimapToggle:SetScript("OnClick", function(self)
+    if WarbandStorage.Minimap and WarbandStorage.Minimap.button then
+      WarbandStorage.Minimap.button:SetShown_Persisted(self:GetChecked())
+    end
+  end)
+  minimapToggle:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(STRINGS.SHOW_MINIMAP_TOOLTIP, 1, 1, 1)
+    GameTooltip:Show()
+  end)
+  minimapToggle:SetScript("OnLeave", GameTooltip_Hide)
+
   -- Create tabs (Profiles | Assignments | Gold)
   local block, tabs = self:CreateTabs(panel)
-  block:SetPoint("TOPLEFT", depositToggle, "BOTTOMLEFT", 0, -spacing)
+  block:SetPoint("TOPLEFT", minimapToggle, "BOTTOMLEFT", 0, -spacing)
   block:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", 0, 0)
 
   -- Tab content
@@ -105,6 +122,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   panel:SetScript("OnShow", function()
     debugCheckbox:SetChecked(WarbandStockistDB.debugEnabled == true)
     depositToggle:SetChecked(WarbandStorageCharData.enableExcessDeposit == true)
+    minimapToggle:SetChecked(not (WarbandStockistDB.minimap and WarbandStockistDB.minimap.hide))
     if WarbandStorage.RefreshProfileDropdown then
       WarbandStorage.RefreshProfileDropdown()
     end

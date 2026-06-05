@@ -53,6 +53,8 @@ local STR_SECTION_TRACKED                   = "Tracked Items"
 local STR_BUTTON_REMOVE                     = "Remove"
 local STR_ENABLE_EXCESS_DEPOSIT             = "Deposit Excess Items"
 local STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP     = "If enabled, items in excess of configured stock will be deposited into the Warband Bank when it is open."
+local STR_SHOW_MINIMAP                      = "Show Minimap Button"
+local STR_SHOW_MINIMAP_TOOLTIP             = "Show the Warband Stockist button on the minimap. Drag the button to reposition it."
 -- Gold management tab
 local STR_GOLD_TAB_NAME                     = "Gold"
 local STR_SECTION_GOLD_BRACKETS             = "Level Brackets"
@@ -119,6 +121,8 @@ WarbandStorage.Theme.STRINGS = {
   BUTTON_REMOVE = STR_BUTTON_REMOVE,
   ENABLE_EXCESS_DEPOSIT = STR_ENABLE_EXCESS_DEPOSIT,
   ENABLE_EXCESS_DEPOSIT_TOOLTIP = STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP,
+  SHOW_MINIMAP = STR_SHOW_MINIMAP,
+  SHOW_MINIMAP_TOOLTIP = STR_SHOW_MINIMAP_TOOLTIP,
   -- Gold tab
   GOLD_TAB_NAME = STR_GOLD_TAB_NAME,
   SECTION_GOLD_BRACKETS = STR_SECTION_GOLD_BRACKETS,
