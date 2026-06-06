@@ -205,4 +205,7 @@ function WarbandStorage.RefreshProfileDropdown()
   if WarbandStorage.activeProfileDrop and WarbandStorage.activeProfileDrop.Refresh then
     WarbandStorage.activeProfileDrop:Refresh()
   end
+  if WarbandStorage.RefreshExcessDepositToggle then
+    WarbandStorage.RefreshExcessDepositToggle()
+  end
 end

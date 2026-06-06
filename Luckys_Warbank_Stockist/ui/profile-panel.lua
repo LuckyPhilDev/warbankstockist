@@ -50,7 +50,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   local buttonSpacing = 5
   local buttonHeight = 22
 
-  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, 80)
+  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, 115)
   block:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
   block:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
   block:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
@@ -80,6 +80,54 @@ function WarbandStorage.UI:ProfileControls(parent, width)
 
   local delBtn = CreateButton(block, STRINGS.PROFILE_DELETE, 75, buttonHeight)
   delBtn:SetPoint("LEFT", dupBtn, "RIGHT", buttonSpacing, 0)
+
+  -- Per-profile "Deposit Excess Items" toggle
+  local depositToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
+  depositToggle:SetPoint("TOPLEFT", newBtn, "BOTTOMLEFT", 0, -vertSpacing)
+  depositToggle.Text:SetFontObject(FONTS.LABEL)
+  depositToggle.Text:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT)
+  depositToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
+  depositToggle:SetScript("OnClick", function(self)
+    local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
+    WarbandStorage:SetExcessDepositEnabled(pname, self:GetChecked())
+  end)
+  depositToggle:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT_TOOLTIP, 1, 1, 1)
+    GameTooltip:Show()
+  end)
+  depositToggle:SetScript("OnLeave", GameTooltip_Hide)
+  WarbandStorage.excessDepositToggle = depositToggle
+
+  -- Per-profile "Sort Bank After Deposit" toggle, sharing the deposit row
+  local sortToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
+  sortToggle:SetPoint("LEFT", depositToggle, "LEFT", 220, 0)
+  sortToggle.Text:SetFontObject(FONTS.LABEL)
+  sortToggle.Text:SetText(STRINGS.SORT_AFTER_DEPOSIT)
+  sortToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
+  sortToggle:SetScript("OnClick", function(self)
+    local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
+    WarbandStorage:SetSortAfterDepositEnabled(pname, self:GetChecked())
+  end)
+  sortToggle:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(STRINGS.SORT_AFTER_DEPOSIT_TOOLTIP, 1, 1, 1)
+    GameTooltip:Show()
+  end)
+  sortToggle:SetScript("OnLeave", GameTooltip_Hide)
+  WarbandStorage.sortAfterDepositToggle = sortToggle
+
+  -- Sync both per-profile toggles to whichever profile is being edited
+  function WarbandStorage.RefreshExcessDepositToggle()
+    local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
+    if WarbandStorage.excessDepositToggle then
+      WarbandStorage.excessDepositToggle:SetChecked(WarbandStorage:IsExcessDepositEnabled(pname))
+    end
+    if WarbandStorage.sortAfterDepositToggle then
+      WarbandStorage.sortAfterDepositToggle:SetChecked(WarbandStorage:IsSortAfterDepositEnabled(pname))
+    end
+  end
+  WarbandStorage.RefreshExcessDepositToggle()
 
   -- Profile management popup dialogs
   self:SetupProfileDialogs()

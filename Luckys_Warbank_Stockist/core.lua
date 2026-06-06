@@ -20,9 +20,8 @@ function WarbandStorage:OnEvent(event, ...)
         -- Saved variables are now safe to access
         WarbandStorageData = WarbandStorageData or { default = {} }
         WarbandStorageCharData = WarbandStorageCharData or {
-            useDefault = true, 
+            useDefault = true,
             override = {},
-            enableExcessDeposit = true,
         }
 
         WarbandStorage.inventory = {}

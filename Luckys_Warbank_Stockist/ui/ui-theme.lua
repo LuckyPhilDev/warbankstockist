@@ -52,7 +52,9 @@ local STR_BUTTON_CLEAR_TOOLTIP              = "Removes all items from the curren
 local STR_SECTION_TRACKED                   = "Tracked Items"
 local STR_BUTTON_REMOVE                     = "Remove"
 local STR_ENABLE_EXCESS_DEPOSIT             = "Deposit Excess Items"
-local STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP     = "If enabled, items in excess of configured stock will be deposited into the Warband Bank when it is open."
+local STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP     = "When enabled, items this profile stocks beyond their configured amount are deposited into the Warband Bank when it is open. Applies to every character assigned to this profile."
+local STR_SORT_AFTER_DEPOSIT                = "Sort Bank After Deposit"
+local STR_SORT_AFTER_DEPOSIT_TOOLTIP        = "When enabled, the Warband Bank is cleaned up and sorted automatically once this profile finishes depositing. Applies to every character assigned to this profile."
 local STR_SHOW_MINIMAP                      = "Show Minimap Button"
 local STR_SHOW_MINIMAP_TOOLTIP             = "Show the Warband Stockist button on the minimap. Drag the button to reposition it."
 -- Gold management tab
@@ -121,6 +123,8 @@ WarbandStorage.Theme.STRINGS = {
   BUTTON_REMOVE = STR_BUTTON_REMOVE,
   ENABLE_EXCESS_DEPOSIT = STR_ENABLE_EXCESS_DEPOSIT,
   ENABLE_EXCESS_DEPOSIT_TOOLTIP = STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP,
+  SORT_AFTER_DEPOSIT = STR_SORT_AFTER_DEPOSIT,
+  SORT_AFTER_DEPOSIT_TOOLTIP = STR_SORT_AFTER_DEPOSIT_TOOLTIP,
   SHOW_MINIMAP = STR_SHOW_MINIMAP,
   SHOW_MINIMAP_TOOLTIP = STR_SHOW_MINIMAP_TOOLTIP,
   -- Gold tab

@@ -175,7 +175,7 @@ function WarbandStorage:CheckAndWithdrawItemsFromWarbank()
     self:DebugPrint(("Planned %d withdrawal step(s)"):format(#plan))
 
     self:RunWithdrawPlan(plan, function()
-        if WarbandStorageCharData and WarbandStorageCharData.enableExcessDeposit then
+        if self:IsExcessDepositEnabledForActiveProfile() then
             self:DepositExcessItemsToWarbank()
         end
     end)
@@ -321,6 +321,7 @@ end
 function WarbandStorage:ProcessDepositQueue(queue, index)
     if index > #queue then
         self:DebugPrint("Finished all excess deposits.")
+        self:SortWarbankAfterDeposit()
         return
     end
 
@@ -329,6 +330,21 @@ function WarbandStorage:ProcessDepositQueue(queue, index)
         C_Timer.After(perItemDelay, function()
             self:ProcessDepositQueue(queue, index + 1)
         end)
+    end)
+end
+
+-- Cleans up / sorts the Warband Bank once a deposit run has finished, if the
+-- active profile opts in. Mirrors the in-game "Clean Up Warband Bank" button.
+-- A short delay lets the final placement settle before the sort reshuffles.
+function WarbandStorage:SortWarbankAfterDeposit()
+    if not self:IsSortAfterDepositEnabledForActiveProfile() then return end
+    if not C_Bank.CanViewBank(Enum.BankType.Account) then
+        self:DebugPrint("Sort-after-deposit: Warband Bank not available; skipping sort.")
+        return
+    end
+    C_Timer.After(perItemDelay, function()
+        self:DebugPrint("Sort-after-deposit: sorting Warband Bank.")
+        C_Container.SortAccountBankBags()
     end)
 end
 
@@ -368,6 +384,61 @@ function WarbandStorage:FindEmptyBankSlot()
         end
     end
     return nil, nil
+end
+
+-- Places whatever item is currently on the cursor into the Account bank.
+-- Tries to merge into an existing stack first; if the merge leaves anything
+-- on the cursor (merge failed or only partially filled), falls back to an
+-- empty slot. Calls onDone once the cursor has been dealt with.
+function WarbandStorage:PlaceCursorIntoBank(itemID, onDone)
+    local function finish() if onDone then onDone() end end
+
+    if GetCursorInfo() ~= "item" then
+        self:DebugPrint("Cursor empty before bank placement; nothing to deposit.")
+        finish()
+        return
+    end
+
+    local destBag, destSlot = self:FindStackableBankSlot(itemID)
+    if destBag then
+        self:DebugPrint(("Merging into existing stack at %d:%d"):format(destBag, destSlot))
+    else
+        destBag, destSlot = self:FindEmptyBankSlot()
+        if destBag then
+            self:DebugPrint(("Using empty bank slot %d:%d"):format(destBag, destSlot))
+        end
+    end
+
+    if not destBag then
+        self:DebugPrint("No bank slot available for deposit; returning item to bags.")
+        ClearCursor()
+        finish()
+        return
+    end
+
+    C_Container.PickupContainerItem(destBag, destSlot)
+    C_Timer.After(placeDelay, function()
+        -- If a stack merge didn't consume the whole cursor, the item is still
+        -- held. Drop the remainder into a guaranteed-empty slot instead.
+        if GetCursorInfo() == "item" then
+            local eBag, eSlot = self:FindEmptyBankSlot()
+            if eBag then
+                self:DebugPrint(("Merge left a remainder; placing into empty slot %d:%d"):format(eBag, eSlot))
+                C_Container.PickupContainerItem(eBag, eSlot)
+                C_Timer.After(placeDelay, function()
+                    if GetCursorInfo() == "item" then
+                        self:DebugPrint("Item still on cursor after empty-slot placement; returning to bags.")
+                        ClearCursor()
+                    end
+                    finish()
+                end)
+                return
+            end
+            self:DebugPrint("Merge left a remainder but no empty slot; returning to bags.")
+            ClearCursor()
+        end
+        finish()
+    end)
 end
 
 function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
@@ -438,51 +509,20 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
                         return
                     end
 
-                    local destBag, destSlot = self:FindStackableBankSlot(itemID)
-                    if not destBag then
-                        destBag, destSlot = self:FindEmptyBankSlot()
-                        self:DebugPrint("No stackable slot, using empty bank slot instead.")
-                    else
-                        self:DebugPrint(("Found stackable slot: %d:%d"):format(destBag, destSlot))
-                    end
-
-                    if destBag and destSlot then
-                        self:DebugPrint(("Placing split item into %d:%d"):format(destBag, destSlot))
-                        C_Container.PickupContainerItem(destBag, destSlot)
+                    self:PlaceCursorIntoBank(itemID, function()
                         C_Timer.After(perItemDelay, function()
                             depositNext(index + 1, remaining - toMove)
                         end)
-                    else
-                        self:DebugPrint("No valid destination slot found for bank deposit (split path). Returning item to original slot.")
-                        -- Try to put it back
-                        C_Container.PickupContainerItem(bag, slot)
-                        C_Timer.After(perItemDelay, function()
-                            depositNext(index + 1, remaining) -- do not decrement
-                        end)
-                    end
+                    end)
                 end)
             else
                 self:DebugPrint("Picking up full stack")
                 C_Container.PickupContainerItem(bag, slot)
                 C_Timer.After(depositDelay, function()
-                    local destBag, destSlot = self:FindStackableBankSlot(itemID)
-                    if not destBag then
-                        destBag, destSlot = self:FindEmptyBankSlot()
-                        self:DebugPrint("No stackable slot, using empty bank slot instead.")
-                    else
-                        self:DebugPrint(("Found stackable slot: %d:%d"):format(destBag, destSlot))
-                    end
-
-                    if destBag and destSlot then
-                        self:DebugPrint(("Placing item into %d:%d"):format(destBag, destSlot))
-                        C_Container.PickupContainerItem(destBag, destSlot)
-                    else
-                        self:DebugPrint("No valid destination slot found for bank deposit.")
-                        ClearCursor()
-                    end
-
-                    C_Timer.After(perItemDelay, function()
-                        depositNext(index + 1, remaining - toMove)
+                    self:PlaceCursorIntoBank(itemID, function()
+                        C_Timer.After(perItemDelay, function()
+                            depositNext(index + 1, remaining - toMove)
+                        end)
                     end)
                 end)
             end

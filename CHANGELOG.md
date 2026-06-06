@@ -2,6 +2,7 @@
 
 ### Added
 - Option to hide the minimap button, in Settings.
+- Per-profile "Sort Bank After Deposit" toggle that tidies the Warband Bank automatically once a deposit run finishes.
 
 ### Fixed
 - Minimap button now appears correctly on the minimap instead of sometimes hiding behind it.
