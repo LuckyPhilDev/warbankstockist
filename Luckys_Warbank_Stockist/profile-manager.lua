@@ -66,7 +66,16 @@ function ProfileManager:CreateProfile(name)
     return false
   end
   
+  local isNew = WarbandStockistDB.profiles[name] == nil
   local _, profile = self:EnsureProfile(name)
+  -- New profiles default to depositing excess stock. The read path already
+  -- treats a nil flag as enabled, but seed it explicitly so the default is
+  -- visible in saved data and survives any future change to that fallback.
+  -- Only seed on first creation so re-running this never clobbers an existing
+  -- profile's choice.
+  if isNew and profile then
+    profile.enableExcessDeposit = true
+  end
   -- Do not change character assignments here. Creation should be side-effect free.
   self:RefreshUI()
   Utils:DebugPrint("Created new profile: " .. name)
