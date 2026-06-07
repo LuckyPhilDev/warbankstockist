@@ -176,7 +176,13 @@ function WarbandStorage:CheckAndWithdrawItemsFromWarbank()
 
     self:RunWithdrawPlan(plan, function()
         if self:IsExcessDepositEnabledForActiveProfile() then
+            -- DepositExcessItemsToWarbank ends by calling SortWarbankAfterDeposit
+            -- once the deposit queue drains, so the sort is covered on this path.
             self:DepositExcessItemsToWarbank()
+        else
+            -- No excess-deposit pass to ride on, but the profile may still want
+            -- the bank sorted after a stocking run, so trigger it directly.
+            self:SortWarbankAfterDeposit()
         end
     end)
 end

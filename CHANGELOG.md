@@ -1,3 +1,8 @@
+## v1.7.2
+
+### Fixed
+- "Sort Bank After Deposit" now works for profiles that have "Deposit Excess Items" turned off. The sort was previously only triggered as part of the excess-deposit pass, so it never ran when that option was disabled.
+
 ## v1.7.1
 
 ### Improved
