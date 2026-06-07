@@ -1,3 +1,8 @@
+## v1.7.1
+
+### Improved
+- New profiles now deposit excess stock by default, so over-stock is returned to the Warband Bank without any extra setup.
+
 ## v1.7.0
 
 ### Added
