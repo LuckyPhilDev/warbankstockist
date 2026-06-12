@@ -1,3 +1,8 @@
+## v1.7.3
+
+### Fixed
+- Items withdrawn from the Warband Bank now stack onto matching items already in your bags instead of taking up new slots. Thanks to Eshir for reporting the bug and contributing the fix.
+
 ## v1.7.2
 
 ### Fixed
