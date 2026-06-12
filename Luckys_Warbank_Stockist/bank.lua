@@ -153,6 +153,62 @@ function WarbandStorage:FindEmptyBagSlot(claimed)
     return nil, nil
 end
 
+-- Places whatever item is currently on the cursor into the player's bags.
+-- Tries to merge into an existing stack first; if the merge leaves anything
+-- on the cursor (target stack filled up), falls back to an empty slot.
+-- Bag-side mirror of PlaceCursorIntoBank. Calls onDone once the cursor has
+-- been dealt with.
+function WarbandStorage:PlaceCursorIntoBags(itemID, claimed, onDone)
+    local function finish() if onDone then onDone() end end
+
+    if GetCursorInfo() ~= "item" then
+        self:DebugPrint("Cursor empty before bag placement; nothing to place.")
+        finish()
+        return
+    end
+
+    local destBag, destSlot = self:FindStackableBagSlot(itemID)
+    if destBag then
+        self:DebugPrint(("Merging into existing bag stack at %d:%d"):format(destBag, destSlot))
+    else
+        destBag, destSlot = self:FindEmptyBagSlot(claimed)
+        if destBag then
+            self:DebugPrint(("Using empty bag slot %d:%d"):format(destBag, destSlot))
+        end
+    end
+
+    if not destBag then
+        self:DebugPrint("No stackable or empty bag slot; falling back to PutItemInBackpack")
+        PutItemInBackpack()
+        finish()
+        return
+    end
+
+    C_Container.PickupContainerItem(destBag, destSlot)
+    C_Timer.After(placeDelay, function()
+        -- If a stack merge didn't consume the whole cursor, the item is still
+        -- held. Drop the remainder into a guaranteed-empty slot instead.
+        if GetCursorInfo() == "item" then
+            local eBag, eSlot = self:FindEmptyBagSlot(claimed)
+            if eBag then
+                self:DebugPrint(("Merge left a remainder; placing into empty slot %d:%d"):format(eBag, eSlot))
+                C_Container.PickupContainerItem(eBag, eSlot)
+                C_Timer.After(placeDelay, function()
+                    if GetCursorInfo() == "item" then
+                        self:DebugPrint("Item still on cursor after empty-slot placement; falling back to PutItemInBackpack")
+                        PutItemInBackpack()
+                    end
+                    finish()
+                end)
+                return
+            end
+            self:DebugPrint("Merge left a remainder but no empty bag slot; falling back to PutItemInBackpack")
+            PutItemInBackpack()
+        end
+        finish()
+    end)
+end
+
 function WarbandStorage:CheckAndWithdrawItemsFromWarbank()
     self:DebugPrint("Running CheckAndWithdrawItemsFromWarbank")
 
@@ -243,16 +299,10 @@ function WarbandStorage:RunWithdrawPlan(plan, onComplete)
 
         AwaitCursorItem(
             function()
-                local destBag, destSlot = self:FindEmptyBagSlot(claimedSlots)
-                if destBag and destSlot then
-                    self:DebugPrint(("Placing into %d:%d"):format(destBag, destSlot))
-                    C_Container.PickupContainerItem(destBag, destSlot)
-                else
-                    self:DebugPrint("No empty bag slot reserved; falling back to PutItemInBackpack")
-                    PutItemInBackpack()
-                end
-                idx = idx + 1
-                C_Timer.After(STEP_GAP, step)
+                self:PlaceCursorIntoBags(task.itemID, claimedSlots, function()
+                    idx = idx + 1
+                    C_Timer.After(STEP_GAP, step)
+                end)
             end,
             function()
                 self:DebugPrint(("Cursor never received split from %d:%d; skipping step"):format(task.bagID, task.slot))
