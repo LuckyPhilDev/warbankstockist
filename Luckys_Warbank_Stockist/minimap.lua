@@ -8,7 +8,7 @@ local PREFIX = "|cff7fd5ff[Warband Stockist]|r "
 -- user still sees confirmation when turning it off.
 local function ToggleDevMode()
     WarbandStockistDB = WarbandStockistDB or {}
-    local enabled = not (WarbandStockistDB.debugEnabled == true)
+    local enabled = WarbandStockistDB.debugEnabled ~= true
     WarbandStockistDB.debugEnabled = enabled
     print(PREFIX .. "Dev mode " .. (enabled and "|cff00ff00enabled|r" or "|cffff0000disabled|r") .. ".")
 end

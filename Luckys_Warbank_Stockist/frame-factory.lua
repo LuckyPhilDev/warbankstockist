@@ -6,7 +6,6 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.FrameFactory = WarbandStorage.FrameFactory or {}
 
 local FrameFactory = WarbandStorage.FrameFactory
-local FONTS = WarbandStorage.Theme.FONTS
 
 -- ############################################################
 -- ## Frame Creation Utilities

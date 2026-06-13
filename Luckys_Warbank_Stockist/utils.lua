@@ -1,7 +1,5 @@
 WarbandStorageData = WarbandStorageData or {}
 
-local THEME_COLORS = WarbandStorage.Theme.COLORS
-
 -- Debug print via LuckyLog
 local _wbsLog = LuckyLog:New("|cff00ccff[WBS]:|r", function()
     return WarbandStockistDB and WarbandStockistDB.debugEnabled

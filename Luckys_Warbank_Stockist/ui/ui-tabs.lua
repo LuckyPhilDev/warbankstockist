@@ -5,11 +5,6 @@
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Get theme references
-local THEME_COLORS = WarbandStorage.Theme.COLORS
-local FONTS = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
-
 -- Storage for UI elements
 WarbandStorage.assignRows = WarbandStorage.assignRows or {}
 WarbandStorage.assignParent = WarbandStorage.assignParent or nil

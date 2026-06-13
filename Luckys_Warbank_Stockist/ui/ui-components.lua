@@ -6,9 +6,7 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
 -- Get theme references
-local THEME_COLORS = WarbandStorage.Theme.COLORS
 local FONTS = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
 
 -- ############################################################
 -- ## Base Components

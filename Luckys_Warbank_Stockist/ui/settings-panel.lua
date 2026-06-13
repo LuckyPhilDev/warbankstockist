@@ -160,7 +160,7 @@ function WarbandStorage.UI:CreateTabs(parent)
       edgeSize = 8,
       insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
-    local anchor = nil
+    local anchor
     if(tabs[i - 1]) then
       anchor = tabs[i - 1]
       tab:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 5 , 0)

@@ -3,7 +3,6 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
 -- Get theme referencess
-local THEME_COLORS = WarbandStorage.Theme.COLORS
 local FONTS = WarbandStorage.Theme.FONTS
 local STRINGS = WarbandStorage.Theme.STRINGS
 
@@ -11,7 +10,6 @@ local STRINGS = WarbandStorage.Theme.STRINGS
 -- ## Profiles Tab Content
 -- ############################################################
 function WarbandStorage.UI:CreateProfilesTabContent(parent)
-  local margin = 10
   local sectionSpacing = -15
   local width = 560
   
@@ -258,11 +256,11 @@ function WarbandStorage.UI:SetupProfileButtons(newBtn, renameBtn, dupBtn, delBtn
   end)
 
   delBtn:SetScript("OnClick", function()
-    local curProfile, curName
+    local curName
     if WarbandStorage.GetEditedProfile then
-      curProfile, curName = WarbandStorage:GetEditedProfile()
+      _, curName = WarbandStorage:GetEditedProfile()
     else
-      curProfile, curName = WarbandStorage:GetActiveProfile()
+      _, curName = WarbandStorage:GetActiveProfile()
     end
     StaticPopupDialogs["WBSTOCKIST_DELETE_PROFILE"] = {
       text = "Delete profile '%s'? This cannot be undone.",

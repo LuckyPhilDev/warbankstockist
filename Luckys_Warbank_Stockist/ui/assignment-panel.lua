@@ -5,8 +5,6 @@ local STRINGS = WarbandStorage.Theme.STRINGS
 -- ## Assignments Tab Content
 -- ############################################################
 function WarbandStorage.UI:CreateAssignmentsSection(parent)
-  local vertPadding, horzPadding = 10, 10
-
   local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", 560, 80)
   block:SetPoint("TOPLEFT", parent, "TOPLEFT")
   block:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT")

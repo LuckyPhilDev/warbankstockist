@@ -348,8 +348,6 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
                 and WarbandStorage.Utils:FormatCharacterName(ck) or ck
             nameFS:SetText(display)
 
-            local capturedKey = ck
-
             local goldFS = row:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
             goldFS:SetPoint("LEFT", row, "LEFT", OC_GOLD + 6, 0)
             goldFS:SetText(tostring(gm.overrides[ck] or ""))
