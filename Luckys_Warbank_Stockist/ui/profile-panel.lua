@@ -399,6 +399,19 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, vertPadding)
   -- sectionTitle:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, vertPadding)
 
+  -- Filter box: narrows the tracked items list by name or item ID.
+  local searchBox = LuckyUI.CreateSearchBox(block, {
+    width = 180,
+    height = 22,
+    placeholder = STRINGS.FILTER_ITEMS_PLACEHOLDER,
+    onChange = function(query)
+      WarbandStorage.itemFilter = query or ""
+      if RefreshItemList then RefreshItemList() end
+    end,
+  })
+  searchBox:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, -6)
+  WarbandStorage.itemSearchBox = searchBox
+
   local header = CreateFrame("Frame", nil, parent)
   header:SetPoint("TOPLEFT", sectionTitle, "BOTTOMLEFT", 0, -sectionSpacing)
   header:SetPoint("RIGHT", block, "RIGHT", -horzPadding, 0)

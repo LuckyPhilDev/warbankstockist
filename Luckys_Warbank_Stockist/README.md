@@ -11,6 +11,7 @@ Keeps chosen items and gold topped up across your characters using the Warband B
 - **Auto-withdraw.** Pulls items from the Warband Bank to match your configured stock when the bank opens.
 - **Auto-deposit.** Optional, toggled per profile. Moves excess items back to the Warband Bank, including any item set to a desired quantity of 0. Every character assigned to the profile shares the setting.
 - **Profiles and assignments.** Create named profiles of items and assign one to each character. Ignored characters are listed separately and never auto-process.
+- **Item filter.** Search the tracked items list by name or ID to quickly find an entry in a large profile.
 - **Gold management.** Set a target gold amount per level bracket. Characters are automatically topped up or drained when the Warband Bank opens.
 - **Per-character gold overrides.** Pin a specific gold target for a single character, taking priority over any bracket.
 - **Stack-first placement.** Prefers merging into existing stacks before using empty slots, in both bags and bank.

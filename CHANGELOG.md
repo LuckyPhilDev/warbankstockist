@@ -1,3 +1,8 @@
+## v1.8.0
+
+### Added
+- Search box on the Profiles tab to filter the tracked items list by name or item ID, so you can quickly find an entry in a large profile.
+
 ## v1.7.3
 
 ### Fixed
