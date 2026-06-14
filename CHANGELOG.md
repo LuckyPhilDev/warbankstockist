@@ -3,6 +3,9 @@
 ### Added
 - Search box on the Profiles tab to filter the tracked items list by name or item ID, so you can quickly find an entry in a large profile.
 
+### Fixed
+- The tracked items filter box now lines up with the section header and no longer overlaps the list.
+
 ## v1.7.3
 
 ### Fixed

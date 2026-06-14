@@ -23,14 +23,14 @@ function WarbandStorage.UI:CreateProfilesTabContent(parent)
   itemInput:SetPoint("TOPLEFT", profileBlock, "BOTTOMLEFT", 0, sectionSpacing)
   itemInput:SetPoint("TOPRIGHT", profileBlock, "BOTTOMRIGHT", 0, sectionSpacing)
   
-  local header = self:CreateTrackedItemsHeader(parent, width, 45)
-  header:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
-  header:SetPoint("TOPRIGHT", itemInput, "BOTTOMRIGHT", 0, sectionSpacing)
-  
-  -- Create scroll container for tracked items - aligned properly
+  local trackedBlock, columnHeader = self:CreateTrackedItemsHeader(parent, width, 45)
+  trackedBlock:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
+  trackedBlock:SetPoint("TOPRIGHT", itemInput, "BOTTOMRIGHT", 0, sectionSpacing)
+
+  -- Create scroll container for tracked items - list starts just below the column header bar
   local scrollContainer, scrollChild = self:CreateScrollContainer(parent)
   scrollContainer:ClearAllPoints()
-  scrollContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0) -- TODO Temporary offset, will be adjusted
+  scrollContainer:SetPoint("TOPLEFT", columnHeader, "BOTTOMLEFT", -10, -4)
   scrollContainer:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 0)
   WarbandStorage.scrollParent = scrollChild
   
@@ -396,7 +396,7 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
 
   -- Tracked items section - aligned with other sections
   local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_TRACKED)
-  sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, vertPadding)
+  sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
   -- sectionTitle:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, vertPadding)
 
   -- Filter box: narrows the tracked items list by name or item ID.
@@ -427,5 +427,5 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
 
   header:SetSize(width, 28)
 
-  return block
+  return block, header
 end
