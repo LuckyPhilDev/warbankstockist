@@ -1,7 +1,6 @@
 -- Warband Stockist — Common Utilities
 -- Shared utility functions for validation, text formatting, and common operations
 
--- Ensure namespace
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.Utils = WarbandStorage.Utils or {}
 

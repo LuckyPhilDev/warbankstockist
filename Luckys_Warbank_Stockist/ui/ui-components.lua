@@ -1,18 +1,15 @@
 -- Warband Stockist — UI Components
 -- Reusable UI components like dropdowns, input rows, headers, etc.
 
--- Ensure namespace
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Get theme references
 local FONTS = WarbandStorage.Theme.FONTS
 
 -- ############################################################
 -- ## Base Components
 -- ############################################################
 
--- Create section header
 function CreateSectionHeader(parent, text)
   local header = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
   header:SetText(text or "")
@@ -20,7 +17,6 @@ function CreateSectionHeader(parent, text)
   return header
 end
 
--- Create subheading Text header
 function CreateSubheadingText(parent, text)
   local label = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   label:SetText(text or "")
@@ -28,7 +24,6 @@ function CreateSubheadingText(parent, text)
   return label
 end
 
--- Create default Text header
 function CreateDefaultText(parent, text)
   local label = parent:CreateFontString(nil, "OVERLAY", FONTS.LABEL)
   label:SetText(text or "")
@@ -59,7 +54,6 @@ function CreateNumericEditText(parent, hoverText, width, height)
   return input
 end
 
--- Create styled button
 function CreateStyledButton(parent, width, height, text)
   local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
   button:SetSize(width or 100, height or 22)
@@ -106,10 +100,7 @@ end
 -- ############################################################
 function WarbandStorage.UI:CreateScrollContainer(parent)
   local width = 610 -- parent:GetWidth() - 20
-  -- local scrollContainer = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "scrollContainer", width, height)
-  -- scrollContainer:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 40, -40)
-  -- scrollContainer:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 40, 0)
-  
+
   local scrollFrame = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
   scrollFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
   scrollFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0)

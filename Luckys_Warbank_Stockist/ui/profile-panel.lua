@@ -1,8 +1,6 @@
--- Ensure namespace and SavedVariables
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Get theme referencess
 local FONTS = WarbandStorage.Theme.FONTS
 local STRINGS = WarbandStorage.Theme.STRINGS
 
@@ -13,12 +11,10 @@ function WarbandStorage.UI:CreateProfilesTabContent(parent)
   local sectionSpacing = -15
   local width = 560
   
-  -- Profile controls at top
-  local profileBlock = self:ProfileControls(parent, width) 
+  local profileBlock = self:ProfileControls(parent, width)
   profileBlock:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
   profileBlock:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
-  
-  -- Input row for adding items - aligned with profile block
+
   local itemInput = self:InputSection(parent, width, 70)
   itemInput:SetPoint("TOPLEFT", profileBlock, "BOTTOMLEFT", 0, sectionSpacing)
   itemInput:SetPoint("TOPRIGHT", profileBlock, "BOTTOMRIGHT", 0, sectionSpacing)
@@ -394,10 +390,8 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
 
   local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, height)
 
-  -- Tracked items section - aligned with other sections
   local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_TRACKED)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
-  -- sectionTitle:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, vertPadding)
 
   -- Filter box: narrows the tracked items list by name or item ID.
   local searchBox = LuckyUI.CreateSearchBox(block, {

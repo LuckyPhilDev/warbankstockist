@@ -1,11 +1,9 @@
 -- Warband Stockist — Settings Panel
 -- Main settings panel creation and profile controls
 
--- Ensure namespace and SavedVariables
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Ensure SavedVariables are initialized
 WarbandStockistDB = WarbandStockistDB or {
   debugEnabled = false,
   defaultProfile = "Default",
@@ -14,7 +12,6 @@ WarbandStockistDB = WarbandStockistDB or {
   characterClasses = {}, -- Store character class info for proper coloring
 }
 
--- Get theme references
 local THEME_COLORS = WarbandStorage.Theme.COLORS
 local FONTS = WarbandStorage.Theme.FONTS
 local STRINGS = WarbandStorage.Theme.STRINGS

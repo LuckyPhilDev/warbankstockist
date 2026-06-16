@@ -19,7 +19,6 @@ function WarbandStorage.UI:CreateAssignmentsSection(parent)
   scrollContainer:ClearAllPoints()
   scrollContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 10, -30)
   scrollContainer:SetPoint("BOTTOMRIGHT", block, "BOTTOMRIGHT", -10, 0)
-  -- scrollChild:SetSize(520, 1)
   WarbandStorage.assignParent = scrollChild
 
   RefreshAssignmentsList()
@@ -37,11 +36,6 @@ function WarbandStorage.UI:CreateAssignmentsHeader(parent)
 
   local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_ASSIGNMENTS)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
-
-  -- Tracked items section - aligned with other sections
-  -- local sectionTitle = CreateSectionHeader(block, STRINGS.STR_SECTION_ASSIGNMENTS)
-  -- sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, vertPadding)
-  -- sectionTitle:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, vertPadding)
 
   local header = CreateFrame("Frame", nil, parent)
   header:SetPoint("TOPLEFT", sectionTitle, "BOTTOMLEFT", 0, -sectionSpacing)

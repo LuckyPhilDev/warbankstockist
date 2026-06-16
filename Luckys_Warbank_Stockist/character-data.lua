@@ -1,7 +1,6 @@
 -- Warband Stockist — Character Data Management
 -- Handles storing and retrieving character-specific information like class
 
--- Ensure namespace
 WarbandStorage = WarbandStorage or {}
 
 -- Store character class information for proper display colors

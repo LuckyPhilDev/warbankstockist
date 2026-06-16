@@ -1,7 +1,6 @@
 -- Warband Stockist — Frame Factory
 -- Consolidated frame creation and styling utilities
 
--- Ensure namespace
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.FrameFactory = WarbandStorage.FrameFactory or {}
 
@@ -35,11 +34,9 @@ local BACKDROP_CONFIGS = {
   }
 }
 
--- Apply theme colors safely
 local function ApplyThemeColors(frame, colorType, borderType)
   if not frame then return end
 
-  -- Safely access theme colors
   local colors = WarbandStorage and WarbandStorage.Theme and WarbandStorage.Theme.COLORS
   if not colors then
     -- Fallback colors if theme not loaded
@@ -62,7 +59,6 @@ local function ApplyThemeColors(frame, colorType, borderType)
   end
 end
 
--- Create a styled frame with backdrop
 function FrameFactory:CreateStyledFrame(parent, frameType, width, height, colorType)
   frameType = frameType or "panel"
   colorType = colorType or "CONTENT_BG"
@@ -99,7 +95,6 @@ function FrameFactory:SetupDialogFrame(frame)
   ApplyThemeColors(frame, "BACKGROUND")
 end
 
--- Create content panel
 function FrameFactory:CreateContentPanel(parent, width, height)
   return self:CreateStyledFrame(parent, "content", width, height, "CONTENT_BG")
 end
@@ -109,7 +104,6 @@ function FrameFactory:ApplyThemeColors(frame, colorType, borderType)
   ApplyThemeColors(frame, colorType, borderType)
 end
 
--- Create tab frame
 function FrameFactory:CreateTabFrame(parent, width, height, isActive)
   local tab = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   tab:SetSize(width or 140, height or 32)

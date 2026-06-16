@@ -1,7 +1,6 @@
 -- Warband Stockist — Profile Manager
 -- Centralized profile management operations
 
--- Ensure namespace
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.ProfileManager = WarbandStorage.ProfileManager or {}
 
@@ -12,7 +11,6 @@ local Utils = WarbandStorage.Utils
 -- ## Profile Operations
 -- ############################################################
 
--- Ensure a profile exists with given name
 function ProfileManager:EnsureProfile(name)
   if not Utils:IsValidValue(name) then return nil, nil end
   
@@ -20,13 +18,11 @@ function ProfileManager:EnsureProfile(name)
   return name, WarbandStockistDB.profiles[name]
 end
 
--- Get active profile name for current character
 function ProfileManager:GetActiveProfileName()
   local charKey = Utils:GetCharacterKey()
   return WarbandStockistDB.assignments[charKey]
 end
 
--- Get active profile data
 -- Optionally resolve a specific profile name; otherwise prefer the 'edited' profile if available
 local function resolveProfileName(preferredName)
   if preferredName and preferredName ~= "" then return preferredName end
@@ -43,7 +39,6 @@ function ProfileManager:GetActiveProfile(profileName)
   return WarbandStockistDB.profiles[name] or { items = {} }, name
 end
 
--- Set active profile for current character
 function ProfileManager:SetActiveProfileForChar(profileName)
   if not Utils:IsValidValue(profileName) then return false end
   
@@ -51,13 +46,11 @@ function ProfileManager:SetActiveProfileForChar(profileName)
   local charKey = Utils:GetCharacterKey()
   WarbandStockistDB.assignments[charKey] = profileName
   
-  -- Refresh UI if available
   self:RefreshUI()
   
   return true
 end
 
--- Create new profile
 function ProfileManager:CreateProfile(name)
   if not Utils:IsValidValue(name) then return false end
   local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
@@ -82,7 +75,6 @@ function ProfileManager:CreateProfile(name)
   return true
 end
 
--- Rename existing profile
 function ProfileManager:RenameProfile(oldName, newName)
   if not Utils:IsValidValue(oldName) or not Utils:IsValidValue(newName) then 
     return false 
@@ -95,17 +87,13 @@ function ProfileManager:RenameProfile(oldName, newName)
   
   if oldName == newName then return true end
   
-  -- Check if old profile exists
   if not WarbandStockistDB.profiles[oldName] then return false end
   
-  -- Create new profile with copied data
   self:EnsureProfile(newName)
   WarbandStockistDB.profiles[newName].items = Utils:DeepCopy(WarbandStockistDB.profiles[oldName].items)
   
-  -- Delete old profile
   WarbandStockistDB.profiles[oldName] = nil
   
-  -- Update character assignments
   for charKey, assignedProfile in pairs(WarbandStockistDB.assignments) do
     if assignedProfile == oldName then
       WarbandStockistDB.assignments[charKey] = newName
@@ -117,21 +105,17 @@ function ProfileManager:RenameProfile(oldName, newName)
   return true
 end
 
--- Duplicate profile
 function ProfileManager:DuplicateProfile(sourceName, newName)
   if not Utils:IsValidValue(sourceName) or not Utils:IsValidValue(newName) then
     return false
   end
   
-  -- Check if source exists
   if not WarbandStockistDB.profiles[sourceName] then return false end
   
-  -- Create new profile
   local _, newProfile = self:EnsureProfile(newName)
   if not newProfile then return false end
   Utils:SafeWipe(newProfile.items)
   
-  -- Copy items from source
   for itemID, quantity in pairs(WarbandStockistDB.profiles[sourceName].items) do
     newProfile.items[itemID] = quantity
   end
@@ -142,14 +126,11 @@ function ProfileManager:DuplicateProfile(sourceName, newName)
   return true
 end
 
--- Delete profile
 function ProfileManager:DeleteProfile(name)
   if not Utils:IsValidValue(name) then return false end
   
-  -- Check if profile exists
   if not WarbandStockistDB.profiles[name] then return false end
   
-  -- Delete the profile
   WarbandStockistDB.profiles[name] = nil
   -- If this was the legacy migrated global profile, prevent re-migration
   if name == "Global (Migrated)" then
@@ -168,7 +149,6 @@ function ProfileManager:DeleteProfile(name)
   return true
 end
 
--- Get all profile names
 function ProfileManager:GetAllProfileNames()
   local names = {}
   for profileName in pairs(WarbandStockistDB.profiles) do
@@ -182,7 +162,6 @@ end
 -- ## Item Management
 -- ############################################################
 
--- Add item to current profile
 function ProfileManager:AddItemToProfile(itemID, quantity, profileName)
   if not Utils:IsValidItemID(itemID) or not Utils:IsValidQuantity(quantity) then
     return false
@@ -196,7 +175,6 @@ function ProfileManager:AddItemToProfile(itemID, quantity, profileName)
   return true
 end
 
--- Remove item from current profile
 function ProfileManager:RemoveItemFromProfile(itemID, profileName)
   if not Utils:IsValidItemID(itemID) then return false end
   
@@ -208,7 +186,6 @@ function ProfileManager:RemoveItemFromProfile(itemID, profileName)
   return true
 end
 
--- Clear all items from current profile
 function ProfileManager:ClearProfileItems(profileName)
   local profile = self:GetActiveProfile(profileName)
   Utils:SafeWipe(profile.items)
@@ -218,7 +195,6 @@ function ProfileManager:ClearProfileItems(profileName)
   return true
 end
 
--- Get desired stock for current profile
 function ProfileManager:GetDesiredStock(profileName)
   local profile = self:GetActiveProfile(profileName)
   return profile.items or {}
@@ -228,17 +204,14 @@ end
 -- ## Character Assignment Management
 -- ############################################################
 
--- Get all character keys that have assignments
 function ProfileManager:GetAllCharacterKeys()
   local keys = {}
   local seen = {}
   
-  -- Add assigned characters
   for charKey in pairs(WarbandStockistDB.assignments or {}) do
     if charKey and not seen[charKey] then table.insert(keys, charKey); seen[charKey] = true end
   end
   
-  -- Add known characters from stored classes
   if WarbandStockistDB.characterClasses then
     for charKey,_ in pairs(WarbandStockistDB.characterClasses) do
       if charKey and not seen[charKey] then table.insert(keys, charKey); seen[charKey] = true end
@@ -259,7 +232,6 @@ function ProfileManager:GetAllCharacterKeys()
   return keys
 end
 
--- Unassign character from any profile (use default)
 function ProfileManager:UnassignCharacter(characterKey)
   if not characterKey then return false end
   
@@ -296,19 +268,15 @@ end
 -- ## UI Refresh Coordination
 -- ############################################################
 
--- Refresh all related UI components
 function ProfileManager:RefreshUI()
-  -- Refresh profile dropdown
   if WarbandStorage.RefreshProfileDropdown then
     WarbandStorage.RefreshProfileDropdown()
   end
-  
-  -- Refresh item list
+
   if RefreshItemList then
     RefreshItemList()
   end
-  
-  -- Refresh assignments list
+
   if RefreshAssignmentsList then
     RefreshAssignmentsList()
   end

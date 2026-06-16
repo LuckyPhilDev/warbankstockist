@@ -1,11 +1,9 @@
 -- Warband Stockist — Tab System & Lists
 -- Contains the main UI tabs, item lists, and assignment lists
 
--- Ensure namespace
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
--- Storage for UI elements
 WarbandStorage.assignRows = WarbandStorage.assignRows or {}
 WarbandStorage.assignParent = WarbandStorage.assignParent or nil
 WarbandStorage.scrollItems = WarbandStorage.scrollItems or {}
