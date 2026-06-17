@@ -1,3 +1,8 @@
+## v1.8.1
+
+### Improved
+- Updated for the latest game patch.
+
 ## v1.8.0
 
 ### Added
