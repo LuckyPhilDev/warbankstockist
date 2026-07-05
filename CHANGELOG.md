@@ -1,3 +1,8 @@
+## v1.8.2
+
+### Improved
+- Minor maintenance and packaging updates.
+
 ## v1.8.1
 
 ### Improved
