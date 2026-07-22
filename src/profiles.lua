@@ -176,6 +176,22 @@ function WarbandStorage:IsSortAfterDepositEnabledForActiveProfile()
   return self:IsSortAfterDepositEnabled(ActiveProfileName())
 end
 
+-- Per-profile "start the Add Item quantity box at 0" flag. Only meaningful when
+-- the profile deposits excess, since a kept quantity of 0 is what sends an item
+-- straight to the bank. Defaults OFF.
+function WarbandStorage:IsDefaultQtyZeroEnabled(profileName)
+  if not profileName or profileName == "" then return false end
+  local profile = WarbandStockistDB.profiles[profileName]
+  if not profile then return false end
+  return profile.defaultQtyZero == true and self:IsExcessDepositEnabled(profileName)
+end
+
+function WarbandStorage:SetDefaultQtyZeroEnabled(profileName, enabled)
+  if not profileName or profileName == "" then return end
+  EnsureProfile(profileName)
+  WarbandStockistDB.profiles[profileName].defaultQtyZero = (enabled == true)
+end
+
 -- ############################################################
 -- ## Legacy migration (from global/character list mode)
 -- ############################################################

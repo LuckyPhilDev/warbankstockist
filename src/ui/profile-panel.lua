@@ -84,6 +84,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   depositToggle:SetScript("OnClick", function(self)
     local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
     WarbandStorage:SetExcessDepositEnabled(pname, self:GetChecked())
+    WarbandStorage.RefreshExcessDepositToggle()
   end)
   depositToggle:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -111,6 +112,24 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   sortToggle:SetScript("OnLeave", GameTooltip_Hide)
   WarbandStorage.sortAfterDepositToggle = sortToggle
 
+  -- Per-profile "Default Qty to 0" toggle, only usable while excess deposit is on
+  local defaultQtyToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
+  defaultQtyToggle:SetPoint("LEFT", sortToggle, "LEFT", 220, 0)
+  defaultQtyToggle.Text:SetFontObject(FONTS.LABEL)
+  defaultQtyToggle.Text:SetText(STRINGS.DEFAULT_QTY_ZERO)
+  defaultQtyToggle:SetScript("OnClick", function(self)
+    local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
+    WarbandStorage:SetDefaultQtyZeroEnabled(pname, self:GetChecked())
+    if WarbandStorage.ResetItemInputQty then WarbandStorage.ResetItemInputQty() end
+  end)
+  defaultQtyToggle:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(STRINGS.DEFAULT_QTY_ZERO_TOOLTIP, 1, 1, 1)
+    GameTooltip:Show()
+  end)
+  defaultQtyToggle:SetScript("OnLeave", GameTooltip_Hide)
+  WarbandStorage.defaultQtyZeroToggle = defaultQtyToggle
+
   -- Sync both per-profile toggles to whichever profile is being edited
   function WarbandStorage.RefreshExcessDepositToggle()
     local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
@@ -120,6 +139,14 @@ function WarbandStorage.UI:ProfileControls(parent, width)
     if WarbandStorage.sortAfterDepositToggle then
       WarbandStorage.sortAfterDepositToggle:SetChecked(WarbandStorage:IsSortAfterDepositEnabled(pname))
     end
+    if WarbandStorage.defaultQtyZeroToggle then
+      local depositing = WarbandStorage:IsExcessDepositEnabled(pname)
+      WarbandStorage.defaultQtyZeroToggle:SetChecked(WarbandStorage:IsDefaultQtyZeroEnabled(pname))
+      WarbandStorage.defaultQtyZeroToggle:SetEnabled(depositing)
+      local shade = depositing and 0.8 or 0.4
+      WarbandStorage.defaultQtyZeroToggle.Text:SetTextColor(shade, shade, shade, 1)
+    end
+    if WarbandStorage.ResetItemInputQty then WarbandStorage.ResetItemInputQty() end
   end
   WarbandStorage.RefreshExcessDepositToggle()
 
@@ -330,7 +357,8 @@ function WarbandStorage.UI:InputSection(parent, width, height)
   qtyInput:SetPoint("LEFT", qtyLabel, "RIGHT", editSpacing, 0)
 
   function WarbandStorage.ResetItemInputQty()
-    qtyInput:SetText(WarbandStockistDB.defaultQtyZero and "0" or "")
+    local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
+    qtyInput:SetText(WarbandStorage:IsDefaultQtyZeroEnabled(pname) and "0" or "")
   end
   WarbandStorage.ResetItemInputQty()
 

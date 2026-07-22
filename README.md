@@ -48,11 +48,10 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 
 Open settings with the minimap button, `/wbs settings`, or **Options > AddOns > Lucky's Warbank Stockist**.
 
-- **Profiles**: Manage profiles, tracked item quantities, excess deposits, bank sorting, and item-list search.
+- **Profiles**: Manage profiles, tracked item quantities, excess deposits, bank sorting, item-list search, and whether the Add Item quantity box starts at 0 instead of blank.
 - **Assignments**: Assign profiles to characters, unassign characters, or move unused characters into the ignored section.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
 - **Minimap Button**: Show or hide the addon button.
-- **Default Qty to 0**: Start the Add Item quantity box at 0 instead of blank. Off by default.
 
 ## Author
 

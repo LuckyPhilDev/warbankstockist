@@ -57,7 +57,7 @@ local STR_ENABLE_EXCESS_DEPOSIT_TOOLTIP     = "When enabled, items this profile 
 local STR_SORT_AFTER_DEPOSIT                = "Sort Bank After Deposit"
 local STR_SORT_AFTER_DEPOSIT_TOOLTIP        = "When enabled, the Warband Bank is cleaned up and sorted automatically once this profile finishes depositing. Applies to every character assigned to this profile."
 local STR_DEFAULT_QTY_ZERO                  = "Default Qty to 0"
-local STR_DEFAULT_QTY_ZERO_TOOLTIP          = "When enabled, the Qty box in Add Item starts at 0 instead of blank, so items you only want deposited can be added in one click."
+local STR_DEFAULT_QTY_ZERO_TOOLTIP          = "When enabled, the Qty box in Add Item starts at 0 instead of blank for this profile, so items you only want deposited can be added in one click. Requires Deposit Excess Items."
 local STR_SHOW_MINIMAP                      = "Show Minimap Button"
 local STR_SHOW_MINIMAP_TOOLTIP             = "Show the Warband Stockist button on the minimap. Drag the button to reposition it."
 -- Gold management tab
