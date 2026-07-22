@@ -11,7 +11,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Excess deposits**: Optionally return stock above the configured quantity to the Warband Bank.
 - **Automatic bank sorting**: Each profile can clean up and sort the Warband Bank after its deposit pass finishes.
 - **Character assignments**: Assign each character to a profile, leave it unassigned, or ignore it completely.
-- **Flexible item entry**: Add tracked items by item link or item ID and choose the quantity each character should keep.
+- **Flexible item entry**: Add tracked items by item link or item ID, or drop a bag item straight onto the Item ID field, and choose the quantity each character should keep.
 - **Profile management**: Create, rename, duplicate, and delete profiles without changing other characters' assignments.
 - **Searchable item lists**: Filter large profiles by item name or item ID.
 - **Gold targets**: Keep characters at a chosen gold amount using level brackets, with optional per-character overrides.

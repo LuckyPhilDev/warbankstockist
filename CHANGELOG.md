@@ -1,3 +1,8 @@
+## v1.9.0
+
+### Added
+- Pick up an item from your bags and click the Item ID field to fill it in, as well as dragging it there.
+
 ## v1.8.2
 
 ### Improved
