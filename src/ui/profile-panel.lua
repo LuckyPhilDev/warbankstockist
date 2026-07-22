@@ -96,7 +96,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
 
   -- Per-profile "Sort Bank After Deposit" toggle, sharing the deposit row
   local sortToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
-  sortToggle:SetPoint("LEFT", depositToggle, "LEFT", 220, 0)
+  sortToggle:SetPoint("LEFT", depositToggle, "LEFT", 440, 0)
   sortToggle.Text:SetFontObject(FONTS.LABEL)
   sortToggle.Text:SetText(STRINGS.SORT_AFTER_DEPOSIT)
   sortToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
@@ -114,7 +114,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
 
   -- Per-profile "Default Qty to 0" toggle, only usable while excess deposit is on
   local defaultQtyToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
-  defaultQtyToggle:SetPoint("LEFT", sortToggle, "LEFT", 220, 0)
+  defaultQtyToggle:SetPoint("LEFT", depositToggle, "LEFT", 220, 0)
   defaultQtyToggle.Text:SetFontObject(FONTS.LABEL)
   defaultQtyToggle.Text:SetText(STRINGS.DEFAULT_QTY_ZERO)
   defaultQtyToggle:SetScript("OnClick", function(self)
