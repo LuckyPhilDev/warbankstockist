@@ -52,6 +52,7 @@ Open settings with the minimap button, `/wbs settings`, or **Options > AddOns > 
 - **Assignments**: Assign profiles to characters, unassign characters, or move unused characters into the ignored section.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
 - **Minimap Button**: Show or hide the addon button.
+- **Default Qty to 0**: Start the Add Item quantity box at 0 instead of blank. Off by default.
 
 ## Author
 

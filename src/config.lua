@@ -7,6 +7,7 @@
 -- ##   WarbandStockistDB = {
 -- ##     debugEnabled = boolean,
 -- ##     defaultProfile = "Default",
+-- ##     defaultQtyZero = boolean,
 -- ##     profiles = {
 -- ##       [profileName] = { items = { [itemID] = qty, ... } },
 -- ##     },
@@ -24,6 +25,8 @@ WarbandStorage = WarbandStorage or {}
 WarbandStockistDB = WarbandStockistDB or {
   debugEnabled = false,
   defaultProfile = "Default",
+  -- Start the Add Item quantity box at 0 instead of blank (opt-in).
+  defaultQtyZero = false,
   profiles = {},
   assignments = {},
   characterClasses = {}, -- Store character class info for proper coloring

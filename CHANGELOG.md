@@ -2,6 +2,7 @@
 
 ### Added
 - Pick up an item from your bags and click the Item ID field to fill it in, as well as dragging it there.
+- Optional "Default Qty to 0" setting, so the quantity box starts at 0 instead of blank when you add items you only want deposited. Off by default.
 
 ## v1.8.2
 

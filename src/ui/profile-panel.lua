@@ -329,6 +329,11 @@ function WarbandStorage.UI:InputSection(parent, width, height)
   local qtyInput = CreateNumericEditText(block, STRINGS.LABEL_QTY_TOOLTIP, 60, 22)
   qtyInput:SetPoint("LEFT", qtyLabel, "RIGHT", editSpacing, 0)
 
+  function WarbandStorage.ResetItemInputQty()
+    qtyInput:SetText(WarbandStockistDB.defaultQtyZero and "0" or "")
+  end
+  WarbandStorage.ResetItemInputQty()
+
   local addButton = CreateButton(block, STRINGS.BUTTON_ADD, 50, 22)
   addButton:SetPoint("LEFT", qtyInput, "RIGHT", 15, 0)
   addButton:SetScript("OnEnter", function(self) 
@@ -368,7 +373,7 @@ function WarbandStorage.UI:InputSection(parent, width, height)
       local pname = WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName() or WarbandStorage:GetActiveProfileName()
       WarbandStorage.ProfileManager:AddItemToProfile(itemID, qty, pname)
       itemInput:SetText("")
-      qtyInput:SetText("")
+      WarbandStorage.ResetItemInputQty()
       WarbandStorage.ProfileManager:RefreshUI()
     else
       WarbandStorage:DebugPrint("Invalid item ID or quantity.")

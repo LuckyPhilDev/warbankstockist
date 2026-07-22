@@ -89,9 +89,25 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   end)
   minimapToggle:SetScript("OnLeave", GameTooltip_Hide)
 
+  local defaultQtyToggle = CreateFrame("CheckButton", nil, panel, "ChatConfigCheckButtonTemplate")
+  defaultQtyToggle:SetPoint("TOPLEFT", minimapToggle, "BOTTOMLEFT", 0, -spacing)
+  defaultQtyToggle.Text:SetFontObject(FONTS.LABEL)
+  defaultQtyToggle.Text:SetText(STRINGS.DEFAULT_QTY_ZERO)
+  defaultQtyToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
+  defaultQtyToggle:SetScript("OnClick", function(self)
+    WarbandStockistDB.defaultQtyZero = self:GetChecked() and true or false
+    if WarbandStorage.ResetItemInputQty then WarbandStorage.ResetItemInputQty() end
+  end)
+  defaultQtyToggle:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(STRINGS.DEFAULT_QTY_ZERO_TOOLTIP, 1, 1, 1)
+    GameTooltip:Show()
+  end)
+  defaultQtyToggle:SetScript("OnLeave", GameTooltip_Hide)
+
   -- Create tabs (Profiles | Assignments | Gold)
   local block, tabs = self:CreateTabs(panel)
-  block:SetPoint("TOPLEFT", minimapToggle, "BOTTOMLEFT", 0, -spacing)
+  block:SetPoint("TOPLEFT", defaultQtyToggle, "BOTTOMLEFT", 0, -spacing)
   block:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", 0, 0)
 
   -- Tab content
@@ -104,6 +120,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   panel:SetScript("OnShow", function()
     debugCheckbox:SetChecked(WarbandStockistDB.debugEnabled == true)
     minimapToggle:SetChecked(not (WarbandStockistDB.minimap and WarbandStockistDB.minimap.hide))
+    defaultQtyToggle:SetChecked(WarbandStockistDB.defaultQtyZero == true)
     if WarbandStorage.RefreshProfileDropdown then
       WarbandStorage.RefreshProfileDropdown()
     end
