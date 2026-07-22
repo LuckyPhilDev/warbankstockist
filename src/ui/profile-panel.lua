@@ -309,17 +309,20 @@ function WarbandStorage.UI:InputSection(parent, width, height)
 
   local itemInput = CreateNumericEditText(block, STRINGS.LABEL_ITEM_ID_TOOLTIP, 100, 22)
   itemInput:SetPoint("LEFT", itemLabel, "RIGHT", editSpacing, 0)
-  itemInput:SetScript("OnReceiveDrag", function(self)
-    local type, itemID, link = GetCursorInfo()
-    if type == "item" then
-      local extractedID = tonumber((link and link:match("item:(%d+)")) or itemID)
-      if extractedID then 
-        self:SetText(tostring(extractedID))
-        ClearCursor() 
-      end
+  local function CaptureCursorItem(self)
+    local cursorType, itemID, link = GetCursorInfo()
+    if cursorType ~= "item" then return end
+    local extractedID = tonumber((link and link:match("item:(%d+)")) or itemID)
+    if extractedID then
+      self:SetText(tostring(extractedID))
+      ClearCursor()
     end
-  end)
-  
+  end
+
+  itemInput:SetScript("OnReceiveDrag", CaptureCursorItem)
+  itemInput:SetScript("OnMouseDown", CaptureCursorItem)
+
+
   local qtyLabel = CreateDefaultText(block, STRINGS.LABEL_QTY)
   qtyLabel:SetPoint("LEFT", itemLabel, "RIGHT", fieldSpacing, 0)
 
