@@ -362,6 +362,13 @@ function WarbandStorage.UI:InputSection(parent, width, height)
   end
   WarbandStorage.ResetItemInputQty()
 
+  -- Filling in an item ID re-seeds a qty the user cleared, so the one-click
+  -- deposit-only flow survives an edit. Never overwrites a typed quantity.
+  itemInput:SetScript("OnTextChanged", function(self)
+    if self:GetText() == "" or qtyInput:GetText() ~= "" then return end
+    WarbandStorage.ResetItemInputQty()
+  end)
+
   local addButton = CreateButton(block, STRINGS.BUTTON_ADD, 50, 22)
   addButton:SetPoint("LEFT", qtyInput, "RIGHT", 15, 0)
   addButton:SetScript("OnEnter", function(self) 
