@@ -18,7 +18,7 @@ function WarbandStorage.UI:CreateAssignmentsSection(parent)
   local scrollContainer, scrollChild = self:CreateScrollContainer(block)
   scrollContainer:ClearAllPoints()
   scrollContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 10, -30)
-  scrollContainer:SetPoint("BOTTOMRIGHT", block, "BOTTOMRIGHT", -10, 0)
+  scrollContainer:SetPoint("BOTTOMRIGHT", block, "BOTTOMRIGHT", -10, 10)
   WarbandStorage.assignParent = scrollChild
 
   RefreshAssignmentsList()

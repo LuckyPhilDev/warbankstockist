@@ -8,18 +8,18 @@ local STRINGS = WarbandStorage.Theme.STRINGS
 -- ## Profiles Tab Content
 -- ############################################################
 function WarbandStorage.UI:CreateProfilesTabContent(parent)
-  local sectionSpacing = -15
+  local sectionSpacing = -4
   local width = 560
   
   local profileBlock = self:ProfileControls(parent, width)
   profileBlock:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
   profileBlock:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
 
-  local itemInput = self:InputSection(parent, width, 70)
+  local itemInput = self:InputSection(parent, width, 52)
   itemInput:SetPoint("TOPLEFT", profileBlock, "BOTTOMLEFT", 0, sectionSpacing)
   itemInput:SetPoint("TOPRIGHT", profileBlock, "BOTTOMRIGHT", 0, sectionSpacing)
   
-  local trackedBlock, columnHeader = self:CreateTrackedItemsHeader(parent, width, 45)
+  local trackedBlock, columnHeader = self:CreateTrackedItemsHeader(parent, width, 35)
   trackedBlock:SetPoint("TOPLEFT", itemInput, "BOTTOMLEFT", 0, sectionSpacing)
   trackedBlock:SetPoint("TOPRIGHT", itemInput, "BOTTOMRIGHT", 0, sectionSpacing)
 
@@ -27,7 +27,7 @@ function WarbandStorage.UI:CreateProfilesTabContent(parent)
   local scrollContainer, scrollChild = self:CreateScrollContainer(parent)
   scrollContainer:ClearAllPoints()
   scrollContainer:SetPoint("TOPLEFT", columnHeader, "BOTTOMLEFT", -10, -4)
-  scrollContainer:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 0)
+  scrollContainer:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 10)
   WarbandStorage.scrollParent = scrollChild
   
   return profileBlock
@@ -43,8 +43,10 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   local vertSpacing = 10
   local buttonSpacing = 5
   local buttonHeight = 22
+  local buttonWidth = 80
+  local clusterHeight = buttonHeight * 2 + buttonSpacing
 
-  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, 115)
+  local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, 100)
   block:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
   block:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
   block:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
@@ -62,22 +64,23 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   dropdown:SetPoint("LEFT", activeLabel, "RIGHT", -12, 0)
   WarbandStorage.activeProfileDrop = dropdown
 
-  -- CRUD buttons
-  local newBtn = CreateButton(block, STRINGS.PROFILE_NEW, 65, buttonHeight)
-  newBtn:SetPoint("TOPLEFT", activeLabel, "BOTTOMLEFT", 0, -vertSpacing)
+  -- CRUD buttons, a 2x2 cluster beside the dropdown
+  local newBtn = CreateButton(block, STRINGS.PROFILE_NEW, buttonWidth, buttonHeight)
+  newBtn:SetPoint("BOTTOMLEFT", dropdown, "RIGHT", 0, 2)
 
-  local renameBtn = CreateButton(block, STRINGS.PROFILE_RENAME, 75, buttonHeight)
+  local renameBtn = CreateButton(block, STRINGS.PROFILE_RENAME, buttonWidth, buttonHeight)
   renameBtn:SetPoint("LEFT", newBtn, "RIGHT", buttonSpacing, 0)
 
-  local dupBtn = CreateButton(block, STRINGS.PROFILE_DUPLICATE, 85, buttonHeight)
-  dupBtn:SetPoint("LEFT", renameBtn, "RIGHT", buttonSpacing, 0)
+  local dupBtn = CreateButton(block, STRINGS.PROFILE_DUPLICATE, buttonWidth, buttonHeight)
+  dupBtn:SetPoint("TOPLEFT", newBtn, "BOTTOMLEFT", 0, -buttonSpacing)
 
-  local delBtn = CreateButton(block, STRINGS.PROFILE_DELETE, 75, buttonHeight)
+  local delBtn = CreateButton(block, STRINGS.PROFILE_DELETE, buttonWidth, buttonHeight)
   delBtn:SetPoint("LEFT", dupBtn, "RIGHT", buttonSpacing, 0)
 
   -- Per-profile "Deposit Excess Items" toggle
   local depositToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
-  depositToggle:SetPoint("TOPLEFT", newBtn, "BOTTOMLEFT", 0, -vertSpacing)
+  -- Cleared of the cluster, which is centred on the dropdown row
+  depositToggle:SetPoint("TOPLEFT", activeLabel, "BOTTOMLEFT", 0, -(clusterHeight / 2 - 6 + vertSpacing))
   depositToggle.Text:SetFontObject(FONTS.LABEL)
   depositToggle.Text:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT)
   depositToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
@@ -322,7 +325,7 @@ end
 -- ## Input Row Component (Add/Clear)
 -- ############################################################
 function WarbandStorage.UI:InputSection(parent, width, height)
-  local vertPadding, horzPadding = 10, 10
+  local vertPadding, horzPadding = 5, 10
   local editSpacing = 10
   local fieldSpacing = 130
 
@@ -428,8 +431,8 @@ end
 -- ## Tracked Items Header Component
 -- ############################################################
 function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
-  local vertPadding, horzPadding = 10, 10
-  local sectionSpacing = 10
+  local vertPadding, horzPadding = 3, 10
+  local sectionSpacing = 4
 
   local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, height)
 
@@ -446,7 +449,7 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
       if RefreshItemList then RefreshItemList() end
     end,
   })
-  searchBox:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, -6)
+  searchBox:SetPoint("TOPRIGHT", block, "TOPRIGHT", -horzPadding, -3)
   WarbandStorage.itemSearchBox = searchBox
 
   local header = CreateFrame("Frame", nil, parent)

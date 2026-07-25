@@ -91,7 +91,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
 
   -- Create tabs (Profiles | Assignments | Gold)
   local block, tabs = self:CreateTabs(panel)
-  block:SetPoint("TOPLEFT", minimapToggle, "BOTTOMLEFT", 0, -spacing)
+  block:SetPoint("TOPLEFT", minimapToggle, "BOTTOMLEFT", 0, -4)
   block:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", 0, 0)
 
   -- Tab content
@@ -172,7 +172,7 @@ function WarbandStorage.UI:CreateTabs(parent)
       tab:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 5 , 0)
     else
       anchor = block
-      tab:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0 , -25)
+      tab:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0 , -4)
     end
     -- tab:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", (i - 1) * 145, -25)
     tab.label = tab:CreateFontString(nil, "OVERLAY", FONTS.TAB)

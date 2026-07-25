@@ -112,10 +112,13 @@ function WarbandStorage.UI:CreateScrollContainer(parent)
   scrollFrame:SetScrollChild(scrollChild)
   
   local scrollBar = scrollFrame.ScrollBar
-  local scrollBarXOffset = -20
+  local scrollBarXOffset = -2
   local scrollBarVerticalOffset =  18
+  -- The template anchors the bar off the frame's right edge; keeping those points
+  -- alongside ours leaves it stretched and hard to grab.
+  scrollBar:ClearAllPoints()
   scrollBar:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", scrollBarXOffset, -scrollBarVerticalOffset)
-  scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", scrollBarXOffset, -8)
+  scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", scrollBarXOffset, 8)
   scrollBar:SetFrameLevel(scrollFrame:GetFrameLevel() + 1)
   scrollBar:Show()
 
