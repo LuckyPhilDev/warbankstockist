@@ -6,7 +6,6 @@ WarbandStorage.UI = WarbandStorage.UI or {}
 
 WarbandStorage.assignRows = WarbandStorage.assignRows or {}
 WarbandStorage.assignParent = WarbandStorage.assignParent or nil
-WarbandStorage.scrollItems = WarbandStorage.scrollItems or {}
 WarbandStorage.scrollParent = WarbandStorage.scrollParent or nil
 WarbandStorage.activeProfileDrop = nil
 WarbandStorage.itemFilter = WarbandStorage.itemFilter or ""
@@ -23,8 +22,7 @@ function RefreshItemList()
     profile = WarbandStorage:GetActiveProfile()
   end
   local stock = profile.items
-  for _, row in ipairs(WarbandStorage.scrollItems or {}) do row:Hide() end
-  WarbandStorage.scrollItems = {}
+  ReleaseItemRows()
 
   local filter = WarbandStorage.itemFilter
   if filter == "" then filter = nil else filter = filter:lower() end
@@ -43,12 +41,12 @@ function RefreshItemList()
     end
 
     if include then
-      local row = createRow(WarbandStorage.scrollParent, index % 2 == 1, itemID, count)
+      local row = AcquireItemRow(WarbandStorage.scrollParent, index % 2 == 1, itemID, count)
       row:SetSize(200, 28)
+      row:ClearAllPoints()
       row:SetPoint("TOPLEFT", WarbandStorage.scrollParent, "TOPLEFT", 8, y)
       row:SetPoint("TOPRIGHT", WarbandStorage.scrollParent, "TOPRIGHT", 0, y)
 
-      table.insert(WarbandStorage.scrollItems, row)
       y = y - 28
       index = index + 1
     end

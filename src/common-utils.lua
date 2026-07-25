@@ -252,6 +252,20 @@ end
 -- Cache for item names to reduce API calls
 local itemNameCache = {}
 
+-- On a cold cache every tracked item resolves its name asynchronously, and each
+-- one landing used to rebuild the whole list. Coalesce them into one rebuild on
+-- the next frame so a profile of N items costs one refresh, not N.
+local refreshQueued = false
+local function QueueItemListRefresh()
+  if refreshQueued or not RefreshItemList then return end
+  refreshQueued = true
+  C_Timer.After(0, function()
+    refreshQueued = false
+    WarbandStorage.Perf:Count("GetItemName:coalescedRefresh")
+    RefreshItemList()
+  end)
+end
+
 -- Get cached item name with fallback loading
 function Utils:GetItemName(itemID)
   if not itemID then return nil end
@@ -278,11 +292,8 @@ function Utils:GetItemName(itemID)
       local loadedName = C_Item.GetItemInfo(itemID)
       if loadedName then
         itemNameCache[itemID] = loadedName
-        -- Trigger UI refresh if we have a refresh function
-        if RefreshItemList then
-          WarbandStorage.Perf:Count("GetItemName:asyncRefresh")
-          RefreshItemList()
-        end
+        WarbandStorage.Perf:Count("GetItemName:asyncLoaded")
+        QueueItemListRefresh()
       end
     end)
   end
