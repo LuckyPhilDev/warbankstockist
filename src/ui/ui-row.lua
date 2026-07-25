@@ -3,7 +3,8 @@ local FONTS = WarbandStorage.Theme.FONTS
 local STRINGS = WarbandStorage.Theme.STRINGS
 
 function createRow(parent, lightBg, itemID, count)
-    
+    local perfStart = WarbandStorage.Perf:Now()
+
     local row = CreateFrame("Frame", nil, parent)
     row:SetSize(200, 28)
 
@@ -66,5 +67,7 @@ function createRow(parent, lightBg, itemID, count)
     else
       label:SetText("|cffcccccc" .. itemText .. "|r")
     end
+
+    WarbandStorage.Perf:Add("createRow", perfStart)
     return row
 end

@@ -226,6 +226,17 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         return
     end
 
+    -- Dev helper: /wbs perf [reset]
+    if msg and msg:lower():find("^perf") then
+        if msg:lower():find("reset") then
+            WarbandStorage.Perf:Reset()
+            print("|cff7fd5ff[Warband Stockist]|r perf counters reset.")
+        else
+            WarbandStorage.Perf:Dump("on demand")
+        end
+        return
+    end
+
     -- Dev helper: /wbs devopen [on|off|toggle]
     if msg and msg:lower():find("^devopen") then
         local arg = msg:match("^devopen%s+(%S+)%s*")

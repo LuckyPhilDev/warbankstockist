@@ -191,6 +191,61 @@ function Utils:GetCharacterClass(characterKey)
 end
 
 -- ############################################################
+-- ## Perf Tracking (dev)
+-- ############################################################
+
+local Perf = { stats = {} }
+WarbandStorage.Perf = Perf
+
+local function stat(label)
+  local s = Perf.stats[label]
+  if not s then
+    s = { label = label, calls = 0, ms = 0, peak = 0 }
+    Perf.stats[label] = s
+  end
+  return s
+end
+
+function Perf:Now()
+  return debugprofilestop()
+end
+
+function Perf:Add(label, startedAt)
+  local elapsed = debugprofilestop() - startedAt
+  local s = stat(label)
+  s.calls = s.calls + 1
+  s.ms = s.ms + elapsed
+  if elapsed > s.peak then s.peak = elapsed end
+end
+
+function Perf:Count(label, n)
+  local s = stat(label)
+  s.calls = s.calls + (n or 1)
+end
+
+function Perf:Reset()
+  wipe(self.stats)
+end
+
+function Perf:Dump(header)
+  local ordered = {}
+  for _, s in pairs(self.stats) do table.insert(ordered, s) end
+  table.sort(ordered, function(a, b)
+    if a.ms == b.ms then return a.label < b.label end
+    return a.ms > b.ms
+  end)
+
+  print("|cff7fd5ff[Warband Stockist]|r perf: " .. (header or "summary"))
+  for _, s in ipairs(ordered) do
+    if s.ms > 0 then
+      print(string.format("  %-26s %6d calls %9.2f ms  peak %7.2f ms", s.label, s.calls, s.ms, s.peak))
+    else
+      print(string.format("  %-26s %6d", s.label, s.calls))
+    end
+  end
+end
+
+-- ############################################################
 -- ## Item Utilities
 -- ############################################################
 
@@ -206,22 +261,26 @@ function Utils:GetItemName(itemID)
     return itemNameCache[itemID] 
   end
   
+  WarbandStorage.Perf:Count("GetItemName:miss")
+
   -- Try to get from API
   local name = C_Item.GetItemInfo(itemID)
   if name then
     itemNameCache[itemID] = name
     return name
   end
-  
+
   -- If not available, try to load it
   local item = Item:CreateFromItemID(itemID)
   if item then
+    WarbandStorage.Perf:Count("GetItemName:asyncLoad")
     item:ContinueOnItemLoad(function()
       local loadedName = C_Item.GetItemInfo(itemID)
       if loadedName then
         itemNameCache[itemID] = loadedName
         -- Trigger UI refresh if we have a refresh function
         if RefreshItemList then
+          WarbandStorage.Perf:Count("GetItemName:asyncRefresh")
           RefreshItemList()
         end
       end

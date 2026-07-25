@@ -102,6 +102,8 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
 
   -- Panel show handler
   panel:SetScript("OnShow", function()
+    WarbandStorage.Perf:Reset()
+    local perfStart = WarbandStorage.Perf:Now()
     debugCheckbox:SetChecked(WarbandStockistDB.debugEnabled == true)
     minimapToggle:SetChecked(not (WarbandStockistDB.minimap and WarbandStockistDB.minimap.hide))
     if WarbandStorage.RefreshProfileDropdown then
@@ -120,6 +122,13 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
       WarbandStorage.RefreshGoldOverrideList()
     end
     self:SelectTab(tabs, 1)
+
+    WarbandStorage.Perf:Add("SettingsPanel:OnShow", perfStart)
+    -- Async item loads keep refreshing the list after OnShow returns, so the
+    -- report waits for that settle before dumping.
+    if WarbandStockistDB.debugEnabled then
+      C_Timer.After(3, function() WarbandStorage.Perf:Dump("settings load (+3s)") end)
+    end
   end)
 
   WarbandStorage.SettingsCategory = Settings.RegisterCanvasLayoutCategory(panel, STRINGS.SETTINGS_NAME)

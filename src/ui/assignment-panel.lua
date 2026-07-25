@@ -60,6 +60,7 @@ end
 -- ############################################################
 function RefreshAssignmentsList()
   if not WarbandStorage.assignParent then return end
+  local perfStart = WarbandStorage.Perf:Now()
   for _, row in ipairs(WarbandStorage.assignRows or {}) do row:Hide() end
   WarbandStorage.assignRows = {}
 
@@ -188,6 +189,9 @@ function RefreshAssignmentsList()
   end
 
   WarbandStorage.assignParent:SetHeight(-y + 20) -- More bottom padding
+
+  WarbandStorage.Perf:Count("RefreshAssignmentsList:rows", #WarbandStorage.assignRows)
+  WarbandStorage.Perf:Add("RefreshAssignmentsList", perfStart)
 end
 
 -- ############################################################

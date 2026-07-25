@@ -15,6 +15,7 @@ WarbandStorage.itemFilter = WarbandStorage.itemFilter or ""
 -- ## Item List Management
 -- ############################################################
 function RefreshItemList()
+  local perfStart = WarbandStorage.Perf:Now()
   local profile
   if WarbandStorage.GetEditedProfile then
     profile = WarbandStorage:GetEditedProfile()
@@ -30,7 +31,9 @@ function RefreshItemList()
 
   local y = -4
   local index = 0
+  local scanned = 0
   for itemID, count in pairs(stock) do
+    scanned = scanned + 1
     -- When a filter is active, match against the item name and its ID.
     local include = true
     if filter then
@@ -52,6 +55,10 @@ function RefreshItemList()
   end
 
   WarbandStorage.scrollParent:SetHeight(-y + 10)
+
+  WarbandStorage.Perf:Count("RefreshItemList:itemsScanned", scanned)
+  WarbandStorage.Perf:Count("RefreshItemList:rowsShown", index)
+  WarbandStorage.Perf:Add("RefreshItemList", perfStart)
 end
 
 
