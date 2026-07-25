@@ -1,3 +1,12 @@
+## v1.9.1
+
+### Improved
+- Tighter settings layout, so the tracked items list shows more items without scrolling.
+- Faster list updates when adding, removing, or filtering items.
+
+### Fixed
+- The tracked items scrollbar can now be dragged, and no longer overlaps the bottom of the panel.
+
 ## v1.9.0
 
 ### Added
