@@ -54,6 +54,10 @@ Open settings with the minimap button, `/wbs settings`, or **Options > AddOns > 
 - **Gold**: Set target gold by level range and add overrides for individual characters.
 - **Minimap Button**: Show or hide the addon button.
 
+## A note on AI
+
+My addons are made by one person who plays the game and wants them to work properly. I use AI tools to move faster, mostly on code, bug hunting, and docs, but every change is reviewed and tested in game before release. If a feature feels off or something breaks, that's mine to fix, and the Discord is the fastest way to reach me.
+
 ## Author
 
 Lucky Phil
