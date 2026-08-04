@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: Warbank Stockist
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
-## Version: 1.9.1
+## Version: 1.9.2
 ## Author: Lucky Phil
 ## SavedVariables: WarbandStockistDB, WarbandStorageData
 ## SavedVariablesPerCharacter: WarbandStorageCharData

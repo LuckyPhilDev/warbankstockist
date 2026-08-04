@@ -1,3 +1,8 @@
+## v1.9.2
+
+### Changed
+- `/wbs` on its own now opens the settings panel directly, instead of requiring `/wbs settings`. The old default behavior (scan bags and print tracked inventory) moved to `/wbs report`.
+
 ## v1.9.1
 
 ### Improved
