@@ -207,7 +207,7 @@ end
 SLASH_WARBANDSTORAGE1 = "/wbs"
 SlashCmdList["WARBANDSTORAGE"] = function(msg)
     msg = type(msg) == "string" and msg:match("^%s*(.-)%s*$") or msg
-    if msg and msg:lower():find("^settings") then
+    if not msg or msg == "" or msg:lower():find("^settings") then
         WarbandStorage:OpenSettings()
         return
     end
@@ -250,15 +250,21 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         return
     end
 
-    local wasEnabled = WarbandStorage.debugEnabled
-    WarbandStorage.debugEnabled = true
-    WarbandStorage:DebugPrint("Running /wbs command")
+    -- /wbs report - scan bags and print tracked inventory (previous default behavior)
+    if msg:lower():find("^report") then
+        local wasEnabled = WarbandStorage.debugEnabled
+        WarbandStorage.debugEnabled = true
+        WarbandStorage:DebugPrint("Running /wbs report")
 
-    WarbandStorage:ScanBags()
+        WarbandStorage:ScanBags()
 
-    C_Timer.After(0.3, function()
-        WarbandStorage:PrintTrackedInventory()
-        WarbandStorage:ReportMissingItems()
-        WarbandStorage.debugEnabled = wasEnabled
-    end)
+        C_Timer.After(0.3, function()
+            WarbandStorage:PrintTrackedInventory()
+            WarbandStorage:ReportMissingItems()
+            WarbandStorage.debugEnabled = wasEnabled
+        end)
+        return
+    end
+
+    print("|cff7fd5ff[Warband Stockist]|r Unknown /wbs command. Try: settings, report, autoopen, perf, devopen")
 end
