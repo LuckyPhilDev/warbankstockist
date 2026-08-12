@@ -4,7 +4,7 @@ Keeps chosen items and gold topped up across your characters using the Warband B
 
 ![Warband Stockist](../images/warbank_stock.png)
 
-[Join the Discord](https://discord.gg/87HRHcAYP)
+[Join the Discord](https://discord.gg/ptTtYyAjdZ)
 
 ## Features
 

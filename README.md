@@ -2,7 +2,7 @@
 
 Keep chosen items and gold topped up across your characters using the Warband Bank.
 
-[Join the Discord](https://discord.gg/87HRHcAYP)
+[Join the Discord](https://discord.gg/ptTtYyAjdZ)
 
 ## Features
 
