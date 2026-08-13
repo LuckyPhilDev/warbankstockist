@@ -1,3 +1,11 @@
+## [1.9.4] - 2026-08-13
+
+### Added
+- **Put Lucky's Warband Stockist on a panel addon.** The addon now lists itself in Titan Panel, Bazooka and ChocolateBar, so its button can sit on a bar instead of the minimap.
+
+### Improved
+- **Find the addon under Lucky's Warband Stockist.** Your addon list and its settings panel now name it that, where they read Warbank Stockist before. Your profiles and item lists are untouched.
+
 ## [1.9.3] - 2026-08-12
 
 ### Improved

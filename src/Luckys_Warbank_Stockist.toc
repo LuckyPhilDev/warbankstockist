@@ -1,7 +1,7 @@
 ## Interface: 120100
 ## Title: Lucky's Warband Stockist
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
-## Version: 1.9.3
+## Version: 1.9.4
 ## Author: Lucky Phil
 ## SavedVariables: WarbandStockistDB, WarbandStorageData
 ## SavedVariablesPerCharacter: WarbandStorageCharData
