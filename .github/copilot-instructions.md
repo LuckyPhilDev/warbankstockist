@@ -266,10 +266,10 @@ Bank opens
 
 ## TOC File Requirements
 
-When adding new Lua files, update `WarbankStockist.toc`:
+When adding new Lua files, update `Luckys_Warbank_Stockist.toc`:
 ```toc
 ## Interface: 120000
-## Title: Warbank Stockist
+## Title: Lucky's Warband Stockist
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
 ## Version: 1.1
 ## Author: Lucky Phil

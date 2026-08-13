@@ -1,4 +1,4 @@
-# Lucky's Warbank Stockist
+# Lucky's Warband Stockist
 
 Keep chosen items and gold topped up across your characters using the Warband Bank.
 
@@ -27,7 +27,7 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 
 ## Usage
 
-1. Open **Options > AddOns > Lucky's Warbank Stockist**, or enter `/wbs`.
+1. Open **Options > AddOns > Lucky's Warband Stockist**, or enter `/wbs`.
 2. On the **Profiles** tab, create or select a profile and add the items and quantities that character should keep.
 3. On the **Assignments** tab, assign the profile to one or more characters.
 4. Open the Warband Bank on an assigned character. Missing items are withdrawn automatically, and enabled deposit or gold rules are applied.
@@ -47,7 +47,7 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 
 ## Settings
 
-Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's Warbank Stockist**.
+Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's Warband Stockist**.
 
 - **Profiles**: Manage profiles, tracked item quantities, excess deposits, bank sorting, item-list search, and whether the Add Item quantity box starts at 0 instead of blank.
 - **Assignments**: Assign profiles to characters, unassign characters, or move unused characters into the ignored section.
