@@ -19,6 +19,7 @@ function WarbandStorage.Minimap:Init(db)
 
     self.button = LuckyMinimap:Create({
         name    = "WarbandStockistMinimapButton",
+        tocname = "Luckys_Warbank_Stockist",
         icon    = ICON,
         dbKey   = "minimap",
         db      = db,
