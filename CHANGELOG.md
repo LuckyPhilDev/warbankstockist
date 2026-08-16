@@ -1,4 +1,4 @@
-## [1.9.5] - 2026-08-15
+## [1.9.5] - 2026-08-16
 
 ### Improved
 - **New icon on the minimap button.** The button carries the addon's own artwork now, and the icons in the More from Lucky Phil row in settings are new to match.
