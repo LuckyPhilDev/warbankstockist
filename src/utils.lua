@@ -1,28 +1,12 @@
 WarbandStorageData = WarbandStorageData or {}
 
--- Debug print via LuckyLog
-local _wbsLog = LuckyLog:New("|cff00ccff[WBS]:|r", function()
-    return WarbandStockistDB and WarbandStockistDB.debugEnabled
-end)
-
+-- Debug print: single logger lives in common-utils; this is the short form.
 function WarbandStorage:DebugPrint(msg)
-    _wbsLog(tostring(msg))
+    WarbandStorage.Utils:DebugPrint(msg)
 end
 
 function WarbandStorage:IsItemOverridden(itemID)
     return WarbandStorageCharData.useDefault == false
         and WarbandStorageCharData.override
         and WarbandStorageCharData.override[itemID] ~= nil
-end
-
--- Deprecated: Use WarbandStorage.FrameFactory:ApplyThemeColors instead
-function WarbandStorage:SetupFrameVisuals(frame)
-    if not frame then return end
-    WarbandStorage.FrameFactory:ApplyThemeColors(frame, "CONTENT_BG")
-end
-
--- Deprecated: Use WarbandStorage.FrameFactory:ApplyThemeColors instead  
-function WarbandStorage:SetupDialogBackground(frame)
-    if not frame then return end
-    WarbandStorage.FrameFactory:SetupDialogFrame(frame)
 end

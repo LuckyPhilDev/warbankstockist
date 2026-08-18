@@ -10,14 +10,6 @@ local Utils = WarbandStorage.Utils
 -- ## Validation Utilities
 -- ############################################################
 
--- Safe function caller with existence check
-function Utils:SafeCall(obj, methodName, ...)
-  if obj and obj[methodName] and type(obj[methodName]) == "function" then
-    return obj[methodName](obj, ...)
-  end
-  return nil
-end
-
 -- Check if a value exists and is not empty
 function Utils:IsValidValue(value)
   return value ~= nil and value ~= ""
@@ -138,18 +130,6 @@ function Utils:FormatCharacterName(characterKey, className)
   )
 end
 
--- Format item display text
-function Utils:FormatItemText(itemID, itemName, quantity)
-  local name = itemName or ("Item " .. (itemID or "Unknown"))
-  local text = ("%s (ID: %s)"):format(name, itemID or "?")
-  
-  if quantity == 0 then
-    return "|cff666666" .. text .. "|r"
-  else
-    return "|cffcccccc" .. text .. "|r"
-  end
-end
-
 -- Debug print via LuckyLog
 local _utilsLog = LuckyLog:New("|cff7fd5ff[Warband Stockist]|r", function()
   return WarbandStockistDB and WarbandStockistDB.debugEnabled
@@ -165,11 +145,7 @@ end
 
 -- Get current character key
 function Utils:GetCharacterKey()
-  local name, realm = UnitFullName("player")
-  return string.format("%s-%s", 
-    name or UnitName("player") or "", 
-    realm or GetRealmName() or ""
-  )
+  return LuckyUtils.CharacterKey()
 end
 
 -- Store current character's class
@@ -182,12 +158,6 @@ function Utils:StoreCharacterClass()
     WarbandStockistDB.characterClasses[charKey] = class
     self:DebugPrint("Stored class " .. class .. " for character " .. charKey)
   end
-end
-
--- Get stored character class
-function Utils:GetCharacterClass(characterKey)
-  if not WarbandStockistDB.characterClasses then return nil end
-  return WarbandStockistDB.characterClasses[characterKey]
 end
 
 -- ############################################################
@@ -249,9 +219,6 @@ end
 -- ## Item Utilities
 -- ############################################################
 
--- Cache for item names to reduce API calls
-local itemNameCache = {}
-
 -- On a cold cache every tracked item resolves its name asynchronously, and each
 -- one landing used to rebuild the whole list. Coalesce them into one rebuild on
 -- the next frame so a profile of N items costs one refresh, not N.
@@ -266,75 +233,18 @@ local function QueueItemListRefresh()
   end)
 end
 
--- Get cached item name with fallback loading
+-- Resolve an item name through LuckyItem's shared session cache. Returns nil
+-- while the name is still loading; the coalesced refresh repaints the list
+-- once it lands.
 function Utils:GetItemName(itemID)
   if not itemID then return nil end
-  
-  -- Check cache first
-  if itemNameCache[itemID] then 
-    return itemNameCache[itemID] 
-  end
-  
+
+  local cached = LuckyItem:GetCached(itemID)
+  if cached then return cached.name end
+
   WarbandStorage.Perf:Count("GetItemName:miss")
-
-  -- Try to get from API
-  local name = C_Item.GetItemInfo(itemID)
-  if name then
-    itemNameCache[itemID] = name
-    return name
-  end
-
-  -- If not available, try to load it
-  local item = Item:CreateFromItemID(itemID)
-  if item then
-    WarbandStorage.Perf:Count("GetItemName:asyncLoad")
-    item:ContinueOnItemLoad(function()
-      local loadedName = C_Item.GetItemInfo(itemID)
-      if loadedName then
-        itemNameCache[itemID] = loadedName
-        WarbandStorage.Perf:Count("GetItemName:asyncLoaded")
-        QueueItemListRefresh()
-      end
-    end)
-  end
-  
+  LuckyItem:Get(itemID, function(info)
+    if info and info.name then QueueItemListRefresh() end
+  end)
   return nil
-end
-
--- Clear item name cache
-function Utils:ClearItemCache()
-  wipe(itemNameCache)
-end
-
--- ############################################################
--- ## Collection Utilities
--- ############################################################
-
--- Safe table wipe
-function Utils:SafeWipe(tbl)
-  if type(tbl) == "table" then
-    wipe(tbl)
-  end
-end
-
--- Deep copy table
-function Utils:DeepCopy(original)
-  if type(original) ~= "table" then return original end
-  
-  local copy = {}
-  for key, value in pairs(original) do
-    copy[key] = self:DeepCopy(value)
-  end
-  return copy
-end
-
--- Count table entries
-function Utils:CountTable(tbl)
-  if type(tbl) ~= "table" then return 0 end
-  
-  local count = 0
-  for _ in pairs(tbl) do
-    count = count + 1
-  end
-  return count
 end

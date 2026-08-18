@@ -90,7 +90,7 @@ function ProfileManager:RenameProfile(oldName, newName)
   if not WarbandStockistDB.profiles[oldName] then return false end
   
   self:EnsureProfile(newName)
-  WarbandStockistDB.profiles[newName].items = Utils:DeepCopy(WarbandStockistDB.profiles[oldName].items)
+  WarbandStockistDB.profiles[newName].items = CopyTable(WarbandStockistDB.profiles[oldName].items)
   
   WarbandStockistDB.profiles[oldName] = nil
   
@@ -114,7 +114,7 @@ function ProfileManager:DuplicateProfile(sourceName, newName)
   
   local _, newProfile = self:EnsureProfile(newName)
   if not newProfile then return false end
-  Utils:SafeWipe(newProfile.items)
+  wipe(newProfile.items)
   
   for itemID, quantity in pairs(WarbandStockistDB.profiles[sourceName].items) do
     newProfile.items[itemID] = quantity
@@ -188,7 +188,7 @@ end
 
 function ProfileManager:ClearProfileItems(profileName)
   local profile = self:GetActiveProfile(profileName)
-  Utils:SafeWipe(profile.items)
+  wipe(profile.items)
   
   self:RefreshUI()
   Utils:DebugPrint("Cleared all items from current profile")
