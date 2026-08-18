@@ -3,11 +3,13 @@
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
 ## Version: 1.9.5
 ## Author: Lucky Phil
-## SavedVariables: WarbandStockistDB, WarbandStorageData
+## SavedVariables: WarbandStockistDB, WarbandStorageData, LuckySettingsDB, LuckyRosterDB
 ## SavedVariablesPerCharacter: WarbandStorageCharData
-## Dependencies: Luckys_Utils,Blizzard_Settings
+## Dependencies: Blizzard_Settings
+## OptionalDeps: Luckys_Utils
 ## X-Curse-Project-ID: 1295674
 
+Libs\LuckysUtils\embeds.xml
 ui/ui-theme.lua
 common-utils.lua
 frame-factory.lua

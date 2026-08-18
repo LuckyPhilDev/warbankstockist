@@ -6,3 +6,10 @@ move-folders:
 manual-changelog:
   filename: CHANGELOG.md
   markup-type: markdown
+
+externals:
+  src/Libs/LuckysUtils:
+    url: https://github.com/LuckyPhilDev/LuckyUtils
+    tag: latest
+
+enable-nolib-creation: no
