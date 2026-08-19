@@ -33,6 +33,9 @@ function WarbandStorage:OnEvent(event, ...)
             WarbandStorage.Utils:StoreCharacterClass()
         end
         
+        -- Warbound auto-deposit settings (missing on saves from before the feature)
+        WarbandStockistDB.warboundDeposit = WarbandStockistDB.warboundDeposit or {}
+
         -- Ensure reserved default profile exists
         do
             WarbandStockistDB.profiles = WarbandStockistDB.profiles or {}
@@ -116,9 +119,12 @@ function WarbandStorage:OnEvent(event, ...)
                 local desiredCount = 0
                 for _ in pairs(desired) do desiredCount = desiredCount + 1 end
                 WarbandStorage:DebugPrint(("Desired stock entries: %d"):format(desiredCount))
-                -- Kick off item processing, then balance gold once done
-                WarbandStorage:CheckAndWithdrawItemsFromWarbank()
-                WarbandStorage:ManageGoldWithWarbank()
+                -- Deposit warbound gear first so bag space is free, then
+                -- restock from the profile and balance gold.
+                WarbandStorage:DepositWarboundItems(function()
+                    WarbandStorage:CheckAndWithdrawItemsFromWarbank()
+                    WarbandStorage:ManageGoldWithWarbank()
+                end)
             end)
     end
 end

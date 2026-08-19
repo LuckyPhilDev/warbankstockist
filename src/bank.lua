@@ -497,7 +497,9 @@ function WarbandStorage:PlaceCursorIntoBank(itemID, onDone)
     end)
 end
 
-function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
+-- slotFilter(bag, slot, info) may veto individual stacks; without it every
+-- bank-allowed stack of the itemID is a deposit candidate.
+function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFilter)
     local bagSlots = {}
 
     -- Collect all bag slots containing the item to deposit
@@ -506,7 +508,8 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
             local info = C_Container.GetContainerItemInfo(bag, slot)
             if info and info.itemID == itemID then
                 local loc = ItemLocation:CreateFromBagAndSlot(bag, slot)
-                if C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc) then
+                if C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc)
+                    and (not slotFilter or slotFilter(bag, slot, info)) then
                     table.insert(bagSlots, { bag = bag, slot = slot, count = info.stackCount })
                 else
                     self:DebugPrint(("Item %d at %d:%d not allowed in Account bank; skipping"):format(itemID, bag, slot))
@@ -586,6 +589,92 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback)
     end
 
     depositNext(1, amountToDeposit)
+end
+
+-- ############################################################
+-- ## Warbound Auto-Deposit — bank-open pass that moves warbound
+-- ## armor, weapons, and tokens into the bank before restocking
+-- ############################################################
+
+-- An item instance only counts as warbound if it is already bound to the
+-- account or is "Warbound until Equipped". Unbound BoE copies are neither,
+-- even though the bank would accept them.
+local function IsInstanceWarbound(bag, slot, info)
+    if info.isBound then return true end
+    return C_Item.IsBoundToAccountUntilEquip(ItemLocation:CreateFromBagAndSlot(bag, slot))
+end
+
+local function PlanWarboundDeposits(self, cfg)
+    -- Items the active profile wants kept in bags must not be deposited here;
+    -- the withdraw pass that follows would just pull them straight back.
+    local desired = GetAssignedDesired()
+
+    local toDeposit = {}
+    for _, bag in ipairs(GetAllPlayerBagIDs()) do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local info = C_Container.GetContainerItemInfo(bag, slot)
+            if info and info.itemID and not toDeposit[info.itemID]
+                and not (desired[info.itemID] and desired[info.itemID] > 0) then
+                local loc = ItemLocation:CreateFromBagAndSlot(bag, slot)
+                -- IsItemAllowedInBankType only means "not soulbound": grey junk
+                -- and unbound BoE copies pass it, so the quality and warbound
+                -- checks below keep them out of the deposit.
+                local _, _, quality, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(info.itemID)
+                if quality and quality > Enum.ItemQuality.Poor
+                    and C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc)
+                    and IsInstanceWarbound(bag, slot, info) then
+                    if (cfg.armor and classID == 4)
+                        or (cfg.weapons and classID == 2)
+                        or (cfg.tokens and classID == 15 and subclassID == 0) then
+                        toDeposit[info.itemID] = true
+                        self:DebugPrint(("Warbound deposit: queueing item %d"):format(info.itemID))
+                    end
+                end
+            end
+        end
+    end
+
+    -- Counts may overcount non-warbound copies; the deposit loop's slot filter
+    -- simply runs out of eligible stacks.
+    local queue = {}
+    for itemID in pairs(toDeposit) do
+        local count = C_Item.GetItemCount(itemID, false) or 0
+        if count > 0 then
+            queue[#queue + 1] = { itemID = itemID, amount = count }
+        end
+    end
+    return queue
+end
+
+local function RunWarboundQueue(self, queue, index, onComplete)
+    if index > #queue then
+        if onComplete then onComplete() end
+        return
+    end
+    if not C_Bank.CanViewBank(Enum.BankType.Account) then
+        self:DebugPrint("Warbound deposit: bank closed mid-run; stopping.")
+        return
+    end
+    local entry = queue[index]
+    self:TryDepositItem(entry.itemID, entry.amount, function()
+        C_Timer.After(perItemDelay, function()
+            RunWarboundQueue(self, queue, index + 1, onComplete)
+        end)
+    end, IsInstanceWarbound)
+end
+
+-- Runs before the withdraw/restock pass on bank open. Also the feature marker
+-- Lucky's Grab-bag checks to hand its own warbound gear deposit over to this
+-- addon, so renaming it needs a matching change there.
+function WarbandStorage:DepositWarboundItems(onComplete)
+    local cfg = WarbandStockistDB.warboundDeposit or {}
+    if not (cfg.enabled and (cfg.armor or cfg.weapons or cfg.tokens)) then
+        if onComplete then onComplete() end
+        return
+    end
+    local queue = PlanWarboundDeposits(self, cfg)
+    self:DebugPrint(("Warbound deposit: %d item type(s) queued"):format(#queue))
+    RunWarboundQueue(self, queue, 1, onComplete)
 end
 
 -- ############################################################

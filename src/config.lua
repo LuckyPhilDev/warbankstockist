@@ -35,6 +35,9 @@ WarbandStockistDB = WarbandStockistDB or {
     brackets = {},
     overrides = {},
   },
+  -- Warbound auto-deposit: move warbound gear into the bank on open,
+  -- before the profile restock runs.
+  warboundDeposit = { enabled = false, armor = false, weapons = false, tokens = false },
   -- Development helpers (safe to leave false in release)
   devOpenOnLogin = false,
   minimap = {},

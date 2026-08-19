@@ -98,6 +98,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   self:CreateProfilesTabContent(tabs[1].content)
   self:CreateAssignmentsSection(tabs[2].content)
   self:CreateGoldTabContent(tabs[3].content)
+  local refreshWarboundTab = self:CreateWarboundTabContent(tabs[4].content)
 
 
   -- Panel show handler
@@ -121,6 +122,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
     if WarbandStorage.RefreshGoldOverrideList then
       WarbandStorage.RefreshGoldOverrideList()
     end
+    refreshWarboundTab()
     self:SelectTab(tabs, 1)
 
     WarbandStorage.Perf:Add("SettingsPanel:OnShow", perfStart)
@@ -154,7 +156,7 @@ function WarbandStorage.UI:CreateTabs(parent)
 
   local tabButtonSize = { width = 140, height = 32 }
   local tabs = {}
-  local tabNames = { "Profiles", "Assignments", STRINGS.GOLD_TAB_NAME }
+  local tabNames = { "Profiles", "Assignments", STRINGS.GOLD_TAB_NAME, "Warbound" }
   local firstTab = nil
 
   for i, name in ipairs(tabNames) do
@@ -220,6 +222,77 @@ function WarbandStorage.UI:CreateTabs(parent)
   end
 
   return block, tabs
+end
+
+-- ############################################################
+-- ## Warbound Tab
+-- ############################################################
+-- Returns a refresh function that syncs checkbox state from the DB, so the
+-- panel picks up changes made outside it (e.g. settings migrated over from
+-- Lucky's Grab-bag at the bank).
+function WarbandStorage.UI:CreateWarboundTabContent(content)
+  local padding, spacing = 16, 8
+
+  local function Config()
+    WarbandStockistDB.warboundDeposit = WarbandStockistDB.warboundDeposit or {}
+    return WarbandStockistDB.warboundDeposit
+  end
+
+  local checkboxes = {}
+  local refresh
+
+  local function AddCheckbox(key, label, tooltip, anchor, indent)
+    local cb = CreateFrame("CheckButton", nil, content, "ChatConfigCheckButtonTemplate")
+    cb:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", indent or 0, -spacing)
+    cb.Text:SetFontObject(FONTS.LABEL)
+    cb.Text:SetText(label)
+    cb.Text:SetTextColor(0.8, 0.8, 0.8, 1)
+    cb:SetScript("OnClick", function(self)
+      Config()[key] = self:GetChecked() and true or false
+      refresh()
+    end)
+    cb:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+      GameTooltip:SetText(tooltip, 1, 1, 1, 1, true)
+      GameTooltip:Show()
+    end)
+    cb:SetScript("OnLeave", GameTooltip_Hide)
+    checkboxes[key] = cb
+    return cb
+  end
+
+  local anchorFrame = CreateFrame("Frame", nil, content)
+  anchorFrame:SetPoint("TOPLEFT", content, "TOPLEFT", padding, -padding + spacing)
+  anchorFrame:SetSize(1, 1)
+
+  local master = AddCheckbox("enabled", "Auto-Deposit Warbound Items",
+    "When you open the bank, deposits warbound gear from your bags into the Warband Bank before restocking your profile.",
+    anchorFrame)
+  local armor = AddCheckbox("armor", "Warbound Armor", "Auto-deposit warbound armor.", master, 24)
+  local weapons = AddCheckbox("weapons", "Warbound Weapons", "Auto-deposit warbound weapons.", armor)
+  local tokens = AddCheckbox("tokens", "Warbound Tokens", "Auto-deposit warbound tier tokens.", weapons)
+
+  local hint = content:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
+  hint:SetPoint("TOPLEFT", tokens, "BOTTOMLEFT", -24, -spacing)
+  hint:SetWidth(560)
+  hint:SetJustifyH("LEFT")
+  hint:SetText("Items with a stock amount in the active profile are never deposited by this; the restock keeps them in your bags.")
+  hint:SetTextColor(0.7, 0.7, 0.7, 1)
+
+  refresh = function()
+    local cfg = Config()
+    for key, cb in pairs(checkboxes) do
+      cb:SetChecked(cfg[key] == true)
+    end
+    local enabled = cfg.enabled == true
+    for _, cb in ipairs({ armor, weapons, tokens }) do
+      cb:SetEnabled(enabled)
+      cb.Text:SetTextColor(0.8, 0.8, 0.8, enabled and 1 or 0.4)
+    end
+  end
+  refresh()
+
+  return refresh
 end
 
 -- ############################################################
