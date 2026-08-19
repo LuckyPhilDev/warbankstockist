@@ -1,4 +1,7 @@
-## [1.10.0] - 2026-08-18
+## [1.10.0] - 2026-08-19
+
+### Added
+- **Auto-Deposit Warbound Items** Opening the bank deposits your warbound armor, weapons and tier tokens, then restocks your profile as usual. The new Warbound tab in settings picks which of the three go. (Thanks for the suggestion RottnGaming)
 
 ### Improved
 - **Under the hood** A tidy-up of the addon's internals. Nothing changes in how it looks or plays.

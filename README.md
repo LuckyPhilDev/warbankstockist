@@ -9,6 +9,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Stock profiles**: Create separate item lists for raiders, crafters, gatherers, leveling characters, or any other purpose.
 - **Automatic withdrawals**: Opening the Warband Bank withdraws missing items until your bags reach the quantities configured in the active profile.
 - **Excess deposits**: Optionally return stock above the configured quantity to the Warband Bank.
+- **Warbound auto-deposit**: Opening the Warband Bank can deposit warbound armor, weapons, and tier tokens from your bags before the restock runs.
 - **Automatic bank sorting**: Each profile can clean up and sort the Warband Bank after its deposit pass finishes.
 - **Character assignments**: Assign each character to a profile, leave it unassigned, or ignore it completely.
 - **Flexible item entry**: Add tracked items by item link or item ID, or pick up a bag item and drop or click it onto the Item ID field, and choose the quantity each character should keep.
@@ -52,6 +53,7 @@ Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's W
 - **Profiles**: Manage profiles, tracked item quantities, excess deposits, bank sorting, item-list search, and whether the Add Item quantity box starts at 0 instead of blank.
 - **Assignments**: Assign profiles to characters, unassign characters, or move unused characters into the ignored section.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
+- **Warbound**: Choose whether warbound armor, weapons, and tier tokens are deposited when you open the bank.
 - **Minimap Button**: Show or hide the addon button.
 
 ## A note on AI
