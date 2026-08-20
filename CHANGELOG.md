@@ -1,3 +1,8 @@
+## [1.10.1] - 2026-08-20
+
+### Improved
+- **Under the hood** A tidy-up of the addon's internals. Nothing changes in how it looks or plays.
+
 ## [1.10.0] - 2026-08-19
 
 ### Added
