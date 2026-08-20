@@ -10,6 +10,7 @@
 ## X-Curse-Project-ID: 1295674
 
 Libs\LuckysUtils\embeds.xml
+Strings.lua
 ui/ui-theme.lua
 common-utils.lua
 frame-factory.lua

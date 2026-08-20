@@ -2,7 +2,7 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
 local FONTS = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
+local S = WarbandStorage.Strings
 
 -- ############################################################
 -- ## Profiles Tab Content
@@ -52,11 +52,11 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   block:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
 
   --   "Profiles"
-  local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_PROFILE)
+  local sectionTitle = CreateSectionHeader(block, S.profiles.section)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
 
   --   "Active profile:"
-  local activeLabel = CreateDefaultText(block, STRINGS.PROFILE_LABEL)
+  local activeLabel = CreateDefaultText(block, S.profiles.label)
   activeLabel:SetPoint("TOPLEFT", sectionTitle, "BOTTOMLEFT", 0, -vertSpacing)
 
   --   Profile dropdown
@@ -65,16 +65,16 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   WarbandStorage.activeProfileDrop = dropdown
 
   -- CRUD buttons, a 2x2 cluster beside the dropdown
-  local newBtn = CreateButton(block, STRINGS.PROFILE_NEW, buttonWidth, buttonHeight)
+  local newBtn = CreateButton(block, S.profiles.new, buttonWidth, buttonHeight)
   newBtn:SetPoint("BOTTOMLEFT", dropdown, "RIGHT", 0, 2)
 
-  local renameBtn = CreateButton(block, STRINGS.PROFILE_RENAME, buttonWidth, buttonHeight)
+  local renameBtn = CreateButton(block, S.profiles.rename, buttonWidth, buttonHeight)
   renameBtn:SetPoint("LEFT", newBtn, "RIGHT", buttonSpacing, 0)
 
-  local dupBtn = CreateButton(block, STRINGS.PROFILE_DUPLICATE, buttonWidth, buttonHeight)
+  local dupBtn = CreateButton(block, S.profiles.duplicate, buttonWidth, buttonHeight)
   dupBtn:SetPoint("TOPLEFT", newBtn, "BOTTOMLEFT", 0, -buttonSpacing)
 
-  local delBtn = CreateButton(block, STRINGS.PROFILE_DELETE, buttonWidth, buttonHeight)
+  local delBtn = CreateButton(block, S.profiles.delete, buttonWidth, buttonHeight)
   delBtn:SetPoint("LEFT", dupBtn, "RIGHT", buttonSpacing, 0)
 
   -- Per-profile "Deposit Excess Items" toggle
@@ -82,7 +82,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   -- Cleared of the cluster, which is centred on the dropdown row
   depositToggle:SetPoint("TOPLEFT", activeLabel, "BOTTOMLEFT", 0, -(clusterHeight / 2 - 6 + vertSpacing))
   depositToggle.Text:SetFontObject(FONTS.LABEL)
-  depositToggle.Text:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT)
+  depositToggle.Text:SetText(S.deposit.excess)
   depositToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
   depositToggle:SetScript("OnClick", function(self)
     local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
@@ -91,7 +91,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   end)
   depositToggle:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.ENABLE_EXCESS_DEPOSIT_TOOLTIP, 1, 1, 1)
+    GameTooltip:SetText(S.deposit.excessTooltip, 1, 1, 1)
     GameTooltip:Show()
   end)
   depositToggle:SetScript("OnLeave", GameTooltip_Hide)
@@ -101,7 +101,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   local sortToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
   sortToggle:SetPoint("LEFT", depositToggle, "LEFT", 440, 0)
   sortToggle.Text:SetFontObject(FONTS.LABEL)
-  sortToggle.Text:SetText(STRINGS.SORT_AFTER_DEPOSIT)
+  sortToggle.Text:SetText(S.deposit.sortAfter)
   sortToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
   sortToggle:SetScript("OnClick", function(self)
     local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
@@ -109,7 +109,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   end)
   sortToggle:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.SORT_AFTER_DEPOSIT_TOOLTIP, 1, 1, 1)
+    GameTooltip:SetText(S.deposit.sortAfterTooltip, 1, 1, 1)
     GameTooltip:Show()
   end)
   sortToggle:SetScript("OnLeave", GameTooltip_Hide)
@@ -119,7 +119,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   local defaultQtyToggle = CreateFrame("CheckButton", nil, block, "ChatConfigCheckButtonTemplate")
   defaultQtyToggle:SetPoint("LEFT", depositToggle, "LEFT", 220, 0)
   defaultQtyToggle.Text:SetFontObject(FONTS.LABEL)
-  defaultQtyToggle.Text:SetText(STRINGS.DEFAULT_QTY_ZERO)
+  defaultQtyToggle.Text:SetText(S.deposit.defaultQtyZero)
   defaultQtyToggle:SetScript("OnClick", function(self)
     local pname = (WarbandStorage.GetEditedProfileName and WarbandStorage:GetEditedProfileName()) or WarbandStorage:GetActiveProfileName()
     WarbandStorage:SetDefaultQtyZeroEnabled(pname, self:GetChecked())
@@ -127,7 +127,7 @@ function WarbandStorage.UI:ProfileControls(parent, width)
   end)
   defaultQtyToggle:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.DEFAULT_QTY_ZERO_TOOLTIP, 1, 1, 1)
+    GameTooltip:SetText(S.deposit.defaultQtyZeroTooltip, 1, 1, 1)
     GameTooltip:Show()
   end)
   defaultQtyToggle:SetScript("OnLeave", GameTooltip_Hide)
@@ -173,7 +173,7 @@ function WarbandStorage.UI:SetupProfileDialogs()
 
   -- New profile
   StaticPopupDialogs["WBSTOCKIST_NEW_PROFILE"] = {
-    text = "Enter new profile name:",
+    text = S.profiles.newPrompt,
     button1 = OKAY,
     button2 = CANCEL,
     hasEditBox = true,
@@ -206,7 +206,7 @@ function WarbandStorage.UI:SetupProfileDialogs()
 
   -- Rename profile
   StaticPopupDialogs["WBSTOCKIST_RENAME_PROFILE"] = {
-    text = "Rename profile:",
+    text = S.profiles.renamePrompt,
     button1 = OKAY,
     button2 = CANCEL,
     hasEditBox = true,
@@ -244,7 +244,7 @@ function WarbandStorage.UI:SetupProfileDialogs()
 
   -- Confirm clearing all tracked items
   StaticPopupDialogs["WBSTOCKIST_CLEAR_PROFILE_ITEMS"] = StaticPopupDialogs["WBSTOCKIST_CLEAR_PROFILE_ITEMS"] or {
-    text = "Clear all tracked items for profile '%s'?",
+    text = S.profiles.clearPrompt,
     button1 = OKAY,
     button2 = CANCEL,
     OnAccept = function()
@@ -289,7 +289,7 @@ function WarbandStorage.UI:SetupProfileButtons(newBtn, renameBtn, dupBtn, delBtn
       _, curName = WarbandStorage:GetActiveProfile()
     end
     StaticPopupDialogs["WBSTOCKIST_DELETE_PROFILE"] = {
-      text = "Delete profile '%s'? This cannot be undone.",
+      text = S.profiles.deletePrompt,
       button1 = OKAY,
       button2 = CANCEL,
       OnAccept = function()
@@ -331,13 +331,13 @@ function WarbandStorage.UI:InputSection(parent, width, height)
 
   local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, height)
 
-  local inputSectionTitle = CreateSectionHeader(block, STRINGS.SECTION_ADD_ITEM)
+  local inputSectionTitle = CreateSectionHeader(block, S.addItem.section)
   inputSectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
 
-  local itemLabel = CreateDefaultText(block, STRINGS.LABEL_ITEM_ID)
+  local itemLabel = CreateDefaultText(block, S.addItem.itemIdLabel)
   itemLabel:SetPoint("TOPLEFT", inputSectionTitle, "BOTTOMLEFT", 0, -10)
 
-  local itemInput = CreateNumericEditText(block, STRINGS.LABEL_ITEM_ID_TOOLTIP, 100, 22)
+  local itemInput = CreateNumericEditText(block, S.addItem.itemIdTooltip, 100, 22)
   itemInput:SetPoint("LEFT", itemLabel, "RIGHT", editSpacing, 0)
   local function CaptureCursorItem(self)
     local cursorType, itemID, link = GetCursorInfo()
@@ -353,10 +353,10 @@ function WarbandStorage.UI:InputSection(parent, width, height)
   itemInput:SetScript("OnMouseDown", CaptureCursorItem)
 
 
-  local qtyLabel = CreateDefaultText(block, STRINGS.LABEL_QTY)
+  local qtyLabel = CreateDefaultText(block, S.addItem.qtyLabel)
   qtyLabel:SetPoint("LEFT", itemLabel, "RIGHT", fieldSpacing, 0)
 
-  local qtyInput = CreateNumericEditText(block, STRINGS.LABEL_QTY_TOOLTIP, 60, 22)
+  local qtyInput = CreateNumericEditText(block, S.addItem.qtyTooltip, 60, 22)
   qtyInput:SetPoint("LEFT", qtyLabel, "RIGHT", editSpacing, 0)
 
   function WarbandStorage.ResetItemInputQty()
@@ -372,22 +372,22 @@ function WarbandStorage.UI:InputSection(parent, width, height)
     WarbandStorage.ResetItemInputQty()
   end)
 
-  local addButton = CreateButton(block, STRINGS.BUTTON_ADD, 50, 22)
+  local addButton = CreateButton(block, S.addItem.add, 50, 22)
   addButton:SetPoint("LEFT", qtyInput, "RIGHT", 15, 0)
   addButton:SetScript("OnEnter", function(self) 
     GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
-    GameTooltip:SetText(STRINGS.BUTTON_ADD_TOOLTIP, 1, 1, 1)
+    GameTooltip:SetText(S.addItem.addTooltip, 1, 1, 1)
     GameTooltip:Show() 
   end)
   addButton:SetScript("OnLeave", GameTooltip_Hide)
 
   local clearButton = CreateFrame("Button", nil, block, "UIPanelButtonTemplate")
   clearButton:SetSize(90, 22)
-  clearButton:SetText(STRINGS.BUTTON_CLEAR)
+  clearButton:SetText(S.addItem.clear)
   clearButton:SetPoint("TOPLEFT", addButton, "TOPRIGHT", 15, 0)
   clearButton:SetScript("OnEnter", function(self) 
     GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
-    GameTooltip:SetText(STRINGS.BUTTON_CLEAR_TOOLTIP, 1,1,1)
+    GameTooltip:SetText(S.addItem.clearTooltip, 1,1,1)
     GameTooltip:Show() 
   end)
   clearButton:SetScript("OnLeave", GameTooltip_Hide)
@@ -436,14 +436,14 @@ function WarbandStorage.UI:CreateTrackedItemsHeader(parent, width, height)
 
   local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel", width, height)
 
-  local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_TRACKED)
+  local sectionTitle = CreateSectionHeader(block, S.tracked.section)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
 
   -- Filter box: narrows the tracked items list by name or item ID.
   local searchBox = LuckyUI.CreateSearchBox(block, {
     width = 180,
     height = 22,
-    placeholder = STRINGS.FILTER_ITEMS_PLACEHOLDER,
+    placeholder = S.tracked.filterPlaceholder,
     onChange = function(query)
       WarbandStorage.itemFilter = query or ""
       if RefreshItemList then RefreshItemList() end

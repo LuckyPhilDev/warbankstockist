@@ -1,5 +1,5 @@
 local FONTS = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
+local S = WarbandStorage.Strings
 
 -- ############################################################
 -- ## Assignments Tab Content
@@ -34,7 +34,7 @@ function WarbandStorage.UI:CreateAssignmentsHeader(parent)
 
   local block = WarbandStorage.FrameFactory:CreateStyledFrame(parent, "contentPanel",300,35)
 
-  local sectionTitle = CreateSectionHeader(block, STRINGS.SECTION_ASSIGNMENTS)
+  local sectionTitle = CreateSectionHeader(block, S.assignments.section)
   sectionTitle:SetPoint("TOPLEFT", block, "TOPLEFT", horzPadding, -vertPadding)
 
   local header = CreateFrame("Frame", nil, parent)
@@ -44,10 +44,10 @@ function WarbandStorage.UI:CreateAssignmentsHeader(parent)
   headerBg:SetAllPoints()
   headerBg:SetColorTexture(0.2, 0.2, 0.25, 0.6)
 
-  local itemHeader = CreateSubheadingText(header, STRINGS.ASSIGN_CHARACTERS)
+  local itemHeader = CreateSubheadingText(header, S.assignments.character)
   itemHeader:SetPoint("LEFT", header, "LEFT", 30, 0)
 
-  local qtyHeader = CreateSubheadingText(header, STRINGS.ASSIGN_PROFILES)
+  local qtyHeader = CreateSubheadingText(header, S.assignments.profile)
   qtyHeader:SetPoint("LEFT", itemHeader, "RIGHT", 180, 0)
 
   header:SetSize(500, 28)
@@ -82,7 +82,7 @@ function RefreshAssignmentsList()
 
       local label = divider:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
       label:SetPoint("LEFT", divider, "LEFT", 10, 0)
-      label:SetText("Ignored Characters")
+      label:SetText(S.assignments.ignoredCharacters)
       label:SetTextColor(0.85, 0.7, 0.7, 1)
 
       table.insert(WarbandStorage.assignRows, divider)
@@ -106,7 +106,7 @@ function RefreshAssignmentsList()
     -- Ignore button
     local igBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
     igBtn:SetSize(70, 24)
-    igBtn:SetText(STRINGS.IGNORE)
+    igBtn:SetText(S.assignments.ignore)
     igBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
     igBtn:SetScript("OnClick", function()
       WarbandStorage.ProfileManager:IgnoreCharacter(ck)
@@ -114,7 +114,7 @@ function RefreshAssignmentsList()
 
     local unBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
     unBtn:SetSize(80, 24)
-    unBtn:SetText(STRINGS.UNASSIGN)
+    unBtn:SetText(S.assignments.unassign)
     unBtn:SetPoint("RIGHT", igBtn, "LEFT", -5, 0)
     -- Forward declare so handlers can call it before definition
     local RefreshDD
@@ -131,10 +131,10 @@ function RefreshAssignmentsList()
         -- Unassigned option
         do
           local info = UIDropDownMenu_CreateInfo()
-          info.text = STRINGS.UNASSIGNED
+          info.text = S.assignments.unassigned
           info.func = function()
             WarbandStorage.ProfileManager:UnassignCharacter(ck)
-            UIDropDownMenu_SetText(dd, STRINGS.UNASSIGNED)
+            UIDropDownMenu_SetText(dd, S.assignments.unassigned)
           end
           info.checked = (WarbandStockistDB.assignments[ck] == nil)
           UIDropDownMenu_AddButton(info, level)
@@ -154,7 +154,7 @@ function RefreshAssignmentsList()
       end)
       local assigned = WarbandStockistDB.assignments[ck]
       if assigned == nil then
-        UIDropDownMenu_SetText(dd, STRINGS.UNASSIGNED)
+        UIDropDownMenu_SetText(dd, S.assignments.unassigned)
       else
         UIDropDownMenu_SetText(dd, assigned)
       end

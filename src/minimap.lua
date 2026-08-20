@@ -2,7 +2,8 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.Minimap = {}
 
 local ICON = LuckyMedia("promo-warbank-stockist.tga")
-local PREFIX = "|cff7fd5ff[Warband Stockist]|r "
+local S = WarbandStorage.Strings
+local PREFIX = S.addon.prefix .. " "
 
 -- Flip dev/debug logging. Announced with a plain print (not DebugPrint) so the
 -- user still sees confirmation when turning it off.
@@ -10,7 +11,7 @@ local function ToggleDevMode()
     WarbandStockistDB = WarbandStockistDB or {}
     local enabled = WarbandStockistDB.debugEnabled ~= true
     WarbandStockistDB.debugEnabled = enabled
-    print(PREFIX .. "Dev mode " .. (enabled and "|cff00ff00enabled|r" or "|cffff0000disabled|r") .. ".")
+    print(PREFIX .. S.minimap.devMode:format(enabled and S.minimap.devModeOn or S.minimap.devModeOff))
 end
 
 function WarbandStorage.Minimap:Init(db)
@@ -32,11 +33,11 @@ function WarbandStorage.Minimap:Init(db)
             end
         end,
         tooltip = function(tt)
-            tt:AddLine("|cffffd100Warband Stockist|r")
+            tt:AddLine(S.minimap.tooltipTitle)
             tt:AddLine(" ")
-            tt:AddLine("Click: Open settings", 0.91, 0.86, 0.78)
-            tt:AddLine("Middle-click: Toggle dev mode", 0.91, 0.86, 0.78)
-            tt:AddLine("Drag: Move button", 0.54, 0.49, 0.42)
+            tt:AddLine(S.minimap.click, 0.91, 0.86, 0.78)
+            tt:AddLine(S.minimap.middleClick, 0.91, 0.86, 0.78)
+            tt:AddLine(S.minimap.drag, 0.54, 0.49, 0.42)
         end,
     })
 end

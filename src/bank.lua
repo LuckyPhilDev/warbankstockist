@@ -1,5 +1,7 @@
 WarbandStorage = WarbandStorage or {}
 
+local S = WarbandStorage.Strings
+
 -- Tuning. Withdrawal advances on callbacks (cursor + lock), so timers only
 -- exist as fallbacks and inter-step breathing room.
 local LOCK_REPOLL = 0.1
@@ -766,7 +768,7 @@ function WarbandStorage:ManageGoldWithWarbank()
         if toDeposit > 0 then
             C_Bank.DepositMoney(Enum.BankType.Account, toDeposit)
             print(string.format(
-                "|cff7fd5ff[Warband Stockist]|r Deposited %dg %ds %dc to Warband Bank.",
+                S.addon.prefix .. " " .. S.gold.deposited,
                 math.floor(toDeposit / 10000),
                 math.floor((toDeposit % 10000) / 100),
                 toDeposit % 100
@@ -785,7 +787,7 @@ function WarbandStorage:ManageGoldWithWarbank()
         if toWithdraw > 0 then
             C_Bank.WithdrawMoney(Enum.BankType.Account, toWithdraw)
             print(string.format(
-                "|cff7fd5ff[Warband Stockist]|r Withdrew %dg %ds %dc from Warband Bank.",
+                S.addon.prefix .. " " .. S.gold.withdrew,
                 math.floor(toWithdraw / 10000),
                 math.floor((toWithdraw % 10000) / 100),
                 toWithdraw % 100

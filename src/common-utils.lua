@@ -5,6 +5,7 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.Utils = WarbandStorage.Utils or {}
 
 local Utils = WarbandStorage.Utils
+local S = WarbandStorage.Strings
 
 -- ############################################################
 -- ## Validation Utilities
@@ -45,26 +46,26 @@ function Utils:ValidateProfileName(name, excludeName)
   end
 
   if type(name) ~= "string" then
-    showError("Please enter a profile name.")
+    showError(S.profiles.nameRequired)
     return false
   end
 
   -- Trim whitespace
   local trimmed = name:match("^%s*(.-)%s*$") or ""
   if trimmed == "" then
-    showError("Profile name cannot be empty.")
+    showError(S.profiles.nameEmpty)
     return false
   end
 
   -- Enforce a reasonable length (dialogs use maxLetters = 40)
   if #trimmed > 40 then
-    showError("Profile name is too long (max 40 characters).")
+    showError(S.profiles.nameTooLong)
     return false
   end
 
   -- Disallow control characters
   if trimmed:find("[%z\1-\31]") then
-    showError("Profile name contains invalid characters.")
+    showError(S.profiles.nameInvalid)
     return false
   end
 
@@ -73,7 +74,7 @@ function Utils:ValidateProfileName(name, excludeName)
   if trimmed == reserved then
     -- Only allowed if we're effectively not changing the name (excludeName matches exactly)
     if not excludeName or excludeName ~= reserved then
-      showError(("The profile name '%s' is reserved."):format(reserved))
+      showError(S.profiles.nameReserved:format(reserved))
       return false
     end
   end
@@ -81,7 +82,7 @@ function Utils:ValidateProfileName(name, excludeName)
   -- Require uniqueness against existing profiles (except excluded name)
   if WarbandStockistDB and WarbandStockistDB.profiles and WarbandStockistDB.profiles[trimmed] then
     if not excludeName or trimmed ~= excludeName then
-      showError(("A profile named '%s' already exists."):format(trimmed))
+      showError(S.profiles.nameTaken:format(trimmed))
       return false
     end
   end
@@ -131,7 +132,7 @@ function Utils:FormatCharacterName(characterKey, className)
 end
 
 -- Debug print via LuckyLog
-local _utilsLog = LuckyLog:New("|cff7fd5ff[Warband Stockist]|r", function()
+local _utilsLog = LuckyLog:New(S.addon.prefix, function()
   return WarbandStockistDB and WarbandStockistDB.debugEnabled
 end)
 

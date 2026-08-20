@@ -1,6 +1,6 @@
 
 local FONTS = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
+local S = WarbandStorage.Strings
 
 -- Tracked item rows are pooled. A refresh reuses the frames it built last time
 -- instead of orphaning a hidden set and building another, so repeated refreshes
@@ -29,7 +29,7 @@ local function BuildRow(parent)
     end)
     row.icon:SetScript("OnLeave", GameTooltip_Hide)
 
-    row.removeBtn = CreateStyledButton(row, 70, 20, STRINGS.BUTTON_REMOVE)
+    row.removeBtn = CreateStyledButton(row, 70, 20, S.tracked.remove)
     row.removeBtn:SetPoint("RIGHT", row, "RIGHT", -15, 0)
     row.removeBtn:SetScript("OnClick", function()
       WarbandStorage.ProfileManager:RemoveItemFromProfile(row.itemID)

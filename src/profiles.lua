@@ -25,7 +25,7 @@ local function CharKey()
   return string.format("%s-%s", name or UnitName("player") or "", realm or GetRealmName() or "")
 end
 
-local DebugPrint = LuckyLog:New("|cff7fd5ff[Warband Stockist]|r", function()
+local DebugPrint = LuckyLog:New(WarbandStorage.Strings.addon.prefix, function()
   return WarbandStockistDB and WarbandStockistDB.debugEnabled
 end)
 

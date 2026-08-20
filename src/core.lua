@@ -1,6 +1,9 @@
 -- Ensure shared namespace exists
 WarbandStorage = WarbandStorage or { debugEnabled = false }
 
+local S = WarbandStorage.Strings
+local PREFIX = S.addon.prefix
+
 -- Shared Event Dispatcher
 WarbandStorage.Events = CreateFrame("Frame")
 
@@ -169,7 +172,7 @@ function WarbandStorage:OpenSettings()
         end
 
         -- Try lookup by registered name
-        local name = self.Theme and self.Theme.STRINGS and self.Theme.STRINGS.SETTINGS_NAME
+        local name = S.addon.title
         if name and Settings.GetCategory then
             local found = Settings.GetCategory(name)
             if found then
@@ -207,7 +210,7 @@ function WarbandStorage:OpenSettings()
         return
     end
 
-    print("|cff7fd5ff[Warband Stockist]|r Unable to open addon settings panel.")
+    print(PREFIX .. " " .. S.settings.unavailable)
 end
 
 SLASH_WARBANDSTORAGE1 = "/wbs"
@@ -228,7 +231,7 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         elseif arg == "off" then current = false
         else current = not current end
         WarbandStorageCharData.autoOpenSettings = current
-        print(string.format("|cff7fd5ff[Warband Stockist]|r autoOpenSettings: %s", tostring(current)))
+        print(string.format("%s autoOpenSettings: %s", PREFIX, tostring(current)))
         return
     end
 
@@ -236,7 +239,7 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
     if msg and msg:lower():find("^perf") then
         if msg:lower():find("reset") then
             WarbandStorage.Perf:Reset()
-            print("|cff7fd5ff[Warband Stockist]|r perf counters reset.")
+            print(PREFIX .. " perf counters reset.")
         else
             WarbandStorage.Perf:Dump("on demand")
         end
@@ -252,7 +255,7 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         elseif arg == "off" then current = false
         else current = not current end
         WarbandStockistDB.devOpenOnLogin = current
-        print(string.format("|cff7fd5ff[Warband Stockist]|r devOpenOnLogin: %s", tostring(current)))
+        print(string.format("%s devOpenOnLogin: %s", PREFIX, tostring(current)))
         return
     end
 
@@ -272,5 +275,5 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         return
     end
 
-    print("|cff7fd5ff[Warband Stockist]|r Unknown /wbs command. Try: settings, report, autoopen, perf, devopen")
+    print(PREFIX .. " " .. S.settings.unknownCommand)
 end

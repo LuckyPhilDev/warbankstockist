@@ -14,7 +14,7 @@ WarbandStockistDB = WarbandStockistDB or {
 
 local THEME_COLORS = WarbandStorage.Theme.COLORS
 local FONTS = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
+local S = WarbandStorage.Strings
 
 -- ############################################################
 -- ## Main Tabbed Settings Panel
@@ -45,13 +45,13 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   -- Header elements
   local title = panel:CreateFontString(nil, "ARTWORK", FONTS.SECTION)
   title:SetPoint("TOPLEFT", panel, "TOPLEFT", padding, -padding)
-  title:SetText(STRINGS.TITLE)
+  title:SetText(S.addon.settingsTitle)
   title:SetTextColor(0.9, 0.8, 0.4, 1)
 
   local debugCheckbox = CreateFrame("CheckButton", nil, panel, "ChatConfigCheckButtonTemplate")
   debugCheckbox:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -spacing)
   debugCheckbox.Text:SetFontObject(FONTS.LABEL)
-  debugCheckbox.Text:SetText(STRINGS.DEBUG_LABEL)
+  debugCheckbox.Text:SetText(S.settings.debugLabel)
   debugCheckbox.Text:SetTextColor(0.8, 0.8, 0.8, 1)
   debugCheckbox:SetScript("OnClick", function(self)
     WarbandStockistDB.debugEnabled = self:GetChecked()
@@ -60,7 +60,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   end)
   debugCheckbox:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.DEBUG_TOOLTIP, 1, 1, 1)
+    GameTooltip:SetText(S.settings.debugTooltip, 1, 1, 1)
     GameTooltip:Show()
   end)
   debugCheckbox:SetScript("OnLeave", GameTooltip_Hide)
@@ -69,13 +69,13 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   helpText:SetPoint("TOPLEFT", debugCheckbox, "BOTTOMLEFT", 0, -spacing)
   helpText:SetWidth(560)
   helpText:SetJustifyH("LEFT")
-  helpText:SetText(STRINGS.HELP_TEXT)
+  helpText:SetText(S.settings.help)
   helpText:SetTextColor(0.7, 0.7, 0.7, 1)
 
   local minimapToggle = CreateFrame("CheckButton", nil, panel, "ChatConfigCheckButtonTemplate")
   minimapToggle:SetPoint("TOPLEFT", helpText, "BOTTOMLEFT", 0, -spacing)
   minimapToggle.Text:SetFontObject(FONTS.LABEL)
-  minimapToggle.Text:SetText(STRINGS.SHOW_MINIMAP)
+  minimapToggle.Text:SetText(S.settings.showMinimap)
   minimapToggle.Text:SetTextColor(0.8, 0.8, 0.8, 1)
   minimapToggle:SetScript("OnClick", function(self)
     if WarbandStorage.Minimap and WarbandStorage.Minimap.button then
@@ -84,7 +84,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
   end)
   minimapToggle:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(STRINGS.SHOW_MINIMAP_TOOLTIP, 1, 1, 1)
+    GameTooltip:SetText(S.settings.showMinimapTooltip, 1, 1, 1)
     GameTooltip:Show()
   end)
   minimapToggle:SetScript("OnLeave", GameTooltip_Hide)
@@ -133,7 +133,7 @@ function WarbandStorage.UI:CreateTabbedSettingsCategory()
     end
   end)
 
-  WarbandStorage.SettingsCategory = Settings.RegisterCanvasLayoutCategory(panel, STRINGS.SETTINGS_NAME)
+  WarbandStorage.SettingsCategory = Settings.RegisterCanvasLayoutCategory(panel, S.addon.title)
   Settings.RegisterAddOnCategory(WarbandStorage.SettingsCategory)
   -- Cache ID for reliable lookups later
   if WarbandStorage.SettingsCategory then
@@ -156,7 +156,7 @@ function WarbandStorage.UI:CreateTabs(parent)
 
   local tabButtonSize = { width = 140, height = 32 }
   local tabs = {}
-  local tabNames = { "Profiles", "Assignments", STRINGS.GOLD_TAB_NAME, "Warbound" }
+  local tabNames = { "Profiles", "Assignments", S.gold.tab, "Warbound" }
   local firstTab = nil
 
   for i, name in ipairs(tabNames) do
@@ -265,18 +265,16 @@ function WarbandStorage.UI:CreateWarboundTabContent(content)
   anchorFrame:SetPoint("TOPLEFT", content, "TOPLEFT", padding, -padding + spacing)
   anchorFrame:SetSize(1, 1)
 
-  local master = AddCheckbox("enabled", "Auto-Deposit Warbound Items",
-    "When you open the bank, deposits warbound gear from your bags into the Warband Bank before restocking your profile.",
-    anchorFrame)
-  local armor = AddCheckbox("armor", "Warbound Armor", "Auto-deposit warbound armor.", master, 24)
-  local weapons = AddCheckbox("weapons", "Warbound Weapons", "Auto-deposit warbound weapons.", armor)
-  local tokens = AddCheckbox("tokens", "Warbound Tokens", "Auto-deposit warbound tier tokens.", weapons)
+  local master = AddCheckbox("enabled", S.warbound.master, S.warbound.masterTooltip, anchorFrame)
+  local armor = AddCheckbox("armor", S.warbound.armor, S.warbound.armorTooltip, master, 24)
+  local weapons = AddCheckbox("weapons", S.warbound.weapons, S.warbound.weaponsTooltip, armor)
+  local tokens = AddCheckbox("tokens", S.warbound.tokens, S.warbound.tokensTooltip, weapons)
 
   local hint = content:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
   hint:SetPoint("TOPLEFT", tokens, "BOTTOMLEFT", -24, -spacing)
   hint:SetWidth(560)
   hint:SetJustifyH("LEFT")
-  hint:SetText("Items with a stock amount in the active profile are never deposited by this; the restock keeps them in your bags.")
+  hint:SetText(S.warbound.hint)
   hint:SetTextColor(0.7, 0.7, 0.7, 1)
 
   refresh = function()

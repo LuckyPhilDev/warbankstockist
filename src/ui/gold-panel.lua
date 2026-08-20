@@ -6,7 +6,7 @@ WarbandStorage    = WarbandStorage    or {}
 WarbandStorage.UI = WarbandStorage.UI or {}
 
 local FONTS   = WarbandStorage.Theme.FONTS
-local STRINGS = WarbandStorage.Theme.STRINGS
+local S = WarbandStorage.Strings
 
 -- ── Layout constants ──────────────────────────────────────────
 local PAD      = 12   -- outer padding
@@ -108,27 +108,27 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
 
     -- ── Static: Bracket section header & hints ────────────────
     local bTitle = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    bTitle:SetText(STRINGS.SECTION_GOLD_BRACKETS)
+    bTitle:SetText(S.gold.bracketsSection)
     bTitle:SetTextColor(0.9, 0.8, 0.4, 1)
     bTitle:SetPoint("TOPLEFT", content, "TOPLEFT", PAD, -PAD)
 
     local bHint = content:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
-    bHint:SetText(STRINGS.GOLD_BRACKET_HINT)
+    bHint:SetText(S.gold.bracketHint)
     bHint:SetTextColor(0.65, 0.65, 0.65, 1)
     bHint:SetWidth(CONTENT_W - PAD * 2)
     bHint:SetJustifyH("LEFT")
     bHint:SetPoint("TOPLEFT", bTitle, "BOTTOMLEFT", 0, -4)
 
     local bColBar = MakeColBar(content, 0, {  -- y set in layout
-        { text = STRINGS.GOLD_BRACKET_COL_MIN,  x = BC_MIN  },
-        { text = STRINGS.GOLD_BRACKET_COL_MAX,  x = BC_MAX  },
-        { text = STRINGS.GOLD_BRACKET_COL_GOLD, x = BC_GOLD },
+        { text = S.gold.colMinLevel,  x = BC_MIN  },
+        { text = S.gold.colMaxLevel,  x = BC_MAX  },
+        { text = S.gold.colGold, x = BC_GOLD },
     })
     bColBar:Hide()  -- shown after layout
 
     -- ── Static: Bracket add-row ───────────────────────────────
     local bAddTitle = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    bAddTitle:SetText("Create / Adjust Bracket:")
+    bAddTitle:SetText(S.gold.createBracket)
     bAddTitle:SetTextColor(0.9, 0.8, 0.4, 1)
 
     local bAddRow = CreateFrame("Frame", nil, content)
@@ -137,7 +137,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
     local bAddMinEB  = MakeEB(bAddRow, 80)
     local bAddMaxEB  = MakeEB(bAddRow, 80)
     local bAddGoldEB = MakeEB(bAddRow, 90)
-    local bAddBtn    = MakeBtn(bAddRow, STRINGS.GOLD_BRACKET_ADD, 105)
+    local bAddBtn    = MakeBtn(bAddRow, S.gold.addBracket, 105)
     bAddMinEB :SetPoint("LEFT", bAddRow, "LEFT", BC_MIN  + 2, 0)
     bAddMaxEB :SetPoint("LEFT", bAddRow, "LEFT", BC_MAX  + 2, 0)
     bAddGoldEB:SetPoint("LEFT", bAddRow, "LEFT", BC_GOLD + 2, 0)
@@ -149,24 +149,24 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
 
     -- ── Static: Override section header & hints ───────────────
     local oTitle = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    oTitle:SetText(STRINGS.SECTION_GOLD_OVERRIDES)
+    oTitle:SetText(S.gold.overridesSection)
     oTitle:SetTextColor(0.9, 0.8, 0.4, 1)
 
     local oHint = content:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
-    oHint:SetText(STRINGS.GOLD_OVERRIDE_HINT)
+    oHint:SetText(S.gold.overrideHint)
     oHint:SetTextColor(0.65, 0.65, 0.65, 1)
     oHint:SetWidth(CONTENT_W - PAD * 2)
     oHint:SetJustifyH("LEFT")
 
     local oColBar = MakeColBar(content, 0, {
-        { text = STRINGS.GOLD_OVERRIDE_COL_CHAR, x = OC_NAME },
-        { text = STRINGS.GOLD_OVERRIDE_COL_GOLD, x = OC_GOLD },
+        { text = S.gold.colCharacter, x = OC_NAME },
+        { text = S.gold.colGold, x = OC_GOLD },
     })
     oColBar:Hide()
 
     -- ── Static: Override add-row ──────────────────────────────
     local oAddTitle = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    oAddTitle:SetText("Create / Adjust Override:")
+    oAddTitle:SetText(S.gold.createOverride)
     oAddTitle:SetTextColor(0.9, 0.8, 0.4, 1)
 
     local oAddRow = CreateFrame("Frame", nil, content)
@@ -179,7 +179,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
     oCharDD:SetPoint("LEFT", oAddRow, "LEFT", -10, 0)
 
     local oGoldEB  = MakeEB(oAddRow, 90)
-    local oAddBtn  = MakeBtn(oAddRow, STRINGS.GOLD_OVERRIDE_ADD, 105)
+    local oAddBtn  = MakeBtn(oAddRow, S.gold.addOverride, 105)
     oGoldEB :SetPoint("LEFT", oAddRow, "LEFT", OC_GOLD + 2, 0)
     oAddBtn :SetPoint("LEFT", oAddRow, "LEFT", OC_BTN,      0)
 
@@ -252,7 +252,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
             goldFS:SetPoint("LEFT", row, "LEFT", BC_GOLD + 6, 0)
             goldFS:SetText(tostring(bracket.gold or ""))
 
-            local rmBtn = MakeBtn(row, STRINGS.GOLD_BRACKET_REMOVE, 80)
+            local rmBtn = MakeBtn(row, S.gold.removeBracket, 80)
             rmBtn:SetPoint("LEFT", row, "LEFT", BC_BTN, 0)
             rmBtn:SetScript("OnClick", function()
                 table.remove(gm.brackets, idx)
@@ -266,7 +266,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
         -- Empty state hint
         if #gm.brackets == 0 then
             local empty = content:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
-            empty:SetText("No brackets defined. Add one below.")
+            empty:SetText(S.gold.noBrackets)
             empty:SetTextColor(0.45, 0.45, 0.45, 1)
             empty:SetPoint("TOPLEFT", content, "TOPLEFT", PAD + 8, y)
             table.insert(bracketRows, empty)  -- track for cleanup
@@ -352,7 +352,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
             goldFS:SetPoint("LEFT", row, "LEFT", OC_GOLD + 6, 0)
             goldFS:SetText(tostring(gm.overrides[ck] or ""))
 
-            local rmBtn = MakeBtn(row, STRINGS.GOLD_OVERRIDE_REMOVE, 80)
+            local rmBtn = MakeBtn(row, S.gold.removeOverride, 80)
             rmBtn:SetPoint("LEFT", row, "LEFT", OC_BTN, 0)
             rmBtn:SetScript("OnClick", function()
                 gm.overrides[capturedKey] = nil
@@ -365,7 +365,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
 
         if #keys == 0 then
             local empty = content:CreateFontString(nil, "OVERLAY", FONTS.INLINE_HINT)
-            empty:SetText("No character overrides set. Add one below.")
+            empty:SetText(S.gold.noOverrides)
             empty:SetTextColor(0.45, 0.45, 0.45, 1)
             empty:SetPoint("TOPLEFT", content, "TOPLEFT", PAD + 8, y)
             table.insert(overrideRows, empty)
@@ -398,7 +398,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
         local hi   = tonumber(bAddMaxEB:GetText())
         local gold = tonumber(bAddGoldEB:GetText())
         if not (lo and hi and gold and lo >= 1 and hi >= lo and gold > 0) then
-            print("|cff7fd5ff[Warband Stockist]|r Enter valid Min (≥1), Max (≥Min), Gold (>0).")
+            print(S.addon.prefix .. " " .. S.gold.invalidBracket)
             return
         end
 
@@ -474,7 +474,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
             selectedCharKey
             and ((WarbandStorage.Utils and WarbandStorage.Utils.FormatCharacterName)
                  and WarbandStorage.Utils:FormatCharacterName(selectedCharKey) or selectedCharKey)
-            or "Select character…")
+            or S.gold.selectCharacter)
     end
     RefreshCharDD()
 
@@ -488,7 +488,7 @@ function WarbandStorage.UI:CreateGoldTabContent(parent)
             RefreshCharDD()
             LayoutAll()
         else
-            print("|cff7fd5ff[Warband Stockist]|r Select a character and enter a gold amount > 0.")
+            print(S.addon.prefix .. " " .. S.gold.invalidOverride)
         end
     end)
 

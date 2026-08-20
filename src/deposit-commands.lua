@@ -4,6 +4,10 @@
 
 WarbandStockist_Commands = WarbandStockist_Commands or {}
 
+local S = WarbandStorage.Strings
+local PREFIX = S.addon.prefix
+local C = S.commands
+
 -- ############################################################
 -- ## Deposit Command Handler
 -- ############################################################
@@ -12,19 +16,19 @@ local function HandleDepositCommand(args)
     local itemID = tonumber(args)
 
     if not itemID then
-        print("|cff7fd5ff[Warband Stockist]|r Usage: /wbdeposit <itemID>")
-        print("|cff7fd5ff[Warband Stockist]|r Example: /wbdeposit 6948")
+        print(PREFIX .. " " .. C.depositUsage)
+        print(PREFIX .. " " .. C.depositExample)
         return
     end
 
     if not C_Bank.CanViewBank(Enum.BankType.Account) then
-        print("|cffff0000Error:|r Warband bank is not available. You must be at a warband bank to use this command.")
+        print(S.addon.errorPrefix .. " " .. C.bankUnavailable)
         return
     end
 
-    local itemName = C_Item.GetItemNameByID(itemID) or ("Item ID: " .. itemID)
+    local itemName = C_Item.GetItemNameByID(itemID) or C.itemIdFallback:format(itemID)
     WarbandStorage:TryDepositItem(itemID, 1, function()
-        print("|cff00ff00Success:|r Deposited 1x " .. itemName .. " into warband bank.")
+        print(S.addon.successPrefix .. " " .. C.depositSuccess:format(itemName))
     end)
 end
 
@@ -52,18 +56,18 @@ local function HandleWithdrawCommand(msg)
     end
 
     if not itemID then
-        print("|cffff0000Error:|r Please provide a valid item ID or item link.")
-        print("|cffccccccUsage:|r /wbwithdraw <itemID> or /wbwithdraw [item link]")
+        print(S.addon.errorPrefix .. " " .. C.withdrawInvalid)
+        print(C.withdrawUsage)
         return
     end
 
     if not C_Bank.CanViewBank(Enum.BankType.Account) then
-        print("|cffff0000Error:|r Warband bank is not available. You must be at a warband bank to use this command.")
+        print(S.addon.errorPrefix .. " " .. C.bankUnavailable)
         return
     end
 
     if not C_Item.GetItemInfoInstant(itemID) then
-        print("|cffff0000Error:|r Invalid item ID: " .. tostring(itemID))
+        print(S.addon.errorPrefix .. " " .. C.invalidItemId:format(tostring(itemID)))
         return
     end
 
@@ -85,14 +89,14 @@ SlashCmdList["WBWITHDRAW"] = HandleWithdrawCommand
 -- Add help information
 SLASH_WBHELP1 = "/wbhelp"
 SlashCmdList["WBHELP"] = function()
-    print("|cff7fd5ff[Warband Stockist] Available Commands:|r")
-    print("|cff00ff00/wbdeposit <itemID>|r - Deposit 1 of the specified item into warband bank")
-    print("|cff00ff00/warbanddeposit <itemID>|r - Same as above")
-    print("|cff00ff00/wbwithdraw <itemID>|r - Withdraw 1 of the specified item from warband bank")
-    print("|cff00ff00/warbandwithdraw <itemID>|r - Same as above")
-    print("|cff00ff00/wbhelp|r - Show this help message")
-    print("|cffccccccNote:|r You must be at a warband bank to use these commands.")
+    print(C.helpTitle)
+    print(C.helpDeposit)
+    print(C.helpDepositAlias)
+    print(C.helpWithdraw)
+    print(C.helpWithdrawAlias)
+    print(C.helpHelp)
+    print(C.helpNote)
 end
 
 -- Print load message
-print("|cff7fd5ff[Warband Stockist]|r Deposit commands loaded. Type /wbhelp for usage.")
+print(PREFIX .. " " .. C.loaded)
