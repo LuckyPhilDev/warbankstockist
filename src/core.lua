@@ -1,5 +1,5 @@
 -- Ensure shared namespace exists
-WarbandStorage = WarbandStorage or { debugEnabled = false }
+WarbandStorage = WarbandStorage or {}
 
 local S = WarbandStorage.Strings
 local PREFIX = S.addon.prefix
@@ -63,10 +63,7 @@ function WarbandStorage:OnEvent(event, ...)
             end
         end
 
-        -- Initialize settings panel after all modules are loaded
-        if WarbandStorage.UI and WarbandStorage.UI.CreateTabbedSettingsCategory then
-            WarbandStorage.UI:CreateTabbedSettingsCategory()
-        end
+        WarbandStorage.Settings.Create()
 
         -- Minimap button
         if WarbandStorage.Minimap then
@@ -80,32 +77,19 @@ function WarbandStorage:OnEvent(event, ...)
         
         WarbandStorage:DebugPrint("WarbandStorage loaded!")
         
-            -- Optionally open settings on login when explicitly enabled
-            local shouldAutoOpen = false
-            local reason = nil
-            if WarbandStockistDB and WarbandStockistDB.devOpenOnLogin then
-                shouldAutoOpen = true
-                reason = "devOpenOnLogin"
-            elseif WarbandStorageCharData and WarbandStorageCharData.autoOpenSettings then
-                shouldAutoOpen = true
-                reason = "autoOpenSettings"
-            end
-            if shouldAutoOpen then
-                if C_Timer and C_Timer.After then
-                    C_Timer.After(0.2, function()
-                        if WarbandStorage.OpenSettings then
-                            WarbandStorage:DebugPrint("Auto-opening settings on login (" .. tostring(reason) .. ")")
-                            WarbandStorage:OpenSettings()
-                        end
-                    end)
-                else
-                    if WarbandStorage.OpenSettings then
-                        WarbandStorage:DebugPrint("Auto-opening settings on login (" .. tostring(reason) .. ")")
-                        WarbandStorage:OpenSettings()
-                    end
-                end
-            end
-        
+        local autoOpenReason
+        if WarbandStockistDB.devOpenOnLogin then
+            autoOpenReason = "devOpenOnLogin"
+        elseif WarbandStorageCharData.autoOpenSettings then
+            autoOpenReason = "autoOpenSettings"
+        end
+        if autoOpenReason then
+            C_Timer.After(0.2, function()
+                WarbandStorage:DebugPrint("Auto-opening settings on login (" .. autoOpenReason .. ")")
+                WarbandStorage:OpenSettings()
+            end)
+        end
+
     elseif event == "BANKFRAME_OPENED" then
             WarbandStorage:DebugPrint("Bank Opened")
             -- Slight delay to ensure bank APIs/tab IDs are available
@@ -136,81 +120,8 @@ end
 WarbandStorage:RegisterEvent("PLAYER_LOGIN")
 WarbandStorage:RegisterEvent("BANKFRAME_OPENED")
 
--- Open settings helper: tries category ID, object, name lookup, then panel frame
 function WarbandStorage:OpenSettings()
-    -- Ensure settings category is created
-    if not self.SettingsCategory then
-        if self.UI and self.UI.CreateTabbedSettingsCategory then
-            self.UI:CreateTabbedSettingsCategory()
-        end
-    end
-
-    -- Prefer modern Settings API
-    if Settings and Settings.OpenToCategory then
-        local cat = self.SettingsCategory
-        if cat then
-            -- Try by ID first if available
-            local id = self.SettingsCategoryID
-            if type(cat) == "table" then
-                id = id or cat.ID or cat.Id
-                if not id and type(cat.GetID) == "function" then id = cat:GetID() end
-            end
-            if id then
-                Settings.OpenToCategory(id)
-                -- Some clients require a second call shortly after to focus correctly
-                if C_Timer and C_Timer.After then
-                    C_Timer.After(0.1, function() Settings.OpenToCategory(id) end)
-                end
-                return
-            end
-            -- Fallback to passing the category object
-            Settings.OpenToCategory(cat)
-            if C_Timer and C_Timer.After then
-                C_Timer.After(0.1, function() Settings.OpenToCategory(cat) end)
-            end
-            return
-        end
-
-        -- Try lookup by registered name
-        local name = S.addon.title
-        if name and Settings.GetCategory then
-            local found = Settings.GetCategory(name)
-            if found then
-                local fid = found.ID or found.Id
-                if not fid and type(found.GetID) == "function" then fid = found:GetID() end
-                if fid then
-                    Settings.OpenToCategory(fid)
-                    if C_Timer and C_Timer.After then
-                        C_Timer.After(0.05, function() Settings.OpenToCategory(fid) end)
-                    end
-                else
-                    Settings.OpenToCategory(found)
-                    if C_Timer and C_Timer.After then
-                        C_Timer.After(0.05, function() Settings.OpenToCategory(found) end)
-                    end
-                end
-                return
-            end
-        end
-
-        -- Last resort: if panel frame exists, try opening to it
-        local panel = _G["WarbandStockistOptionsPanel"]
-        if panel then
-            Settings.OpenToCategory(panel)
-            return
-        end
-    end
-
-    -- Legacy fallback (pre-DF or if Settings API misbehaves)
-    local legacyPanel = _G and _G["WarbandStockistOptionsPanel"]
-    local legacyOpen = _G and _G["InterfaceOptionsFrame_OpenToCategory"]
-    if legacyPanel and type(legacyOpen) == "function" then
-        legacyOpen(legacyPanel)
-        legacyOpen(legacyPanel) -- Call twice per known quirk
-        return
-    end
-
-    print(PREFIX .. " " .. S.settings.unavailable)
+    WarbandStorage.Settings.Create():Open()
 end
 
 SLASH_WARBANDSTORAGE1 = "/wbs"
@@ -261,8 +172,8 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
 
     -- /wbs report - scan bags and print tracked inventory (previous default behavior)
     if msg:lower():find("^report") then
-        local wasEnabled = WarbandStorage.debugEnabled
-        WarbandStorage.debugEnabled = true
+        local wasEnabled = WarbandStockistDB.debugEnabled
+        WarbandStockistDB.debugEnabled = true
         WarbandStorage:DebugPrint("Running /wbs report")
 
         WarbandStorage:ScanBags()
@@ -270,7 +181,7 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         C_Timer.After(0.3, function()
             WarbandStorage:PrintTrackedInventory()
             WarbandStorage:ReportMissingItems()
-            WarbandStorage.debugEnabled = wasEnabled
+            WarbandStockistDB.debugEnabled = wasEnabled
         end)
         return
     end

@@ -29,8 +29,8 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 ## Usage
 
 1. Open **Options > AddOns > Lucky's Warband Stockist**, or enter `/wbs`.
-2. On the **Profiles** tab, create or select a profile and add the items and quantities that character should keep.
-3. On the **Assignments** tab, assign the profile to one or more characters.
+2. On the **Profiles** page, create or select a profile, then add the items and quantities it should keep.
+3. On the **Assignments** page, assign the profile to one or more characters.
 4. Open the Warband Bank on an assigned character. Missing items are withdrawn automatically, and enabled deposit or gold rules are applied.
 
 ## Slash Commands
@@ -50,11 +50,13 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 
 Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's Warband Stockist**.
 
-- **Profiles**: Manage profiles, tracked item quantities, excess deposits, bank sorting, item-list search, and whether the Add Item quantity box starts at 0 instead of blank.
-- **Assignments**: Assign profiles to characters, unassign characters, or move unused characters into the ignored section.
+- **What's New**: Highlights from recent releases, the installed versions, and links to the rest of the suite.
+- **Profiles**: Create, rename, duplicate, and delete profiles, set each one's excess deposit, bank sorting, and deposit-only quantity options, and edit its tracked items and quantities.
+- **Assignments**: Assign profiles to characters, unassign them, or move unused characters into the ignored section and back again.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
 - **Warbound**: Choose whether warbound armor, weapons, and tier tokens are deposited when you open the bank.
-- **Minimap Button**: Show or hide the addon button.
+
+The minimap button and debug logging are toggled from the buttons in the panel's title bar.
 
 ## A note on AI
 

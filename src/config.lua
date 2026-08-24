@@ -20,6 +20,11 @@
 
 WarbandStorage = WarbandStorage or {}
 
+-- Settings added in this version or later are badged NEW and listed on the
+-- What's New page. Raise it when the highlights from a release stop being worth
+-- pointing at.
+WarbandStorage.WHATS_NEW_MIN_VERSION = "1.10.0"
+
 -- New SavedVariables root (account-wide). Make sure your TOC lists this name.
 WarbandStockistDB = WarbandStockistDB or {
   debugEnabled = false,
@@ -45,10 +50,3 @@ WarbandStockistDB = WarbandStockistDB or {
 
 -- Per-character scratch (kept for any other modules that still read it)
 WarbandStorageCharData = WarbandStorageCharData or {}
-
--- Note: The rest of the configuration UI has been moved to:
--- - profiles.lua: Profile management and data handling
--- - ui-theme.lua: Theme colors, fonts, and string constants
--- - ui-components.lua: Reusable UI components
--- - ui-tabs.lua: Tab system and list management  
--- - settings-panel.lua: Main settings panel creation

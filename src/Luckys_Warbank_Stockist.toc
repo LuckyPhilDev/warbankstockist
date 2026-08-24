@@ -11,25 +11,21 @@
 
 Libs\LuckysUtils\embeds.xml
 Strings.lua
-ui/ui-theme.lua
-common-utils.lua
-frame-factory.lua
-profile-manager.lua
-core.lua
-utils.lua
 config.lua
+common-utils.lua
+utils.lua
 character-data.lua
 profiles.lua
-ui/ui-row.lua
-ui/ui-components.lua
-ui/ui-tabs.lua
-ui/profile-panel.lua
-ui/assignment-panel.lua
-ui/gold-panel.lua
-ui/settings-panel.lua
+profile-manager.lua
+Settings.lua
+settings/Profiles.lua
+settings/Items.lua
+settings/Assignments.lua
+settings/Gold.lua
 minimap.lua
 inventory.lua
 bank.lua
 deposit-commands.lua
+core.lua
 
 ## X-Wago-ID: rNkPaw6a

@@ -94,38 +94,37 @@ end
 -- ## Text Utilities
 -- ############################################################
 
--- Format character display name with class colors
-function Utils:FormatCharacterName(characterKey, className)
-  if not characterKey then return "" end
-  
+-- Split a character key into its name, realm, and class colour, for callers
+-- that lay the two out themselves. A key with no realm comes back as the whole
+-- key with a nil realm.
+function Utils:GetCharacterParts(characterKey, className)
+  local fallback = { r = 0.7, g = 0.7, b = 0.7 } -- unknown class
+  if not characterKey then return "", nil, fallback end
+
   local name, realm = characterKey:match("^(.-)%-(.-)$")
   if not name or not realm then
-    return characterKey
+    return characterKey, nil, fallback
   end
-  
-  -- Get class for color - try parameter first, then stored data, then current player
+
   local class = className
   if not class then
     if characterKey == self:GetCharacterKey() then
-      -- Current character - get live class info and store it
+      -- Current character: read the live class and keep it for next time.
       _, class = UnitClass("player")
-      if class then
-        self:StoreCharacterClass() -- Ensure it's stored
-      end
-    else
-      -- Other character - try stored class info
-      if WarbandStockistDB and WarbandStockistDB.characterClasses then
-        class = WarbandStockistDB.characterClasses[characterKey]
-      end
+      if class then self:StoreCharacterClass() end
+    elseif WarbandStockistDB.characterClasses then
+      class = WarbandStockistDB.characterClasses[characterKey]
     end
   end
-  
-  -- Get class color
-  local color = { r = 0.7, g = 0.7, b = 0.7 } -- Default gray for unknown class
-  if class and RAID_CLASS_COLORS[class] then
-    color = RAID_CLASS_COLORS[class]
-  end
-  
+
+  return name, realm, (class and RAID_CLASS_COLORS[class]) or fallback
+end
+
+-- Format character display name with class colors
+function Utils:FormatCharacterName(characterKey, className)
+  local name, realm, color = self:GetCharacterParts(characterKey, className)
+  if not realm then return name end
+
   return ("|cff%02x%02x%02x%s - %s|r"):format(
     color.r * 255, color.g * 255, color.b * 255, name, realm
   )

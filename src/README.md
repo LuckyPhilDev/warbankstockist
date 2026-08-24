@@ -26,17 +26,17 @@ Requires: [Luckys_Utils](https://www.curseforge.com/wow/addons/luckys-utils) (bu
 ## Usage
 
 1. Open settings via the minimap button, the addon menu, or `/wbs settings`.
-2. On the **Profiles** tab, create a profile and add items by ID with desired quantities. A quantity of 0 means deposit everything.
-3. On the **Assignments** tab, assign a profile to each character. Mark any character as Ignored to skip it.
-4. On the **Gold** tab, add level brackets with target gold amounts, and optionally pin per-character overrides.
+2. On the **Profiles** page, create a profile, set its deposit options, and add items by ID with desired quantities. A quantity of 0 means deposit everything.
+3. On the **Assignments** page, assign a profile to each character. Mark any character as Ignored to skip it.
+4. On the **Gold** page, add level brackets with target gold amounts, and optionally pin per-character overrides.
 5. Open the Warband Bank on any assigned character. Items and gold are reconciled automatically.
 
 ## Slash Commands
 
 | Command | Action |
 |---|---|
-| `/wbs` | Scan bags and report tracked inventory and missing items. |
-| `/wbs settings` | Open the settings panel. |
+| `/wbs` | Open the settings panel. |
+| `/wbs report` | Scan bags and report tracked inventory and missing items. |
 | `/wbs autoopen [on\|off\|toggle]` | Toggle whether settings auto-open on login for this character. |
 | `/wbdeposit <itemID>` | Deposit all of a specific item to the Warband Bank. |
 | `/wbwithdraw <itemID>` | Withdraw a specific item from the Warband Bank. |
@@ -44,7 +44,7 @@ Requires: [Luckys_Utils](https://www.curseforge.com/wow/addons/luckys-utils) (bu
 
 ## Settings
 
-Settings live under Interface, AddOns, Warband Stockist, or via `/wbs settings`. Configure profiles, character assignments, gold targets, deposit behaviour, and debug logging from the in-game panel.
+Settings live under Options, AddOns, Lucky's Warband Stockist, or via `/wbs`. The panel has a page each for profiles and their tracked items, character assignments, gold targets, and warbound auto-deposit, plus a What's New page carrying release highlights and version info. The minimap button and debug logging are toggled from the buttons in the title bar.
 
 ## Author
 

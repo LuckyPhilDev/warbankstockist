@@ -252,6 +252,15 @@ function ProfileManager:IgnoreCharacter(characterKey)
   return true
 end
 
+-- Bring an ignored character back into the list. Assigning a profile clears
+-- the flag too, but a character can be wanted back without one.
+function ProfileManager:UnignoreCharacter(characterKey)
+  if not characterKey or not WarbandStockistDB.ignoredCharacters then return false end
+  WarbandStockistDB.ignoredCharacters[characterKey] = nil
+  self:RefreshUI()
+  return true
+end
+
 -- Clear ignore when assigning a profile
 function ProfileManager:AssignProfile(characterKey, profileName)
   if not characterKey or not Utils:IsValidValue(profileName) then return false end
