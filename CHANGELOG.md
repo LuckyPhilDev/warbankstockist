@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Improved
+- **New settings panel** Settings moved onto the layout the rest of the Lucky addons use, with the pages listed down the left and a What's New page carrying each update's highlights.
+- **Profile buttons** New, Rename, Duplicate and Delete sit side by side at the top of the Profiles page, each with its own icon, rather than stacking down it.
+
 ## [1.10.1] - 2026-08-20
 
 ### Improved

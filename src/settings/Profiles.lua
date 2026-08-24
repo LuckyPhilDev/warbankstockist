@@ -49,14 +49,14 @@ local function SyncDepositRows(group)
 end
 
 local function AddProfileButtons(group)
-    local buttons = {
-        { label = S.profiles.new, desc = S.profiles.newDesc,
+    group:ButtonRow({ buttons = {
+        { label = S.profiles.new, desc = S.profiles.newDesc, icon = "plus",
           onClick = function() StaticPopup_Show("WBSTOCKIST_NEW_PROFILE") end },
 
-        { label = S.profiles.rename, desc = S.profiles.renameDesc,
+        { label = S.profiles.rename, desc = S.profiles.renameDesc, icon = "pencil",
           onClick = function() StaticPopup_Show("WBSTOCKIST_RENAME_PROFILE") end },
 
-        { label = S.profiles.duplicate, desc = S.profiles.duplicateDesc,
+        { label = S.profiles.duplicate, desc = S.profiles.duplicateDesc, icon = "copy",
           onClick = function()
               local name = Settings.EditedProfileName()
               local copy = name .. " Copy"
@@ -64,15 +64,11 @@ local function AddProfileButtons(group)
               Settings.SetEditedProfile(copy)
           end },
 
-        { label = S.profiles.delete, desc = S.profiles.deleteDesc,
+        { label = S.profiles.delete, desc = S.profiles.deleteDesc, icon = "trash",
           onClick = function()
               StaticPopup_Show("WBSTOCKIST_DELETE_PROFILE", Settings.EditedProfileName())
           end },
-    }
-
-    for _, spec in ipairs(buttons) do
-        group:Button({ label = spec.label, desc = spec.desc, onClick = spec.onClick, width = 150 })
-    end
+    } })
 end
 
 function Settings.BuildProfiles(group)
