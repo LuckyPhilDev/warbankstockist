@@ -81,7 +81,7 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
 
     tracked = {
         section           = "Items",
-        empty             = "No items tracked in this profile. Add one below.",
+        empty             = "No items tracked in this profile. Add one above.",
         noMatches         = "No tracked item matches that filter.",
         filterPlaceholder = "Filter items...",
         remove            = "Remove",
