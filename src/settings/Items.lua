@@ -1,6 +1,6 @@
 -- Warband Stockist: the tracked item list.
 -- Appended to the Profiles page below the profile's own options, with the
--- filter and the add-item controls pinned beneath the list.
+-- filter and the add-item controls sitting above the list.
 
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.Settings = WarbandStorage.Settings or {}
@@ -244,7 +244,7 @@ end
 function Settings.AddItems(group)
     group:Section(S.tracked.section)
 
-    BuildControls(group:BottomFrame(70))
+    BuildControls(group:Frame(70))
 
     itemList = group:Fill()
 
