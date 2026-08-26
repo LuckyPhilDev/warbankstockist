@@ -1,3 +1,8 @@
+## [1.11.1] - 2026-08-26
+
+### Fixed
+- Settings and windows open again where an older copy of Lucky's Utils is installed alongside the addon.
+
 ## [1.11.0] - 2026-08-25
 
 ### Improved
