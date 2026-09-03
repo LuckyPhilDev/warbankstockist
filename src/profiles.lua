@@ -192,6 +192,19 @@ function WarbandStorage:SetDefaultQtyZeroEnabled(profileName, enabled)
   WarbandStockistDB.profiles[profileName].defaultQtyZero = (enabled == true)
 end
 
+-- Per-profile "warn in chat at login when bags are short" flag. Defaults OFF.
+function WarbandStorage:IsLowStockWarningEnabled(profileName)
+  if not profileName or profileName == "" then return false end
+  local profile = WarbandStockistDB.profiles[profileName]
+  return profile ~= nil and profile.lowStockWarning == true
+end
+
+function WarbandStorage:SetLowStockWarningEnabled(profileName, enabled)
+  if not profileName or profileName == "" then return end
+  EnsureProfile(profileName)
+  WarbandStockistDB.profiles[profileName].lowStockWarning = (enabled == true)
+end
+
 -- ############################################################
 -- ## Legacy migration (from global/character list mode)
 -- ############################################################

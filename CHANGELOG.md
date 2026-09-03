@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Added
+- **Low Stock Warning** A toggle on the Profiles page opens a small window at login listing any tracked item your bags are short of, with the count you have against the count the profile keeps.
+
 ## [1.11.1] - 2026-08-26
 
 ### Fixed

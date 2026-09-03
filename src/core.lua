@@ -90,6 +90,14 @@ function WarbandStorage:OnEvent(event, ...)
             end)
         end
 
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        local isLogin, isReload = ...
+        if isLogin or isReload then
+            -- ponytail: bag contents can still be streaming in here; a fixed
+            -- delay beats tracking BAG_UPDATE_DELAYED for a one-off line.
+            C_Timer.After(2, function() WarbandStorage:WarnLowStock() end)
+        end
+
     elseif event == "BANKFRAME_OPENED" then
             WarbandStorage:DebugPrint("Bank Opened")
             -- Slight delay to ensure bank APIs/tab IDs are available
@@ -119,6 +127,7 @@ end
 -- Register PLAYER_LOGIN via dispatcher
 WarbandStorage:RegisterEvent("PLAYER_LOGIN")
 WarbandStorage:RegisterEvent("BANKFRAME_OPENED")
+WarbandStorage:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 function WarbandStorage:OpenSettings()
     WarbandStorage.Settings.Create():Open()

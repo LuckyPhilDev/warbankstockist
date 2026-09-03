@@ -17,6 +17,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Profile management**: Create, rename, duplicate, and delete profiles without changing other characters' assignments.
 - **Searchable item lists**: Filter large profiles by item name or item ID.
 - **Gold targets**: Keep characters at a chosen gold amount using level brackets, with optional per-character overrides.
+- **Low stock warnings**: Profiles can open a small window at login listing the tracked items a character's bags are short of.
 - **Manual transfers**: Deposit or withdraw a single item with slash commands while the Warband Bank is open.
 - **Minimap access**: Open settings from a draggable minimap button, which can be hidden in settings.
 
@@ -51,7 +52,7 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's Warband Stockist**.
 
 - **What's New**: Highlights from recent releases, the installed versions, and links to the rest of the suite.
-- **Profiles**: Create, rename, duplicate, and delete profiles, set each one's excess deposit, bank sorting, and deposit-only quantity options, and edit its tracked items and quantities.
+- **Profiles**: Create, rename, duplicate, and delete profiles, set each one's excess deposit, bank sorting, deposit-only quantity, and low stock warning options, and edit its tracked items and quantities.
 - **Assignments**: Assign profiles to characters, unassign them, or move unused characters into the ignored section and back again.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
 - **Warbound**: Choose whether warbound armor, weapons, and tier tokens are deposited when you open the bank.

@@ -97,6 +97,15 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         defaultQtyZeroTooltip = "When enabled, the Qty box in Add Item starts at 0 instead of blank for this profile, so items you only want deposited can be added in one click. Requires Deposit Excess Items.",
     },
 
+    lowStock = {
+        section = "Warnings",
+        toggle  = "Low Stock Warning",
+        tooltip = "When enabled, logging in on a character assigned to this profile opens a small window listing any tracked item its bags are short of. Drag it to move it.",
+        title   = "Low Stock",
+        count   = "%d / %d",
+        more    = "and %d more",
+    },
+
     warbound = {
         section        = "Warbound",
         master         = "Auto-Deposit Warbound Items",

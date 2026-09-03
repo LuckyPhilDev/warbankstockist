@@ -9,7 +9,8 @@ local Settings = WarbandStorage.Settings
 local S = WarbandStorage.Strings
 
 local DEPOSIT_ROWS = {
-    { label = S.deposit.excess,
+    { section = S.deposit.section,
+      label = S.deposit.excess,
       desc  = S.deposit.excessTooltip,
       get   = function(name) return WarbandStorage:IsExcessDepositEnabled(name) end,
       set   = function(name, on) WarbandStorage:SetExcessDepositEnabled(name, on) end },
@@ -24,6 +25,13 @@ local DEPOSIT_ROWS = {
       parent = S.deposit.excess,
       get    = function(name) return WarbandStorage:IsDefaultQtyZeroEnabled(name) end,
       set    = function(name, on) WarbandStorage:SetDefaultQtyZeroEnabled(name, on) end },
+
+    { section = S.lowStock.section,
+      label   = S.lowStock.toggle,
+      desc    = S.lowStock.tooltip,
+      since   = "1.12.0",
+      get     = function(name) return WarbandStorage:IsLowStockWarningEnabled(name) end,
+      set     = function(name, on) WarbandStorage:SetLowStockWarningEnabled(name, on) end },
 }
 
 -- Switching profile mid-panel has to redraw these rows by hand: the library
@@ -75,12 +83,13 @@ function Settings.BuildProfiles(group)
     Settings.AddProfileSelect(group, function() SyncDepositRows(group) end)
     AddProfileButtons(group)
 
-    group:Section(S.deposit.section)
     for _, spec in ipairs(DEPOSIT_ROWS) do
+        if spec.section then group:Section(spec.section) end
         group:Toggle({
             label    = spec.label,
             desc     = spec.desc,
             parent   = spec.parent,
+            since    = spec.since,
             checked  = function() return spec.get(Settings.EditedProfileName()) end,
             onToggle = function(checked)
                 spec.set(Settings.EditedProfileName(), checked)
