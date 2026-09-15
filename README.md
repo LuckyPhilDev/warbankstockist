@@ -17,7 +17,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Profile management**: Create, rename, duplicate, and delete profiles without changing other characters' assignments.
 - **Searchable item lists**: Filter large profiles by item name or item ID.
 - **Gold targets**: Keep characters at a chosen gold amount using level brackets, with optional per-character overrides.
-- **Low stock warnings**: Profiles can open a small window at login listing the tracked items a character's bags are short of.
+- **Low stock warnings**: Profiles can open a small window at login listing the tracked items a character's bags are short of. It closes itself after 10 seconds unless your mouse is over it.
 - **Manual transfers**: Deposit or withdraw a single item with slash commands while the Warband Bank is open.
 - **Minimap access**: Open settings from a draggable minimap button, which can be hidden in settings.
 
