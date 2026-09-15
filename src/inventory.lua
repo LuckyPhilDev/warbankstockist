@@ -91,6 +91,7 @@ end
 -- of. Opens at login for profiles that opt in.
 local MAX_ROWS = 12
 local ROW_H = 22
+local HIDE_AFTER = 10
 
 local function LowStockFrame(self)
     if self.lowStockFrame then return self.lowStockFrame end
@@ -99,6 +100,7 @@ local function LowStockFrame(self)
     LuckyUI.CreateHeader(f, S.lowStock.title)
     f:SetFrameStrata("MEDIUM")
     LuckyUI.EnableDrag(f, { db = WarbandStockistDB, key = "lowStockPos", default = { "TOPLEFT", "TOPLEFT", 20, -120 } })
+    LuckyUI.EnableAutoHide(f, HIDE_AFTER)
     f.rows = {}
     self.lowStockFrame = f
     return f
@@ -170,5 +172,6 @@ function WarbandStorage:WarnLowStock()
         end
         f:SetHeight(36 + shown * ROW_H + 10)
         f:Show()
+        f:StartAutoHide()
     end)
 end
