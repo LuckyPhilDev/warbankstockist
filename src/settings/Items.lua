@@ -1,7 +1,3 @@
--- Warband Stockist: the tracked item list.
--- Appended to the Profiles page below the profile's own options, with the
--- filter and the add-item controls sitting above the list.
-
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.Settings = WarbandStorage.Settings or {}
 
@@ -18,10 +14,6 @@ local emptyLabel
 local rowPool = {}
 
 WarbandStorage.itemFilter = WarbandStorage.itemFilter or ""
-
--- ############################################################
--- ## Item rows
--- ############################################################
 
 local function BuildRow(parent)
     local row = CreateFrame("Frame", nil, parent)
@@ -153,10 +145,6 @@ function RefreshItemList()
     WarbandStorage.Perf:Add("RefreshItemList", perfStart)
 end
 
--- ############################################################
--- ## Page
--- ############################################################
-
 local function BuildControls(strip)
     local search = LuckyUI.CreateSearchBox(strip, {
         width = 220,
@@ -188,7 +176,7 @@ local function BuildControls(strip)
     idBox:SetScript("OnReceiveDrag", CaptureCursorItem)
     idBox:SetScript("OnMouseDown", CaptureCursorItem)
 
-    hooksecurefunc("ChatEdit_InsertLink", function(link)
+    hooksecurefunc(ChatFrameUtil, "InsertLink", function(link)
         if not idBox:HasFocus() then return end
         local id = tonumber(link and link:match("item:(%d+)"))
         if not id then return end
