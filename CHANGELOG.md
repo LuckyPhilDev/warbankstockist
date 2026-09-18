@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Added
+- **Bank Queue** A window beside the bank lists the items still to move, with a count and a progress bar, and ticks each one off as your warbound deposit, restock and excess deposit run. Lucky's Grab-bag's bank moves join the same queue, so the two addons take turns. (Thanks for the suggestion Halliday)
+
 ### Fixed
 - Deposit Excess Items no longer tries to deposit soulbound copies of a tracked item, which the Warband Bank refuses, every time you open the bank.
 

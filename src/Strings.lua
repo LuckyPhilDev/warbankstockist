@@ -119,6 +119,10 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         hint           = "Items with a stock amount in the active profile are never deposited by this; the restock keeps them in your bags.",
     },
 
+    bankQueue = {
+        section = "Bank Queue",
+    },
+
     gold = {
         section          = "Gold",
         bracketsSection  = "Level Brackets",

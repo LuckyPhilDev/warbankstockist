@@ -227,15 +227,14 @@ function WarbandStorage:PlaceCursorIntoBags(itemID, claimed, onDone)
     end)
 end
 
-function WarbandStorage:CheckAndWithdrawItemsFromWarbank()
-    self:DebugPrint("Running CheckAndWithdrawItemsFromWarbank")
-
+-- The restock's withdrawals, for RunWithdrawPlan.
+function WarbandStorage:PlanRestock()
     local desired, profileName = GetAssignedDesired()
     if profileName then
         self:DebugPrint(("Using assigned profile for withdraw: %s"):format(profileName))
     else
         self:DebugPrint("No assigned profile; nothing to withdraw.")
-        return
+        return {}
     end
 
     local itemIDs = {}
@@ -247,18 +246,7 @@ function WarbandStorage:CheckAndWithdrawItemsFromWarbank()
 
     local plan = PlanWithdrawals(self, itemIDs, desired)
     self:DebugPrint(("Planned %d withdrawal step(s)"):format(#plan))
-
-    self:RunWithdrawPlan(plan, function()
-        if self:IsExcessDepositEnabledForActiveProfile() then
-            -- DepositExcessItemsToWarbank ends by calling SortWarbankAfterDeposit
-            -- once the deposit queue drains, so the sort is covered on this path.
-            self:DepositExcessItemsToWarbank()
-        else
-            -- No excess-deposit pass to ride on, but the profile may still want
-            -- the bank sorted after a stocking run, so trigger it directly.
-            self:SortWarbankAfterDeposit()
-        end
-    end)
+    return plan
 end
 
 -- Drives plan strictly sequentially. A step never starts until the prior
@@ -266,19 +254,19 @@ end
 -- distinctly: source slot still locked (retry same step), source slot
 -- changed identity since planning (skip), cursor never picked up the split
 -- (skip and clear).
-function WarbandStorage:RunWithdrawPlan(plan, onComplete)
-    if #plan == 0 then
-        if onComplete then onComplete() end
-        return
-    end
-
+function WarbandStorage:RunWithdrawPlan(plan, job)
     local idx = 1
     local claimedSlots = {}
+
+    local function advance()
+        idx = idx + 1
+        job:Tick()
+    end
 
     local function step()
         if idx > #plan then
             self:DebugPrint("Withdrawal plan finished.")
-            if onComplete then onComplete() end
+            job:Done()
             return
         end
 
@@ -293,7 +281,7 @@ function WarbandStorage:RunWithdrawPlan(plan, onComplete)
 
         if not info or info.itemID ~= task.itemID then
             self:DebugPrint(("Slot %d:%d no longer holds item %d; skipping step"):format(task.bagID, task.slot, task.itemID))
-            idx = idx + 1
+            advance()
             step()
             return
         end
@@ -306,7 +294,7 @@ function WarbandStorage:RunWithdrawPlan(plan, onComplete)
             -- on a warband-bank slot transfers the stack to player bags atomically.
             self:DebugPrint(("Auto-move full stack of %d (item %d) from %d:%d"):format(toMove, task.itemID, task.bagID, task.slot))
             C_Container.UseContainerItem(task.bagID, task.slot)
-            idx = idx + 1
+            advance()
             C_Timer.After(STEP_GAP, step)
             return
         end
@@ -318,14 +306,14 @@ function WarbandStorage:RunWithdrawPlan(plan, onComplete)
         AwaitCursorItem(
             function()
                 self:PlaceCursorIntoBags(task.itemID, claimedSlots, function()
-                    idx = idx + 1
+                    advance()
                     C_Timer.After(STEP_GAP, step)
                 end)
             end,
             function()
                 self:DebugPrint(("Cursor never received split from %d:%d; skipping step"):format(task.bagID, task.slot))
                 ClearCursor()
-                idx = idx + 1
+                advance()
                 C_Timer.After(STEP_GAP, step)
             end
         )
@@ -338,13 +326,20 @@ end
 -- the same plan/run pipeline as the bulk path so behaviour is identical.
 function WarbandStorage:WithdrawItemFromWarbank(itemID, needed)
     needed = needed or 1
-    self:DebugPrint(("Manual withdraw: %d of item %d"):format(needed, itemID))
-    local plan = PlanWithdrawals(self, { itemID }, { [itemID] = (C_Item.GetItemCount(itemID, false) or 0) + needed })
-    self:DebugPrint(("Planned %d step(s) for manual withdraw"):format(#plan))
-    self:RunWithdrawPlan(plan, nil)
+    LuckyBankRun:Queue({
+        direction = "withdraw",
+        plan = function()
+            self:DebugPrint(("Manual withdraw: %d of item %d"):format(needed, itemID))
+            return PlanWithdrawals(self, { itemID }, { [itemID] = (C_Item.GetItemCount(itemID, false) or 0) + needed })
+        end,
+        run = function(job, plan) self:RunWithdrawPlan(plan, job) end,
+    })
 end
 
-function WarbandStorage:DepositExcessItemsToWarbank()
+-- The excess deposits, for ProcessDepositQueue. Empty when the profile keeps
+-- its excess.
+function WarbandStorage:PlanExcessDeposits()
+    if not self:IsExcessDepositEnabledForActiveProfile() then return {} end
     self:DebugPrint("Checking for excess items to deposit.")
     self:ScanBags()
 
@@ -392,20 +387,21 @@ function WarbandStorage:DepositExcessItemsToWarbank()
         end
     end
 
-    self:ProcessDepositQueue(depositQueue, 1)
+    return depositQueue
 end
 
-function WarbandStorage:ProcessDepositQueue(queue, index)
+function WarbandStorage:ProcessDepositQueue(queue, index, job)
     if index > #queue then
         self:DebugPrint("Finished all excess deposits.")
-        self:SortWarbankAfterDeposit()
+        job:Done()
         return
     end
 
     local entry = queue[index]
     self:TryDepositItem(entry.itemID, entry.amount, function()
+        job:Tick()
         C_Timer.After(perItemDelay, function()
-            self:ProcessDepositQueue(queue, index + 1)
+            self:ProcessDepositQueue(queue, index + 1, job)
         end)
     end)
 end
@@ -625,7 +621,7 @@ local function IsInstanceWarbound(bag, slot, info)
     return C_Item.IsBoundToAccountUntilEquip(ItemLocation:CreateFromBagAndSlot(bag, slot))
 end
 
-local function PlanWarboundDeposits(self, cfg)
+local function PlanWarboundQueue(self, cfg)
     -- Items the active profile wants kept in bags must not be deposited here;
     -- the withdraw pass that follows would just pull them straight back.
     local desired = GetAssignedDesired()
@@ -667,9 +663,9 @@ local function PlanWarboundDeposits(self, cfg)
     return queue
 end
 
-local function RunWarboundQueue(self, queue, index, onComplete)
+local function RunWarboundQueue(self, queue, index, job)
     if index > #queue then
-        if onComplete then onComplete() end
+        job:Done()
         return
     end
     if not C_Bank.CanViewBank(Enum.BankType.Account) then
@@ -678,24 +674,27 @@ local function RunWarboundQueue(self, queue, index, onComplete)
     end
     local entry = queue[index]
     self:TryDepositItem(entry.itemID, entry.amount, function()
+        job:Tick()
         C_Timer.After(perItemDelay, function()
-            RunWarboundQueue(self, queue, index + 1, onComplete)
+            RunWarboundQueue(self, queue, index + 1, job)
         end)
     end, IsInstanceWarbound)
 end
 
--- Runs before the withdraw/restock pass on bank open. Also the feature marker
--- Lucky's Grab-bag checks to hand its own warbound gear deposit over to this
--- addon, so renaming it needs a matching change there.
-function WarbandStorage:DepositWarboundItems(onComplete)
+-- The warbound gear deposits, for DepositWarboundItems. Runs before the
+-- restock on bank open.
+function WarbandStorage:PlanWarboundDeposits()
     local cfg = WarbandStockistDB.warboundDeposit or {}
-    if not (cfg.enabled and (cfg.armor or cfg.weapons or cfg.tokens)) then
-        if onComplete then onComplete() end
-        return
-    end
-    local queue = PlanWarboundDeposits(self, cfg)
+    if not (cfg.enabled and (cfg.armor or cfg.weapons or cfg.tokens)) then return {} end
+    local queue = PlanWarboundQueue(self, cfg)
     self:DebugPrint(("Warbound deposit: %d item type(s) queued"):format(#queue))
-    RunWarboundQueue(self, queue, 1, onComplete)
+    return queue
+end
+
+-- Also the feature marker Lucky's Grab-bag checks to hand its own warbound gear
+-- deposit over to this addon, so renaming it needs a matching change there.
+function WarbandStorage:DepositWarboundItems(job, queue)
+    RunWarboundQueue(self, queue, 1, job)
 end
 
 -- ############################################################

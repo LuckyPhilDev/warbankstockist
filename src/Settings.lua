@@ -160,6 +160,9 @@ local function BuildWarbound(group)
     toggle("armor", S.warbound.armor, S.warbound.armorTooltip, S.warbound.master)
     toggle("weapons", S.warbound.weapons, S.warbound.weaponsTooltip, S.warbound.master)
     toggle("tokens", S.warbound.tokens, S.warbound.tokensTooltip, S.warbound.master)
+
+    group:Section(S.bankQueue.section)
+    LuckyBankRun:AddSettingsToggle(group, "1.13.0")
 end
 
 function Settings.Create()

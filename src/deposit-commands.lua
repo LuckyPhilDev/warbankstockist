@@ -27,9 +27,17 @@ local function HandleDepositCommand(args)
     end
 
     local itemName = C_Item.GetItemNameByID(itemID) or C.itemIdFallback:format(itemID)
-    WarbandStorage:TryDepositItem(itemID, 1, function()
-        print(S.addon.successPrefix .. " " .. C.depositSuccess:format(itemName))
-    end)
+    LuckyBankRun:Queue({
+        direction = "deposit",
+        plan = function() return { { itemID = itemID } } end,
+        run = function(job)
+            WarbandStorage:TryDepositItem(itemID, 1, function()
+                print(S.addon.successPrefix .. " " .. C.depositSuccess:format(itemName))
+                job:Tick()
+                job:Done()
+            end)
+        end,
+    })
 end
 
 -- ############################################################

@@ -114,12 +114,7 @@ function WarbandStorage:OnEvent(event, ...)
                 local desiredCount = 0
                 for _ in pairs(desired) do desiredCount = desiredCount + 1 end
                 WarbandStorage:DebugPrint(("Desired stock entries: %d"):format(desiredCount))
-                -- Deposit warbound gear first so bag space is free, then
-                -- restock from the profile and balance gold.
-                WarbandStorage:DepositWarboundItems(function()
-                    WarbandStorage:CheckAndWithdrawItemsFromWarbank()
-                    WarbandStorage:ManageGoldWithWarbank()
-                end)
+                WarbandStorage:ManageGoldWithWarbank()
             end)
     end
 end
@@ -128,6 +123,32 @@ end
 WarbandStorage:RegisterEvent("PLAYER_LOGIN")
 WarbandStorage:RegisterEvent("BANKFRAME_OPENED")
 WarbandStorage:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+-- Item moves run through the shared Lucky bank run so they never overlap
+-- another Lucky addon's. Every deposit goes before every withdrawal, which
+-- frees bag space for the restock; the optional bank sort goes after everything.
+LuckyBankRun:OnBankOpen(20, {
+    direction = "deposit",
+    plan = function() return WarbandStorage:PlanWarboundDeposits() end,
+    run  = function(job, queue) WarbandStorage:DepositWarboundItems(job, queue) end,
+})
+LuckyBankRun:OnBankOpen(30, {
+    direction = "deposit",
+    plan = function() return WarbandStorage:PlanExcessDeposits() end,
+    run  = function(job, queue) WarbandStorage:ProcessDepositQueue(queue, 1, job) end,
+})
+LuckyBankRun:OnBankOpen(50, {
+    direction = "withdraw",
+    plan = function() return WarbandStorage:PlanRestock() end,
+    run  = function(job, plan) WarbandStorage:RunWithdrawPlan(plan, job) end,
+})
+LuckyBankRun:OnBankOpen(90, {
+    plan = function() return {} end,
+    run  = function(job)
+        WarbandStorage:SortWarbankAfterDeposit()
+        job:Done()
+    end,
+})
 
 function WarbandStorage:OpenSettings()
     WarbandStorage.Settings.Create():Open()
