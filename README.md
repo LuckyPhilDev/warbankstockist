@@ -18,6 +18,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Searchable item lists**: Filter large profiles by item name or item ID.
 - **Gold targets**: Keep characters at a chosen gold amount using level brackets, with optional per-character overrides.
 - **Low stock warnings**: Profiles can open a small window at login listing the tracked items a character's bags are short of. It closes itself after 10 seconds unless your mouse is over it.
+- **Bank Queue**: A window beside the bank lists the items still to move, with a progress bar. Pause it mid-run, or switch to Manual mode to review the list and press Start yourself. Lucky's Grab-bag's bank moves share the same queue.
 - **Manual transfers**: Deposit or withdraw a single item with slash commands while the Warband Bank is open.
 - **Minimap access**: Open settings from a draggable minimap button, which can be hidden in settings.
 
@@ -55,7 +56,7 @@ Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's W
 - **Profiles**: Create, rename, duplicate, and delete profiles, set each one's excess deposit, bank sorting, deposit-only quantity, and low stock warning options, and edit its tracked items and quantities.
 - **Assignments**: Assign profiles to characters, unassign them, or move unused characters into the ignored section and back again.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
-- **Warbound**: Choose whether warbound armor, weapons, and tier tokens are deposited when you open the bank.
+- **Warbound**: Choose whether warbound armor, weapons, and tier tokens are deposited when you open the bank, pick Auto or Manual for the Bank Queue, or hide its window.
 
 The minimap button and debug logging are toggled from the buttons in the panel's title bar.
 
