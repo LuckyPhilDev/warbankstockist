@@ -35,6 +35,22 @@ local function GetAllPlayerBagIDs()
     return ids
 end
 
+-- Copies of itemID the Warband Bank will take. Soulbound copies never leave
+-- the bags, so counting them would queue a deposit retried on every bank open.
+local function DepositableCount(itemID)
+    local count = 0
+    for _, bag in ipairs(GetAllPlayerBagIDs()) do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local info = C_Container.GetContainerItemInfo(bag, slot)
+            if info and info.itemID == itemID
+                and C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, ItemLocation:CreateFromBagAndSlot(bag, slot)) then
+                count = count + (info.stackCount or 1)
+            end
+        end
+    end
+    return count
+end
+
 local function GetAssignedDesired()
     local mgr = WarbandStorage.ProfileManager
     if not mgr or not mgr.GetActiveProfileName then return {}, nil end
@@ -367,9 +383,12 @@ function WarbandStorage:DepositExcessItemsToWarbank()
 
         -- Deposit if the item exists in the desired map (even if desiredCount is 0) and we have more than desired
         if hasDesiredEntry and excess > 0 then
+            excess = math.min(excess, DepositableCount(itemID))
             self:DebugPrint(("Excess found: Item %d x%d (have %d, want %d)"):format(
                 itemID, excess, countInBags, desiredCount))
-            table.insert(depositQueue, { itemID = itemID, amount = excess })
+            if excess > 0 then
+                table.insert(depositQueue, { itemID = itemID, amount = excess })
+            end
         end
     end
 

@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Fixed
+- Deposit Excess Items no longer tries to deposit soulbound copies of a tracked item, which the Warband Bank refuses, every time you open the bank.
+
 ## [1.12.0] - 2026-09-15
 
 ### Added
