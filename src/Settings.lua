@@ -162,6 +162,7 @@ local function BuildWarbound(group)
     toggle("tokens", S.warbound.tokens, S.warbound.tokensTooltip, S.warbound.master)
 
     group:Section(S.bankQueue.section)
+    LuckyBankRun:AddModeSetting(group, { since = "1.13.0" })
     LuckyBankRun:AddSettingsToggle(group, "1.13.0")
 end
 
