@@ -275,7 +275,7 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
 
         if info and info.isLocked then
             self:DebugPrint(("Slot %d:%d still locked; re-polling"):format(task.bagID, task.slot))
-            C_Timer.After(LOCK_REPOLL, step)
+            job:After(LOCK_REPOLL, step)
             return
         end
 
@@ -295,7 +295,7 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
             self:DebugPrint(("Auto-move full stack of %d (item %d) from %d:%d"):format(toMove, task.itemID, task.bagID, task.slot))
             C_Container.UseContainerItem(task.bagID, task.slot)
             advance()
-            C_Timer.After(STEP_GAP, step)
+            job:After(STEP_GAP, step)
             return
         end
 
@@ -307,14 +307,14 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
             function()
                 self:PlaceCursorIntoBags(task.itemID, claimedSlots, function()
                     advance()
-                    C_Timer.After(STEP_GAP, step)
+                    job:After(STEP_GAP, step)
                 end)
             end,
             function()
                 self:DebugPrint(("Cursor never received split from %d:%d; skipping step"):format(task.bagID, task.slot))
                 ClearCursor()
                 advance()
-                C_Timer.After(STEP_GAP, step)
+                job:After(STEP_GAP, step)
             end
         )
     end
@@ -400,7 +400,7 @@ function WarbandStorage:ProcessDepositQueue(queue, index, job)
     local entry = queue[index]
     self:TryDepositItem(entry.itemID, entry.amount, function()
         job:Tick()
-        C_Timer.After(perItemDelay, function()
+        job:After(perItemDelay, function()
             self:ProcessDepositQueue(queue, index + 1, job)
         end)
     end)
@@ -675,7 +675,7 @@ local function RunWarboundQueue(self, queue, index, job)
     local entry = queue[index]
     self:TryDepositItem(entry.itemID, entry.amount, function()
         job:Tick()
-        C_Timer.After(perItemDelay, function()
+        job:After(perItemDelay, function()
             RunWarboundQueue(self, queue, index + 1, job)
         end)
     end, IsInstanceWarbound)
