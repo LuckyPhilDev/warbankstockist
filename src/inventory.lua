@@ -4,9 +4,8 @@ local function CurrentRanges()
     return WarbandStorage.Sets:RangesFor(WarbandStorage.Utils:GetCharacterKey())
 end
 
-function WarbandStorage:ScanBags()
-    local inventory = {}
-    -- Include reagent bag (index 5) when present
+-- { [itemID] = count } across the bags, reagent bag included when present.
+function WarbandStorage:BagCounts()
     local REAGENT_BAG = (Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag) or 5
     local bagIDs = {}
     for bag = 0, NUM_BAG_SLOTS do table.insert(bagIDs, bag) end
@@ -16,22 +15,21 @@ function WarbandStorage:ScanBags()
         if type(slots) == "number" and slots > 0 then table.insert(bagIDs, REAGENT_BAG) end
     end
 
+    local counts = {}
     for _, bag in ipairs(bagIDs) do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
             if itemInfo then
-                local itemID = itemInfo.itemID
-                local quantity = itemInfo.stackCount or 1
-                inventory[itemID] = (inventory[itemID] or 0) + quantity
+                counts[itemInfo.itemID] = (counts[itemInfo.itemID] or 0) + (itemInfo.stackCount or 1)
             end
         end
     end
+    return counts
+end
 
-    self.inventory = inventory
-    -- Debug: report bag scan coverage
-    local dbg = {}
-    for _, b in ipairs(bagIDs) do table.insert(dbg, tostring(b)) end
-    self:DebugPrint("Bag scan complete. Scanned bags: " .. table.concat(dbg, ", "))
+function WarbandStorage:ScanBags()
+    self.inventory = self:BagCounts()
+    self:DebugPrint("Bag scan complete.")
 end
 
 function WarbandStorage:PrintReport()

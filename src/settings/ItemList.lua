@@ -100,6 +100,8 @@ function ItemList:UpdateRow(row, index, itemID, qty)
 
     row.qtyLabel:SetShown(self.showQty)
     row.qtyBox:SetShown(self.showQty)
+    row.qtyBox:SetEnabled(self.editable)
+    row.removeBtn:SetShown(self.editable)
     -- A refresh can land while a quantity is being typed.
     if not row.qtyBox:HasFocus() then row.qtyBox:SetText(tostring(qty or 0)) end
     row.label:SetPoint("RIGHT", self.showQty and row.qtyLabel or row.removeBtn, "LEFT", -8, 0)
@@ -118,6 +120,7 @@ function ItemList:Refresh()
     local perfStart = WarbandStorage.Perf:Now()
 
     local enabled = Resolve(opts.enabled) ~= false
+    self.editable = enabled
     self.showQty = Resolve(opts.showQty) ~= false
     for _, control in ipairs(self.controls) do
         control:SetEnabled(enabled)
@@ -129,7 +132,7 @@ function ItemList:Refresh()
 
     local filter = self.filter ~= "" and self.filter:lower() or nil
     local matches, scanned = {}, 0
-    for itemID, qty in pairs(enabled and opts.entries() or {}) do
+    for itemID, qty in pairs(opts.entries()) do
         scanned = scanned + 1
         local name = WarbandStorage.Utils:GetItemName(itemID) or ""
         if not filter or (name .. " " .. itemID):lower():find(filter, 1, true) then
@@ -152,7 +155,7 @@ function ItemList:Refresh()
     self.emptyLabel:SetShown(#matches == 0)
     -- The scroll frame clips its child, so the empty-state line needs the
     -- height an absent row would have taken.
-    self.scroll:SetHeight(#matches > 0 and #matches * ROW_HEIGHT or 40)
+    self.scroll:SetHeight(#matches > 0 and #matches * ROW_HEIGHT or math.max(40, self.emptyLabel:GetStringHeight() + 16))
 
     WarbandStorage.Perf:Add("ItemList:Refresh", perfStart)
 end
@@ -232,6 +235,9 @@ function ItemList:BuildControls(strip)
     self.idBox, self.qtyLabel, self.qtyBox, self.addBtn = idBox, qtyLabel, qtyBox, addBtn
 end
 
+--- A list whose `enabled` is false still shows its entries; it is the controls
+--- and the per-row Remove and Keep boxes that lock, so a rule-driven set can
+--- list the items it currently matches.
 --- opts: entries() -> { [itemID] = qty }, setQty(itemID, qty), remove(itemID),
 --- qtyLabel, qtyTooltip, emptyText (string or function), and optionally
 --- clear() for a Clear List button, enabled(), showQty() and tag(itemID).
@@ -245,6 +251,8 @@ function Settings.CreateItemList(group, opts)
     list.emptyLabel:SetFont(R_FONT, 11, "")
     list.emptyLabel:SetTextColor(R.textDim[1], R.textDim[2], R.textDim[3])
     list.emptyLabel:SetPoint("TOPLEFT", 6, -8)
+    list.emptyLabel:SetPoint("RIGHT", -6, 0)
+    list.emptyLabel:SetJustifyH("LEFT")
 
     list:Refresh()
     return list

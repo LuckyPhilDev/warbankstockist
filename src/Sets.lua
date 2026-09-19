@@ -3,6 +3,7 @@ WarbandStorage.Sets = {}
 
 local Sets = WarbandStorage.Sets
 local StockRules = WarbandStorage.StockRules
+local Standard = WarbandStorage.StandardSets
 
 local function DB()
     return WarbandStockistDB
@@ -64,6 +65,16 @@ end
 
 function Sets:Create(name)
     local set = Sets.NewSet(DB(), name)
+    Changed()
+    return set
+end
+
+-- kind is a key of StandardSets.kinds.
+function Sets:AddStandard(kind)
+    local db = DB()
+    local set = Sets.NewSet(db, Sets.UniqueName(db, WarbandStorage.Strings.standard[kind]))
+    set.standard = kind
+    set.type = Standard.kinds[kind].type
     Changed()
     return set
 end
@@ -146,16 +157,12 @@ function Sets:SetMember(id, charKey, on)
     Changed()
 end
 
--- Turning Every Character off ticks the set for everyone who has it now, so
--- nobody loses it until they untick it.
+-- Either way the set starts from a clean slate: on reaches everyone, off reaches nobody.
 function Sets:SetEveryCharacter(id, on)
     local db = DB()
-    local set = db.sets[id]
-    for _, charKey in ipairs(self:AllCharacterKeys()) do
-        Sets.EnsureCharacter(db, charKey).sets[id] = (not on and self:IsMember(set, charKey)) or nil
-    end
-    set.everyCharacter = on
-    set.skip = {}
+    for _, char in pairs(db.characters) do char.sets[id] = nil end
+    db.sets[id].everyCharacter = on
+    db.sets[id].skip = {}
     Changed()
 end
 
@@ -204,7 +211,11 @@ function Sets:AllReserves()
 end
 
 function Sets:RangesFor(charKey)
-    return StockRules.Merge(self:ActiveSetsFor(charKey))
+    local sets = {}
+    for _, set in ipairs(self:ActiveSetsFor(charKey)) do
+        sets[#sets + 1] = set.standard and Standard.Resolve(set) or set
+    end
+    return StockRules.Merge(sets)
 end
 
 function WarbandStorage:GetAllCharacterKeys()
@@ -221,4 +232,31 @@ function Sets:AllCharacterKeys()
         return a < b
     end)
     return keys
+end
+
+-- Public API for the other Lucky addons. Lucky's Grab-bag loads first, so it
+-- calls these at PLAYER_LOGIN or later.
+
+-- Creates a standard set and returns its id, or nil for a kind this version does
+-- not have. opts: everyCharacter, skip = { [charKey] = true }, currentExpansionOnly.
+function WarbandStorage:ImportStandardSet(kind, opts)
+    if not Standard.kinds[kind] then return nil end
+    opts = opts or {}
+    local set = Sets:AddStandard(kind)
+    set.everyCharacter = opts.everyCharacter == true
+    for charKey in pairs(opts.skip or {}) do set.skip[charKey] = true end
+    set.currentExpansionOnly = opts.currentExpansionOnly == true
+    Changed()
+    return set.id
+end
+
+-- Creates a Deposit All set of itemIDs with a unique name and returns its id.
+function WarbandStorage:ImportDepositList(name, itemIDs, everyCharacter)
+    local db = DB()
+    local set = Sets.NewSet(db, Sets.UniqueName(db, name))
+    set.type = "deposit"
+    set.everyCharacter = everyCharacter == true
+    for _, itemID in ipairs(itemIDs) do set.items[itemID] = 0 end
+    Changed()
+    return set.id
 end

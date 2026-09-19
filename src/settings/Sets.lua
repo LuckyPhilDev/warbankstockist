@@ -3,6 +3,7 @@ WarbandStorage.Settings = WarbandStorage.Settings or {}
 
 local Settings = WarbandStorage.Settings
 local Sets = WarbandStorage.Sets
+local Standard = WarbandStorage.StandardSets
 local S = WarbandStorage.Strings
 local R = LuckySettings.Rich.Theme
 local R_FONT = LuckySettings.Rich.Font
@@ -15,6 +16,27 @@ end
 local function EditSet(set)
     WarbandStockistDB.lastEditedSet = set.id
     Settings.Refresh()
+end
+
+local function StandardDescription(set)
+    local kind = Standard.kinds[set.standard]
+    if not kind then return "" end
+    if kind.reagent then return S.standard.reagentDesc:format(S.standard[set.standard]) end
+    return S.standard[set.standard .. "Desc"]
+end
+
+-- Reagent categories sit in a submenu of their own, ahead of the other kinds.
+local function OpenNewMenu(owner)
+    MenuUtil.CreateContextMenu(owner, function(_, root)
+        root:CreateButton(S.sets.newEmpty, function() StaticPopup_Show("WBSTOCKIST_NEW_SET") end)
+        root:CreateDivider()
+        root:CreateTitle(S.sets.newStandard)
+        local reagents = root:CreateButton(S.sets.newReagents)
+        for _, kind in ipairs(Standard.order) do
+            local menu = Standard.kinds[kind].reagent and reagents or root
+            menu:CreateButton(S.standard[kind], function() EditSet(Sets:AddStandard(kind)) end)
+        end
+    end)
 end
 
 local function FillSetOptions(options)
@@ -87,7 +109,7 @@ end
 local function AddSetButtons(group)
     group:ButtonRow({ buttons = {
         { label = S.sets.new, desc = S.sets.newDesc, icon = "plus",
-          onClick = function() StaticPopup_Show("WBSTOCKIST_NEW_SET") end },
+          onClick = function() OpenNewMenu(group.byLabel[S.sets.new].button) end },
 
         { label = S.sets.rename, desc = S.sets.renameDesc, icon = "pencil",
           onClick = function() StaticPopup_Show("WBSTOCKIST_RENAME_SET", nil, nil, EditedSet().id) end },
@@ -130,6 +152,7 @@ local function Sync(group, options, usedBy, list)
     local set = EditedSet()
     local hasSet = set ~= nil
     local keeps = hasSet and set.type == "keep"
+    local standard = hasSet and Standard.kinds[set.standard]
 
     FillSetOptions(options)
     RedrawSelect(group.byLabel[S.sets.label])
@@ -142,12 +165,13 @@ local function Sync(group, options, usedBy, list)
 
     local typeRow = group.byLabel[S.sets.type]
     RedrawSelect(typeRow)
-    SetRowEnabled(typeRow, hasSet)
+    SetRowEnabled(typeRow, hasSet and not set.standard)
 
     for label, enabled in pairs({
-        [S.sets.returnExtras]   = keeps,
-        [S.sets.everyCharacter] = hasSet,
-        [S.lowStock.toggle]     = keeps,
+        [S.sets.returnExtras]     = keeps,
+        [S.sets.everyCharacter]   = hasSet,
+        [S.lowStock.toggle]       = keeps,
+        [S.sets.currentExpansion] = standard and standard.reagent == true,
     }) do
         local row = group.byLabel[label]
         row.checkbox:SetChecked(row.getChecked())
@@ -197,15 +221,24 @@ function Settings.BuildSets(group)
         function(id, on) Sets:SetEveryCharacter(id, on) end)
     AddOptionToggle(group, S.lowStock.toggle, S.lowStock.tooltip, "1.12.0", "lowStockWarning",
         function(id, on) Sets:SetOption(id, "lowStockWarning", on) end)
+    AddOptionToggle(group, S.sets.currentExpansion, S.sets.currentExpansionDesc, nil, "currentExpansionOnly",
+        function(id, on) Sets:SetOption(id, "currentExpansionOnly", on) end)
 
     group:Section(S.items.section)
     local list = Settings.CreateItemList(group, {
-        enabled    = function() return EditedSet() ~= nil end,
+        enabled    = function()
+            local set = EditedSet()
+            return set ~= nil and not set.standard
+        end,
         showQty    = function()
             local set = EditedSet()
             return set ~= nil and set.type == "keep"
         end,
-        entries    = function() return EditedSet().items end,
+        entries    = function()
+            local set = EditedSet()
+            if not set then return {} end
+            return set.standard and Standard.Resolve(set).items or set.items
+        end,
         setQty     = function(itemID, qty) Sets:SetItem(EditedSet().id, itemID, qty) end,
         remove     = function(itemID) Sets:RemoveItem(EditedSet().id, itemID) end,
         clear      = function()
@@ -214,7 +247,11 @@ function Settings.BuildSets(group)
         end,
         qtyLabel   = S.items.keep,
         qtyTooltip = S.items.keepTooltip,
-        emptyText  = function() return EditedSet() and S.items.empty or S.sets.none end,
+        emptyText  = function()
+            local set = EditedSet()
+            if not set then return S.sets.none end
+            return set.standard and StandardDescription(set) or S.items.empty
+        end,
         tag        = function(itemID)
             local reserve = Sets:GetReserve(itemID)
             return reserve and S.items.reserveTag:format(reserve)

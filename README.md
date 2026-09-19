@@ -9,6 +9,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Stock sets**: Build item lists for raiding, crafting, gathering, leveling, or any other purpose, and give each character as many as you like.
 - **Every Character sets**: A set can stock all your characters, new ones included, with any character left out from the Characters page.
 - **Keep in Bags or Deposit All**: A Keep in Bags set withdraws each item up to its Keep amount. A Deposit All set sends every item on it to the Warband Bank.
+- **Standard sets**: Add ready-made sets that follow a rule instead of a list: every reagent of a category, such as Herbs or Cloth, all lumber, or one unused Thalassian Treatise for each of your professions each week.
 - **Automatic withdrawals**: Opening the Warband Bank withdraws missing items until your bags reach the Keep amounts of the character's sets. When two sets list the same item, the larger amount wins.
 - **Return Extras**: Optionally deposit anything above an item's Keep amount back into the Warband Bank.
 - **Reserves**: The Warband Bank always keeps at least a chosen amount of an item, and only characters marked Priority withdraw below it.
@@ -55,7 +56,7 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's Warband Stockist**.
 
 - **What's New**: Highlights from recent releases, the installed versions, and links to the rest of the suite.
-- **Sets**: Create, rename, duplicate, and delete sets, choose each one's Set Type, Return Extras, Every Character, and Low Stock Warning options, and edit its items and Keep amounts.
+- **Sets**: Create empty or standard sets, rename, duplicate, and delete them, choose each one's Set Type, Return Extras, Every Character, Low Stock Warning, and Current Expansion Only options, and edit its items and Keep amounts.
 - **Characters**: Tick the sets each character uses, mark Priority characters, or move unused characters into the ignored section and back again.
 - **Reserves**: Set how many of each item the Warband Bank always keeps.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
