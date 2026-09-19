@@ -8,15 +8,6 @@
 -- Ensure WarbandStorage namespace exists
 WarbandStorage = WarbandStorage or {}
 
--- Track which profile is currently being edited in the Profiles tab (independent from assignment)
-WarbandStockistDB = WarbandStockistDB or {}
-WarbandStockistDB.lastEditedProfile = WarbandStockistDB.lastEditedProfile or nil
--- Persistent flags to ensure legacy migration runs only once
-WarbandStockistDB.migratedLegacyGlobal = WarbandStockistDB.migratedLegacyGlobal or false
-WarbandStockistDB.migratedLegacyChar = WarbandStockistDB.migratedLegacyChar or {}
--- Characters the user wants to hide from attention (ignored in Assignments UI ordering)
-WarbandStockistDB.ignoredCharacters = WarbandStockistDB.ignoredCharacters or {}
-
 -- ############################################################
 -- ## Small helpers / compat
 -- ############################################################
@@ -24,10 +15,6 @@ local function CharKey()
   local name, realm = UnitFullName("player")
   return string.format("%s-%s", name or UnitName("player") or "", realm or GetRealmName() or "")
 end
-
-local DebugPrint = LuckyLog:New(WarbandStorage.Strings.addon.prefix, function()
-  return WarbandStockistDB and WarbandStockistDB.debugEnabled
-end)
 
 local function EnsureProfile(name)
   if not name or name == "" then return nil, nil end
@@ -49,7 +36,6 @@ local function ActiveProfile()
   return WarbandStockistDB.profiles[pname], pname
 end
 
--- Note: Public API like DebugPrint/GetDesiredStock/IsItemOverridden are defined in other modules.
 
 -- ############################################################
 -- ## Profile Management Functions
@@ -151,12 +137,6 @@ function WarbandStorage:SetExcessDepositEnabled(profileName, enabled)
   WarbandStockistDB.profiles[profileName].enableExcessDeposit = (enabled == true)
 end
 
--- Read the flag for the profile assigned to the current character (used by the
--- bank deposit logic).
-function WarbandStorage:IsExcessDepositEnabledForActiveProfile()
-  return self:IsExcessDepositEnabled(ActiveProfileName())
-end
-
 -- Per-profile "sort the Warband Bank after depositing" flag. Unlike excess
 -- deposit, this defaults OFF: an explicit true is required to opt in.
 function WarbandStorage:IsSortAfterDepositEnabled(profileName)
@@ -170,10 +150,6 @@ function WarbandStorage:SetSortAfterDepositEnabled(profileName, enabled)
   if not profileName or profileName == "" then return end
   EnsureProfile(profileName)
   WarbandStockistDB.profiles[profileName].sortAfterDeposit = (enabled == true)
-end
-
-function WarbandStorage:IsSortAfterDepositEnabledForActiveProfile()
-  return self:IsSortAfterDepositEnabled(ActiveProfileName())
 end
 
 -- Per-profile "start the Add Item quantity box at 0" flag. Only meaningful when
@@ -205,82 +181,3 @@ function WarbandStorage:SetLowStockWarningEnabled(profileName, enabled)
   WarbandStockistDB.profiles[profileName].lowStockWarning = (enabled == true)
 end
 
--- ############################################################
--- ## Legacy migration (from global/character list mode)
--- ############################################################
-function WarbandStorage:MigrateLegacyIfNeeded()
-  -- Run at most once per session, and only if not already persisted
-  if self._didMigrateOnce then return end
-  self._didMigrateOnce = true
-
-  -- Defensive initialization in case saved vars aren’t fully populated yet
-  WarbandStockistDB = WarbandStockistDB or {}
-  WarbandStockistDB.profiles = WarbandStockistDB.profiles or {}
-  WarbandStockistDB.assignments = WarbandStockistDB.assignments or {}
-  WarbandStockistDB.migratedLegacyGlobal = (WarbandStockistDB.migratedLegacyGlobal == true) and true or false
-  WarbandStockistDB.migratedLegacyChar = WarbandStockistDB.migratedLegacyChar or {}
-
-  -- Old globals if present
-  if not WarbandStockistDB.migratedLegacyGlobal and type(WarbandStorageData) == "table" then
-    -- If the migrated profile already exists from a prior run, mark as migrated to prevent re-creation
-    if WarbandStockistDB.profiles and WarbandStockistDB.profiles["Global (Migrated)"] then
-      WarbandStockistDB.migratedLegacyGlobal = true
-    end
-    if type(WarbandStorageData.default) == "table" and next(WarbandStorageData.default) then
-      local profName = "Global (Migrated)"
-      EnsureProfile(profName)
-      wipe(WarbandStockistDB.profiles[profName].items)
-      for k,v in pairs(WarbandStorageData.default) do
-        WarbandStockistDB.profiles[profName].items[tonumber(k)] = tonumber(v) or 0
-      end
-      -- Do not force any default profile; leave characters Unassigned by default
-      WarbandStockistDB.migratedLegacyGlobal = true
-      DebugPrint("Migrated legacy global defaults into profile '" .. profName .. "'.")
-    end
-  end
-
-  -- Character-specific override -> its own profile, assigned to this character
-  local cname = CharKey()
-  if not WarbandStockistDB.migratedLegacyChar[cname]
-     and type(WarbandStorageCharData) == "table"
-     and WarbandStorageCharData.useDefault == false then
-    if type(WarbandStorageCharData.override) == "table" and next(WarbandStorageCharData.override) then
-      local profName = cname .. " (Migrated)"
-      EnsureProfile(profName)
-      wipe(WarbandStockistDB.profiles[profName].items)
-      for k,v in pairs(WarbandStorageCharData.override) do
-        WarbandStockistDB.profiles[profName].items[tonumber(k)] = tonumber(v) or 0
-      end
-      WarbandStockistDB.assignments[cname] = profName
-      WarbandStockistDB.migratedLegacyChar[cname] = true
-      DebugPrint("Migrated legacy character override into profile '" .. profName .. "' for " .. cname .. ".")
-    end
-  end
-
-  -- "Deposit Excess Items" was a per-character toggle; it is now per-profile.
-  -- Seed the current character's assigned profile from its old value, once per
-  -- character. Only an explicit "off" needs carrying over, since a missing
-  -- profile flag already defaults to on.
-  WarbandStockistDB.migratedExcessDeposit = WarbandStockistDB.migratedExcessDeposit or {}
-  if not WarbandStockistDB.migratedExcessDeposit[cname] then
-    if type(WarbandStorageCharData) == "table"
-       and WarbandStorageCharData.enableExcessDeposit == false then
-      local pname = WarbandStockistDB.assignments[cname]
-      local profile = pname and WarbandStockistDB.profiles[pname]
-      if profile and profile.enableExcessDeposit == nil then
-        profile.enableExcessDeposit = false
-        DebugPrint("Migrated legacy 'Deposit Excess Items = off' into profile '" .. pname .. "' for " .. cname .. ".")
-      end
-    end
-    WarbandStockistDB.migratedExcessDeposit[cname] = true
-  end
-end
-
--- ############################################################
--- ## Item name cache - DEPRECATED
--- ## Use WarbandStorage.Utils:GetItemName instead
--- ############################################################
-function WarbandStorage:GetCachedItemName(itemID)
-  -- Deprecated: redirect to new utility function
-  return WarbandStorage.Utils:GetItemName(itemID)
-end

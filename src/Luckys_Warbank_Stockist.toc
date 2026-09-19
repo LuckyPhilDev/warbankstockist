@@ -11,10 +11,13 @@
 
 Libs\LuckysUtils\embeds.xml
 Strings.lua
-config.lua
+Defaults.lua
 common-utils.lua
 utils.lua
 character-data.lua
+StockRules.lua
+Sets.lua
+Migration.lua
 profiles.lua
 profile-manager.lua
 Settings.lua

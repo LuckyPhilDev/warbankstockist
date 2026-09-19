@@ -1,31 +1,7 @@
 WarbandStorage = WarbandStorage or {}
 
-function WarbandStorage:GetDesiredStock()
-    WarbandStorageData = WarbandStorageData or { default = {} }
-    WarbandStorageCharData = WarbandStorageCharData or { useDefault = true, override = {} }
-
-    if WarbandStorageCharData.useDefault == false then
-        local merged = {}
-        for itemID, count in pairs(WarbandStorageData.default or {}) do
-            local override = WarbandStorageCharData.override[itemID]
-            if override ~= nil then
-                merged[itemID] = override  -- may be 0
-            else
-                merged[itemID] = count
-            end
-        end
-
-        -- Also include any character-only items not in global
-        for itemID, count in pairs(WarbandStorageCharData.override or {}) do
-            if WarbandStorageData.default[itemID] == nil then
-                merged[itemID] = count
-            end
-        end
-
-        return merged
-    else
-        return WarbandStorageData.default or {}
-    end
+local function CurrentRanges()
+    return WarbandStorage.Sets:RangesFor(WarbandStorage.Utils:GetCharacterKey())
 end
 
 function WarbandStorage:ScanBags()
@@ -58,37 +34,36 @@ function WarbandStorage:ScanBags()
     self:DebugPrint("Bag scan complete. Scanned bags: " .. table.concat(dbg, ", "))
 end
 
-function WarbandStorage:PrintTrackedInventory()
-    self:DebugPrint("Tracked items in your inventory:")
-    for itemID, desiredCount in pairs(self:GetDesiredStock()) do
-        local currentCount = self.inventory[itemID] or 0
-        local itemName = C_Item.GetItemCount(itemID)
-
-        if not itemName then
-            C_Timer.After(0.5, function()
-                local name = C_Item.GetItemCount(itemID) or ("Item " .. itemID)
-                self:DebugPrint(string.format("- %s (ID: %d): %d / %d",name, itemID, currentCount, desiredCount))
-            end)
-        else
-            self:DebugPrint(string.format("- %s (ID: %d): %d / %d",itemName, itemID, currentCount, desiredCount))
-        end
+function WarbandStorage:PrintReport()
+    local S = self.Strings
+    local ranges = CurrentRanges()
+    local ids = {}
+    for itemID in pairs(ranges) do ids[#ids + 1] = itemID end
+    if #ids == 0 then
+        print(S.addon.prefix .. " " .. S.report.empty)
+        return
     end
-end
 
-function WarbandStorage:ReportMissingItems()
-    for itemID, desiredCount in pairs(self:GetDesiredStock()) do
-        local currentCount = self.inventory[itemID] or 0
-        if currentCount < desiredCount then
-            local itemName = C_Item.GetItemCount(itemID) or ("Item " .. itemID)
-            self:DebugPrint(("You need %d more of %s (have %d, want %d)"):format(
-                desiredCount - currentCount, itemName, currentCount, desiredCount
-            ))
+    LuckyItem:GetMany(ids, function(infos)
+        local function name(itemID)
+            return infos[itemID] and infos[itemID].name or S.report.unknownItem:format(itemID)
         end
-    end
+        table.sort(ids, function(a, b) return name(a) < name(b) end)
+
+        print(S.addon.prefix .. " " .. S.report.title)
+        for _, itemID in ipairs(ids) do
+            local range = ranges[itemID]
+            local line = S.report.line:format(name(itemID), itemID, C_Item.GetItemCount(itemID, false) or 0, range.min)
+            if range.max < math.huge then line = line .. S.report.extras:format(range.max) end
+            local reserve = self.Sets:GetReserve(itemID)
+            if reserve then line = line .. S.report.reserve:format(reserve) end
+            print("  " .. line)
+        end
+    end)
 end
 
 -- Small window listing every tracked item this character's bags are short
--- of. Opens at login for profiles that opt in.
+-- of. Opens at login for sets that opt in.
 local MAX_ROWS = 12
 local ROW_H = 22
 local HIDE_AFTER = 10
@@ -131,16 +106,11 @@ local function LowStockRow(f, i)
 end
 
 function WarbandStorage:WarnLowStock()
-    local mgr = self.ProfileManager
-    local profileName = mgr:GetActiveProfileName()
-    if not self:IsLowStockWarningEnabled(profileName) then return end
-
     local short, ids = {}, {}
-    for key, want in pairs(mgr:GetDesiredStock(profileName)) do
-        local itemID, desired = tonumber(key), tonumber(want) or 0
-        local have = itemID and C_Item.GetItemCount(itemID, false) or 0
-        if itemID and have < desired then
-            short[itemID] = { have = have, want = desired }
+    for itemID, range in pairs(CurrentRanges()) do
+        local have = C_Item.GetItemCount(itemID, false) or 0
+        if range.warn and have < range.min then
+            short[itemID] = { have = have, want = range.min }
             table.insert(ids, itemID)
         end
     end

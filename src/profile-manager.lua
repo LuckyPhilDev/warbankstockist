@@ -195,11 +195,6 @@ function ProfileManager:ClearProfileItems(profileName)
   return true
 end
 
-function ProfileManager:GetDesiredStock(profileName)
-  local profile = self:GetActiveProfile(profileName)
-  return profile.items or {}
-end
-
 -- ############################################################
 -- ## Character Assignment Management
 -- ############################################################

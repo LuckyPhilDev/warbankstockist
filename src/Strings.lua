@@ -35,6 +35,24 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         unknownCommand = "Unknown /wbs command. Try: settings, report, autoopen, perf, devopen",
     },
 
+    migration = {
+        failed = "Your settings could not be upgraded, so your sets are off for now. Please report this on CurseForge with this code: %s",
+    },
+
+    sets = {
+        migratedGlobal    = "Global (Migrated)",
+        migratedCharacter = "%s (Migrated)",
+    },
+
+    report = {
+        title       = "Items your sets keep on this character:",
+        empty       = "None of your sets stock this character.",
+        line        = "%s (%d): have %d, keep %d",
+        extras      = ", extras returned at %d",
+        reserve     = ", reserve %d",
+        unknownItem = "Item %d",
+    },
+
     profiles = {
         section       = "Profiles",
         label         = "Profile",

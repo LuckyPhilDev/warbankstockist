@@ -169,9 +169,6 @@ end
 function Settings.Create()
     if WarbandStorage.SettingsPanel then return WarbandStorage.SettingsPanel end
 
-    WarbandStorage:MigrateLegacyIfNeeded()
-    WarbandStorage.ProfileManager:EnsureProfile(WarbandStockistDB.defaultProfile)
-
     local panel = LuckySettings:NewRichPanel(S.addon.title, {
         addonFolder = ADDON_FOLDER,
         minVersion  = WarbandStorage.WHATS_NEW_MIN_VERSION,

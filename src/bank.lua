@@ -1,6 +1,8 @@
 WarbandStorage = WarbandStorage or {}
 
 local S = WarbandStorage.Strings
+local Sets = WarbandStorage.Sets
+local StockRules = WarbandStorage.StockRules
 
 -- Tuning. Withdrawal advances on callbacks (cursor + lock), so timers only
 -- exist as fallbacks and inter-step breathing room.
@@ -51,54 +53,59 @@ local function DepositableCount(itemID)
     return count
 end
 
-local function GetAssignedDesired()
-    local mgr = WarbandStorage.ProfileManager
-    if not mgr or not mgr.GetActiveProfileName then return {}, nil end
-    local pname = mgr:GetActiveProfileName()
-    if not pname or pname == "" then return {}, nil end
-    mgr:EnsureProfile(pname)
-    local rawDesired = mgr.GetDesiredStock and mgr:GetDesiredStock(pname) or {}
-    local desired = {}
-    for k, v in pairs(rawDesired) do
-        local id = tonumber(k)
-        if id then desired[id] = tonumber(v) or 0 end
-    end
-    return desired, pname
+local function CurrentRanges()
+    return Sets:RangesFor(WarbandStorage.Utils:GetCharacterKey())
 end
 
--- Walks the warband bank once and produces a flat list of moves keyed to
--- specific source slots. Each entry pre-commits a stack and amount so the
--- drainer never has to re-scan mid-flight.
-local function PlanWithdrawals(self, itemIDs, desired)
+local function WarbankCounts()
+    local counts = {}
+    for _, bagID in ipairs(C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account) or {}) do
+        for slot = 1, C_Container.GetContainerNumSlots(bagID) or 0 do
+            local info = C_Container.GetContainerItemInfo(bagID, slot)
+            if info then counts[info.itemID] = (counts[info.itemID] or 0) + (info.stackCount or 1) end
+        end
+    end
+    return counts
+end
+
+-- amounts = { [itemID] = qtyToTake }. Walks the warband bank for each item in
+-- turn and produces a flat list of moves keyed to specific source slots. Each
+-- entry pre-commits a stack and amount so the drainer never has to re-scan
+-- mid-flight.
+local function PlanWithdrawals(self, amounts)
     local tabIDs = C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account)
     if type(tabIDs) ~= "table" or #tabIDs == 0 then
         self:DebugPrint("Warband bank has no purchased tabs to scan.")
         return {}
     end
 
+    local itemIDs = {}
+    for itemID, qty in pairs(amounts) do
+        if qty > 0 then itemIDs[#itemIDs + 1] = itemID end
+    end
+    table.sort(itemIDs)
+
     local plan = {}
     for _, itemID in ipairs(itemIDs) do
-        local shortfall = (desired[itemID] or 0) - (C_Item.GetItemCount(itemID, false) or 0)
-        self:DebugPrint(("Item %d: shortfall %d"):format(itemID, shortfall))
-        if shortfall > 0 then
-            for _, bagID in ipairs(tabIDs) do
-                if shortfall <= 0 then break end
-                local slots = C_Container.GetContainerNumSlots(bagID) or 0
-                for slot = 1, slots do
-                    if shortfall <= 0 then break end
-                    local info = C_Container.GetContainerItemInfo(bagID, slot)
-                    if info and info.itemID == itemID then
-                        local stack = info.stackCount or 1
-                        local take = math.min(stack, shortfall)
-                        plan[#plan + 1] = {
-                            itemID = itemID,
-                            bagID = bagID,
-                            slot = slot,
-                            take = take,
-                            stackAtPlan = stack,
-                        }
-                        shortfall = shortfall - take
-                    end
+        local remaining = amounts[itemID]
+        self:DebugPrint(("Item %d: taking %d"):format(itemID, remaining))
+        for _, bagID in ipairs(tabIDs) do
+            if remaining <= 0 then break end
+            local slots = C_Container.GetContainerNumSlots(bagID) or 0
+            for slot = 1, slots do
+                if remaining <= 0 then break end
+                local info = C_Container.GetContainerItemInfo(bagID, slot)
+                if info and info.itemID == itemID then
+                    local stack = info.stackCount or 1
+                    local take = math.min(stack, remaining)
+                    plan[#plan + 1] = {
+                        itemID = itemID,
+                        bagID = bagID,
+                        slot = slot,
+                        take = take,
+                        stackAtPlan = stack,
+                    }
+                    remaining = remaining - take
                 end
             end
         end
@@ -229,22 +236,15 @@ end
 
 -- The restock's withdrawals, for RunWithdrawPlan.
 function WarbandStorage:PlanRestock()
-    local desired, profileName = GetAssignedDesired()
-    if profileName then
-        self:DebugPrint(("Using assigned profile for withdraw: %s"):format(profileName))
-    else
-        self:DebugPrint("No assigned profile; nothing to withdraw.")
-        return {}
+    local bankCounts = WarbankCounts()
+    local amounts = {}
+    for itemID, range in pairs(CurrentRanges()) do
+        if range.min > 0 then
+            amounts[itemID] = StockRules.Withdrawal(range, C_Item.GetItemCount(itemID, false) or 0, bankCounts[itemID] or 0)
+        end
     end
 
-    local itemIDs = {}
-    for itemID, qty in pairs(desired) do
-        if qty and qty > 0 then itemIDs[#itemIDs + 1] = itemID end
-    end
-    table.sort(itemIDs)
-    self:DebugPrint(("Desired map contains %d items"):format(#itemIDs))
-
-    local plan = PlanWithdrawals(self, itemIDs, desired)
+    local plan = PlanWithdrawals(self, amounts)
     self:DebugPrint(("Planned %d withdrawal step(s)"):format(#plan))
     return plan
 end
@@ -323,70 +323,41 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
 end
 
 -- Public single-item withdraw used by the /wbwithdraw slash command. Wraps
--- the same plan/run pipeline as the bulk path so behaviour is identical.
+-- the same plan/run pipeline as the bulk path so behaviour is identical, except
+-- that an explicit request ignores reserves.
 function WarbandStorage:WithdrawItemFromWarbank(itemID, needed)
     needed = needed or 1
     LuckyBankRun:Queue({
         direction = "withdraw",
         plan = function()
             self:DebugPrint(("Manual withdraw: %d of item %d"):format(needed, itemID))
-            return PlanWithdrawals(self, { itemID }, { [itemID] = (C_Item.GetItemCount(itemID, false) or 0) + needed })
+            return PlanWithdrawals(self, { [itemID] = needed })
         end,
         run = function(job, plan) self:RunWithdrawPlan(plan, job) end,
     })
 end
 
--- The excess deposits, for ProcessDepositQueue. Empty when the profile keeps
--- its excess.
+-- The excess deposits, for ProcessDepositQueue.
 function WarbandStorage:PlanExcessDeposits()
-    if not self:IsExcessDepositEnabledForActiveProfile() then return {} end
-    self:DebugPrint("Checking for excess items to deposit.")
     self:ScanBags()
+    local ranges = CurrentRanges()
 
-    local desired, profileName = GetAssignedDesired()
-    if profileName then
-        self:DebugPrint(("Using assigned profile for deposit: %s"):format(profileName))
-    else
-        self:DebugPrint("No assigned profile for deposit.")
+    local itemIDs = {}
+    for itemID, range in pairs(ranges) do
+        if range.max < math.huge then itemIDs[#itemIDs + 1] = itemID end
     end
-    local inventory = self.inventory or {}
-    -- Debug: summarize desired vs inventory keys (small sets only)
-    do
-        local dcount, icount = 0, 0
-        for _ in pairs(desired) do dcount = dcount + 1 end
-        for _ in pairs(inventory) do icount = icount + 1 end
-        self:DebugPrint(("Desired entries: %d | Inventory entries: %d"):format(dcount, icount))
-        -- Print small lists (<=5) to aid troubleshooting
-        if dcount <= 5 then
-            for id, want in pairs(desired) do
-                self:DebugPrint(("Desired: %d -> %d"):format(id, want))
-            end
-        end
-        if icount <= 5 then
-            for id, have in pairs(inventory) do
-                self:DebugPrint(("Inventory: %d -> %d"):format(id, have))
-            end
-        end
-    end
+    table.sort(itemIDs)
 
     local depositQueue = {}
-
-    for itemID, countInBags in pairs(inventory) do
-        local hasDesiredEntry = (desired[itemID] ~= nil)
-        local desiredCount = hasDesiredEntry and desired[itemID] or 0
-        local excess = countInBags - desiredCount
-
-        -- Deposit if the item exists in the desired map (even if desiredCount is 0) and we have more than desired
-        if hasDesiredEntry and excess > 0 then
-            excess = math.min(excess, DepositableCount(itemID))
-            self:DebugPrint(("Excess found: Item %d x%d (have %d, want %d)"):format(
-                itemID, excess, countInBags, desiredCount))
-            if excess > 0 then
-                table.insert(depositQueue, { itemID = itemID, amount = excess })
-            end
+    for _, itemID in ipairs(itemIDs) do
+        local have = self.inventory[itemID] or 0
+        local excess = StockRules.Deposit(ranges[itemID], have)
+        if excess > 0 then excess = math.min(excess, DepositableCount(itemID)) end
+        if excess > 0 then
+            self:DebugPrint(("Excess found: item %d x%d (have %d, keep %d)"):format(itemID, excess, have, ranges[itemID].max))
+            depositQueue[#depositQueue + 1] = { itemID = itemID, amount = excess }
         end
     end
-
     return depositQueue
 end
 
@@ -406,11 +377,10 @@ function WarbandStorage:ProcessDepositQueue(queue, index, job)
     end)
 end
 
--- Cleans up / sorts the Warband Bank once a deposit run has finished, if the
--- active profile opts in. Mirrors the in-game "Clean Up Warband Bank" button.
--- A short delay lets the final placement settle before the sort reshuffles.
+-- Mirrors the in-game "Clean Up Warband Bank" button. A short delay lets the
+-- final placement settle before the sort reshuffles.
 function WarbandStorage:SortWarbankAfterDeposit()
-    if not self:IsSortAfterDepositEnabledForActiveProfile() then return end
+    if not WarbandStockistDB.sortAfterDeposit then return end
     if not C_Bank.CanViewBank(Enum.BankType.Account) then
         self:DebugPrint("Sort-after-deposit: Warband Bank not available; skipping sort.")
         return
@@ -622,16 +592,16 @@ local function IsInstanceWarbound(bag, slot, info)
 end
 
 local function PlanWarboundQueue(self, cfg)
-    -- Items the active profile wants kept in bags must not be deposited here;
-    -- the withdraw pass that follows would just pull them straight back.
-    local desired = GetAssignedDesired()
+    -- Items a set keeps in bags must not be deposited here; the withdraw pass
+    -- that follows would just pull them straight back.
+    local ranges = CurrentRanges()
 
     local toDeposit = {}
     for _, bag in ipairs(GetAllPlayerBagIDs()) do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local info = C_Container.GetContainerItemInfo(bag, slot)
             if info and info.itemID and not toDeposit[info.itemID]
-                and not (desired[info.itemID] and desired[info.itemID] > 0) then
+                and not (ranges[info.itemID] and ranges[info.itemID].min > 0) then
                 local loc = ItemLocation:CreateFromBagAndSlot(bag, slot)
                 -- IsItemAllowedInBankType only means "not soulbound": grey junk
                 -- and unbound BoE copies pass it, so the quality and warbound
