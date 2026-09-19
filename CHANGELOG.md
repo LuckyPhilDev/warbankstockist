@@ -1,3 +1,22 @@
+## [Unreleased]
+
+### Added
+- **Sets** Give each character as many item lists as you like, such as a general set plus a raiding set, from the Characters page. Your profiles carry over as sets.
+- **Every Character** A set with Every Character ticked on the Sets page stocks all your characters, new ones included. Untick it for any character on the Characters page.
+- **Deposit All** A set of this Set Type on the Sets page sends every item on it to your Warband Bank whenever you open the bank.
+- **Reserves** The Reserves page sets how many of an item your Warband Bank always keeps, and only characters marked Priority withdraw below it. (Thanks for the suggestion 2B, or not 2B)
+
+### Improved
+- **Sort Bank After Deposit** Now one setting on the Bank page for all your characters, instead of one per profile.
+
+### Fixed
+- Renaming or duplicating a set on the Sets page keeps all of its options, and Duplicate no longer overwrites an existing copy.
+- The /wbs report lists your tracked items by name against the amounts your sets keep.
+- Characters you Ignore on the Characters page no longer run any of your sets.
+
+### Removed
+- Default Qty to 0 is gone, since a Deposit All set on the Sets page does the same job.
+
 ## [1.13.0] - 2026-09-18
 
 ### Added

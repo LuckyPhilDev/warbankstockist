@@ -46,7 +46,7 @@ function WarbandStorage:PrintReport()
 
     LuckyItem:GetMany(ids, function(infos)
         local function name(itemID)
-            return infos[itemID] and infos[itemID].name or S.report.unknownItem:format(itemID)
+            return infos[itemID] and infos[itemID].name or S.items.unknownItem:format(itemID)
         end
         table.sort(ids, function(a, b) return name(a) < name(b) end)
 

@@ -236,11 +236,14 @@ end
 
 -- The restock's withdrawals, for RunWithdrawPlan.
 function WarbandStorage:PlanRestock()
+    local charKey = self.Utils:GetCharacterKey()
+    local priority = Sets:IsPriority(charKey)
     local bankCounts = WarbankCounts()
     local amounts = {}
-    for itemID, range in pairs(CurrentRanges()) do
+    for itemID, range in pairs(Sets:RangesFor(charKey)) do
         if range.min > 0 then
-            amounts[itemID] = StockRules.Withdrawal(range, C_Item.GetItemCount(itemID, false) or 0, bankCounts[itemID] or 0)
+            amounts[itemID] = StockRules.Withdrawal(range, C_Item.GetItemCount(itemID, false) or 0,
+                bankCounts[itemID] or 0, Sets:GetReserve(itemID), priority)
         end
     end
 

@@ -122,7 +122,7 @@ function Sets:SetIgnored(charKey, ignored)
     Changed()
 end
 
--- Whether the character has the set ticked, ignored or not. The Characters
+-- Whether the character has the set ticked, ignored or not. The Assignments
 -- page shows this; IsActiveFor is what the bank runs.
 function Sets:IsMember(set, charKey)
     local char = DB().characters[charKey]
@@ -205,6 +205,10 @@ end
 
 function Sets:RangesFor(charKey)
     return StockRules.Merge(self:ActiveSetsFor(charKey))
+end
+
+function WarbandStorage:GetAllCharacterKeys()
+    return Sets:AllCharacterKeys()
 end
 
 -- Ignored characters last, then alphabetical.
