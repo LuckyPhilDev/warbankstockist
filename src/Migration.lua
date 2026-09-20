@@ -27,8 +27,8 @@ local function KnownCharacters(db)
     return known
 end
 
--- Reproduces 1.13's stocking exactly. profiles and assignments stay behind so a
--- downgrade still finds them.
+-- Reproduces 1.13's stocking, bar Deposit Excess Items, which every set now
+-- does. profiles and assignments stay behind so a downgrade still finds them.
 function Migration.ProfilesToSets(db)
     db.sets = db.sets or {}
     db.characters = db.characters or {}
@@ -45,10 +45,9 @@ function Migration.ProfilesToSets(db)
         local profile = db.profiles[name]
         local set = Sets.NewSet(db, name)
         CopyItems(profile.items or {}, set.items)
-        set.returnExtras = profile.enableExcessDeposit ~= false
         set.lowStockWarning = profile.lowStockWarning == true
         set.everyCharacter = name == defaultName
-        if set.returnExtras and AllZero(set.items) then set.type = "deposit" end
+        if AllZero(set.items) then set.type = "deposit" end
         if profile.sortAfterDeposit == true then db.sortAfterDeposit = true end
         setIDs[name] = set.id
     end
@@ -69,6 +68,26 @@ function Migration.ProfilesToSets(db)
     end
 
     db.lastEditedSet = setIDs[db.lastEditedProfile]
+    Migration.WarboundToSet(db)
+end
+
+-- The Bank page's warbound toggles became a set of their own. The flags stay
+-- behind for a downgrade, and because Lucky's Grab-bag writes them when it
+-- hands its own warbound deposit over, this keeps looking until there is
+-- something to import.
+function Migration.WarboundToSet(db)
+    local cfg = db.warboundDeposit
+    if db.migratedWarbound then return end
+    if not (cfg and cfg.enabled and (cfg.armor or cfg.weapons or cfg.tokens)) then return end
+    db.migratedWarbound = true
+
+    local set = Sets.NewSet(db, Sets.UniqueName(db, S.standard.warbound))
+    set.standard = "warbound"
+    set.type = "deposit"
+    set.everyCharacter = true
+    set.armor = cfg.armor == true
+    set.weapons = cfg.weapons == true
+    set.tokens = cfg.tokens == true
 end
 
 function Migration.Upgrade(db)
@@ -90,6 +109,7 @@ end
 -- character.
 function Migration.Login(db, charKey, legacyGlobal, legacyChar)
     local char = Sets.EnsureCharacter(db, charKey)
+    Migration.WarboundToSet(db)
 
     if not db.migratedLegacyGlobal and type(legacyGlobal) == "table"
         and type(legacyGlobal.default) == "table" and next(legacyGlobal.default) then
@@ -101,7 +121,6 @@ function Migration.Login(db, charKey, legacyGlobal, legacyChar)
     if not db.migratedLegacyChar[charKey] and type(legacyChar) == "table" and legacyChar.useDefault == false
         and type(legacyChar.override) == "table" and next(legacyChar.override) then
         local set = Sets.NewSet(db, Sets.UniqueName(db, S.sets.migratedCharacter:format(charKey)))
-        set.returnExtras = legacyChar.enableExcessDeposit ~= false
         CopyItems(legacyChar.override, set.items)
         char.sets[set.id] = true
         db.migratedLegacyChar[charKey] = true

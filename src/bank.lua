@@ -594,7 +594,21 @@ local function IsInstanceWarbound(bag, slot, info)
     return C_Item.IsBoundToAccountUntilEquip(ItemLocation:CreateFromBagAndSlot(bag, slot))
 end
 
-local function PlanWarboundQueue(self, cfg)
+local ARMOR_CLASS, WEAPON_CLASS = 4, 2
+local MISC_CLASS, TOKEN_SUBCLASS = 15, 0
+
+-- Everything warbound that is not gear or a token shares one category, so a
+-- warbound consumable or reagent is deposited rather than quietly skipped.
+local function WarboundCategory(classID, subclassID)
+    if classID == ARMOR_CLASS then return "armor" end
+    if classID == WEAPON_CLASS then return "weapons" end
+    if classID == MISC_CLASS and subclassID == TOKEN_SUBCLASS then return "tokens" end
+    return "other"
+end
+
+-- The warbound items in bags that cfg's categories cover, as { [itemID] = 0 }.
+-- The Warbound set lists this, so the Sets page shows what the bank pass takes.
+function WarbandStorage:WarboundBagItems(cfg)
     -- Items a set keeps in bags must not be deposited here; the withdraw pass
     -- that follows would just pull them straight back.
     local ranges = CurrentRanges()
@@ -613,10 +627,8 @@ local function PlanWarboundQueue(self, cfg)
                 if quality and quality > Enum.ItemQuality.Poor
                     and C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc)
                     and IsInstanceWarbound(bag, slot, info) then
-                    if (cfg.armor and classID == 4)
-                        or (cfg.weapons and classID == 2)
-                        or (cfg.tokens and classID == 15 and subclassID == 0) then
-                        toDeposit[info.itemID] = true
+                    if cfg[WarboundCategory(classID, subclassID)] then
+                        toDeposit[info.itemID] = 0
                         self:DebugPrint(("Warbound deposit: queueing item %d"):format(info.itemID))
                     end
                 end
@@ -624,10 +636,14 @@ local function PlanWarboundQueue(self, cfg)
         end
     end
 
-    -- Counts may overcount non-warbound copies; the deposit loop's slot filter
-    -- simply runs out of eligible stacks.
+    return toDeposit
+end
+
+-- Counts may overcount non-warbound copies; the deposit loop's slot filter
+-- simply runs out of eligible stacks.
+local function PlanWarboundQueue(self, cfg)
     local queue = {}
-    for itemID in pairs(toDeposit) do
+    for itemID in pairs(self:WarboundBagItems(cfg)) do
         local count = C_Item.GetItemCount(itemID, false) or 0
         if count > 0 then
             queue[#queue + 1] = { itemID = itemID, amount = count }
@@ -657,8 +673,8 @@ end
 -- The warbound gear deposits, for DepositWarboundItems. Runs before the
 -- restock on bank open.
 function WarbandStorage:PlanWarboundDeposits()
-    local cfg = WarbandStockistDB.warboundDeposit or {}
-    if not (cfg.enabled and (cfg.armor or cfg.weapons or cfg.tokens)) then return {} end
+    local cfg = Sets:WarboundOptions(self.Utils:GetCharacterKey())
+    if not cfg then return {} end
     local queue = PlanWarboundQueue(self, cfg)
     self:DebugPrint(("Warbound deposit: %d item type(s) queued"):format(#queue))
     return queue

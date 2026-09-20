@@ -14,6 +14,7 @@ WarbandStorage.DB_DEFAULTS = {
     ignoredCharacters = {},
     characterClasses = {},
     migratedLegacyChar = {},
+    migratedWarbound = false,
     goldManagement = { brackets = {}, overrides = {} },
     warboundDeposit = { enabled = false, armor = false, weapons = false, tokens = false },
     devOpenOnLogin = false,

@@ -63,16 +63,19 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         nameInvalid        = "Set name contains invalid characters.",
         nameTaken          = "A set named '%s' already exists.",
         usedBy             = "Used by",
+        usedByTooltip      = "Opens the Assignments page, where you tick the sets each character uses.",
         usedByNone         = "No characters",
         none               = "Create a set with New to start.",
         type               = "Set Type",
         typeDesc           = "Keep in Bags withdraws each item up to its Keep amount. Deposit All sends every item on the list to your Warband Bank.",
         typeKeep           = "Keep in Bags",
         typeDeposit        = "Deposit All",
+        -- No row uses these: Return Extras is on for every set, and the strings
+        -- stay for the day it becomes a choice again.
         returnExtras       = "Return Extras",
         returnExtrasDesc   = "Deposits anything above an item's Keep amount into your Warband Bank. When two sets list the same item, extras only go back if every one of them has this on.",
         everyCharacter     = "Every Character",
-        everyCharacterDesc = "Gives this set to all your characters, new ones included. Untick it for a character on the Characters page.",
+        everyCharacterDesc = "Gives this set to all your characters, new ones included. Untick it for a character on the Assignments page.",
         currentExpansion   = "Current Expansion Only",
         currentExpansionDesc = "Only deposits reagents from the current expansion. Older materials stay in your bags.",
         migratedGlobal     = "Global (Migrated)",
@@ -93,9 +96,11 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         other        = "Other Reagents",
         lumber       = "Lumber",
         treatise     = "Weekly Treatise",
-        reagentDesc  = "A standard set: every reagent in the %s category goes from your bags to your Warband Bank. Untick it on the Characters page for the characters who craft with them.",
+        warbound     = "Warbound Items",
+        reagentDesc  = "A standard set: every reagent in the %s category goes from your bags to your Warband Bank. Untick it on the Assignments page for the characters who craft with them.",
         lumberDesc   = "A standard set: all lumber goes from your bags to your Warband Bank.",
         treatiseDesc = "A standard set: keeps one Thalassian Treatise for each of your professions in your bags until you use it this week, withdrawn from your Warband Bank.",
+        warboundDesc = "A standard set: the warbound items you tick go from your bags to your Warband Bank as it opens, before your sets restock. Anything a set keeps in your bags is left where it is.",
     },
 
     items = {
@@ -157,16 +162,14 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
     },
 
     warbound = {
-        section        = "Warbound",
-        master         = "Auto-Deposit Warbound Items",
-        masterTooltip  = "When you open the bank, deposits warbound gear from your bags into the Warband Bank before your sets restock.",
         armor          = "Warbound Armor",
-        armorTooltip   = "Auto-deposit warbound armor.",
+        armorTooltip   = "Deposits warbound armor from your bags.",
         weapons        = "Warbound Weapons",
-        weaponsTooltip = "Auto-deposit warbound weapons.",
+        weaponsTooltip = "Deposits warbound weapons from your bags.",
         tokens         = "Warbound Tokens",
-        tokensTooltip  = "Auto-deposit warbound tier tokens.",
-        hint           = "Items a set keeps in your bags are never deposited by this.",
+        tokensTooltip  = "Deposits warbound tier tokens from your bags.",
+        other          = "Other Warbound Items",
+        otherTooltip   = "Deposits every other warbound item from your bags, consumables and reagents included.",
     },
 
     bank = {

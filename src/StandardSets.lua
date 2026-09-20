@@ -95,6 +95,16 @@ Add("lumber", {
     end,
 })
 
+-- Warbound gear is matched bag slot by bag slot, not by item id: the same item
+-- can be warbound in one slot and soulbound in the next. The bank pass keeps
+-- that filter and runs on its own, so this only lists what it would take.
+Add("warbound", {
+    type = "deposit",
+    warbound = true,
+    defaults = { armor = true, weapons = true, tokens = true, other = true },
+    items = function(set) return WarbandStorage:WarboundBagItems(set) end,
+})
+
 local function KnownProfessionVariants()
     local known = {}
     for _, lineID in pairs(C_TradeSkillUI.GetAllProfessionTradeSkillLines() or {}) do known[lineID] = true end

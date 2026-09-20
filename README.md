@@ -7,15 +7,15 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 ## Features
 
 - **Stock sets**: Build item lists for raiding, crafting, gathering, leveling, or any other purpose, and give each character as many as you like.
-- **Every Character sets**: A set can stock all your characters, new ones included, with any character left out from the Characters page.
+- **Every Character sets**: A set can stock all your characters, new ones included, with any character left out from the Assignments page.
 - **Keep in Bags or Deposit All**: A Keep in Bags set withdraws each item up to its Keep amount. A Deposit All set sends every item on it to the Warband Bank.
-- **Standard sets**: Add ready-made sets that follow a rule instead of a list: every reagent of a category, such as Herbs or Cloth, all lumber, or one unused Thalassian Treatise for each of your professions each week.
+- **Standard sets**: Add ready-made sets that follow a rule instead of a list: every reagent of a category, such as Herbs or Cloth, all lumber, one unused Thalassian Treatise for each of your professions each week, or your warbound gear.
 - **Automatic withdrawals**: Opening the Warband Bank withdraws missing items until your bags reach the Keep amounts of the character's sets. When two sets list the same item, the larger amount wins.
-- **Return Extras**: Optionally deposit anything above an item's Keep amount back into the Warband Bank.
+- **Return Extras**: Anything in your bags above an item's Keep amount goes back into the Warband Bank.
 - **Reserves**: The Warband Bank always keeps at least a chosen amount of an item, and only characters marked Priority withdraw below it.
-- **Warbound auto-deposit**: Opening the Warband Bank can deposit warbound armor, weapons, and tier tokens from your bags before the restock runs.
+- **Warbound auto-deposit**: A Warbound Items set deposits warbound armor, weapons, tier tokens, and anything else warbound from your bags when the bank opens, before the restock runs, on the characters you give it to.
 - **Automatic bank sorting**: Clean up and sort the Warband Bank once the deposits finish.
-- **Characters**: Choose each character's sets, mark Priority characters that may withdraw below your reserves, or ignore a character so none of your sets run for it.
+- **Assignments**: See the sets every character runs at a glance, choose each character's other sets, mark Priority characters that may withdraw below your reserves, or ignore a character so none of your sets run for it.
 - **Flexible item entry**: Add items by item link or item ID, or pick up a bag item and drop or click it onto the Item ID field, and set how many to keep.
 - **Set management**: Create, rename, duplicate, and delete sets. A renamed set stays on every character that uses it.
 - **Searchable item lists**: Filter large sets by item name or item ID.
@@ -35,7 +35,7 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 
 1. Open **Options > AddOns > Lucky's Warband Stockist**, or enter `/wbs`.
 2. On the **Sets** page, create or select a set, then add its items and how many of each to keep.
-3. On the **Characters** page, tick the sets each character should use. Sets with Every Character on are already ticked for everyone.
+3. On the **Assignments** page, tick the sets each character should use. Sets with Every Character on are listed at the top and already apply to everyone.
 4. Open the Warband Bank. Missing items are withdrawn automatically, and your deposit, reserve, and gold rules are applied.
 
 ## Slash Commands
@@ -56,11 +56,11 @@ Lucky's Utils is required. CurseForge release packages include it automatically.
 Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's Warband Stockist**.
 
 - **What's New**: Highlights from recent releases, the installed versions, and links to the rest of the suite.
-- **Sets**: Create empty or standard sets, rename, duplicate, and delete them, choose each one's Set Type, Return Extras, Every Character, Low Stock Warning, and Current Expansion Only options, and edit its items and Keep amounts.
-- **Characters**: Tick the sets each character uses, mark Priority characters, or move unused characters into the ignored section and back again.
+- **Sets**: Create empty or standard sets, rename, duplicate, and delete them, choose each one's Set Type, Every Character, Low Stock Warning, Current Expansion Only, and warbound category options, and edit its items and Keep amounts.
+- **Assignments**: Tick the sets each character uses, mark Priority characters, or move unused characters into the ignored section and back again.
 - **Reserves**: Set how many of each item the Warband Bank always keeps.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
-- **Bank**: Choose whether warbound armor, weapons, and tier tokens are deposited when you open the bank, sort the Warband Bank after deposits, pick Auto or Manual for the Bank Queue, or hide its window.
+- **Bank**: Sort the Warband Bank after deposits, pick Auto or Manual for the Bank Queue, or hide its window.
 
 The minimap button and debug logging are toggled from the buttons in the panel's title bar.
 

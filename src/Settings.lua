@@ -89,29 +89,6 @@ local function AddWhatsNew(panel)
 end
 
 local function BuildBank(group)
-    local function config()
-        WarbandStockistDB.warboundDeposit = WarbandStockistDB.warboundDeposit or {}
-        return WarbandStockistDB.warboundDeposit
-    end
-
-    local function toggle(key, label, desc, parent, note, since)
-        group:Toggle({
-            label    = label,
-            desc     = desc,
-            note     = note,
-            parent   = parent,
-            since    = since,
-            checked  = function() return config()[key] == true end,
-            onToggle = function(checked) config()[key] = checked end,
-        })
-    end
-
-    group:Section(S.warbound.section)
-    toggle("enabled", S.warbound.master, S.warbound.masterTooltip, nil, S.warbound.hint, "1.10.0")
-    toggle("armor", S.warbound.armor, S.warbound.armorTooltip, S.warbound.master)
-    toggle("weapons", S.warbound.weapons, S.warbound.weaponsTooltip, S.warbound.master)
-    toggle("tokens", S.warbound.tokens, S.warbound.tokensTooltip, S.warbound.master)
-
     group:Section(S.bank.sorting)
     group:Toggle({
         label    = S.bank.sortAfter,

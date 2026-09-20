@@ -22,7 +22,7 @@ function Sets.NewSet(db, name)
         id = id,
         name = name,
         type = "keep",
-        returnExtras = true,
+        returnExtras = true, -- no longer a setting: every set returns extras
         everyCharacter = false,
         skip = {},
         lowStockWarning = false,
@@ -72,9 +72,11 @@ end
 -- kind is a key of StandardSets.kinds.
 function Sets:AddStandard(kind)
     local db = DB()
+    local rule = Standard.kinds[kind]
     local set = Sets.NewSet(db, Sets.UniqueName(db, WarbandStorage.Strings.standard[kind]))
     set.standard = kind
-    set.type = Standard.kinds[kind].type
+    set.type = rule.type
+    for option, value in pairs(rule.defaults or {}) do set[option] = value end
     Changed()
     return set
 end
@@ -213,22 +215,49 @@ end
 function Sets:RangesFor(charKey)
     local sets = {}
     for _, set in ipairs(self:ActiveSetsFor(charKey)) do
-        sets[#sets + 1] = set.standard and Standard.Resolve(set) or set
+        -- A warbound set deposits by bag slot rather than by item id, so it
+        -- runs its own bank pass instead of joining the stock ranges.
+        if not Sets.IsWarbound(set) then
+            sets[#sets + 1] = set.standard and Standard.Resolve(set) or set
+        end
     end
     return StockRules.Merge(sets)
+end
+
+function Sets.IsWarbound(set)
+    local rule = set.standard and Standard.kinds[set.standard]
+    return rule ~= nil and rule.warbound == true
+end
+
+-- The categories the warbound sets this character runs ask for between them,
+-- or nil when it runs none that ask for anything.
+function Sets:WarboundOptions(charKey)
+    local cfg = { armor = false, weapons = false, tokens = false, other = false }
+    local any = false
+    for _, set in ipairs(self:ActiveSetsFor(charKey)) do
+        if Sets.IsWarbound(set) then
+            for option in pairs(cfg) do
+                cfg[option] = cfg[option] or set[option] == true
+                any = any or cfg[option]
+            end
+        end
+    end
+    return any and cfg or nil
 end
 
 function WarbandStorage:GetAllCharacterKeys()
     return Sets:AllCharacterKeys()
 end
 
--- Ignored characters last, then alphabetical.
+-- Ignored characters last, Priority characters first, then alphabetical.
 function Sets:AllCharacterKeys()
     local keys = {}
     for charKey in pairs(DB().characters) do keys[#keys + 1] = charKey end
     table.sort(keys, function(a, b)
         local ia, ib = self:IsIgnored(a), self:IsIgnored(b)
         if ia ~= ib then return ib end
+        local pa, pb = self:IsPriority(a), self:IsPriority(b)
+        if pa ~= pb then return pa end
         return a < b
     end)
     return keys

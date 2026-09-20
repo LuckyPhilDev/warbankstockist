@@ -129,4 +129,26 @@ check("Every Character off reaches nobody", #Sets:CharactersUsing(cloth.id), 0)
 Sets:SetEveryCharacter(cloth.id, true)
 check("Every Character on reaches everyone", #Sets:CharactersUsing(cloth.id), 1)
 
+-- Warbound gear is scanned by bag slot in bank.lua, so the kind only has to
+-- pass the set through and the bank pass has to see the right categories.
+local scanned
+function WarbandStorage:WarboundBagItems(cfg)
+    scanned = cfg
+    return { [99] = 0 }
+end
+
+local gear = Sets:AddStandard("warbound")
+check("warbound set deposits", gear.type, "deposit")
+check("armor on by default", gear.armor, true)
+check("weapons on by default", gear.weapons, true)
+check("tokens on by default", gear.tokens, true)
+check("everything else on by default", gear.other, true)
+check("warbound items come from the bag scan", keys(Standard.Resolve(gear).items), "99")
+check("the scan reads the set's own categories", scanned, gear)
+Sets:SetEveryCharacter(gear.id, true)
+check("warbound stays out of the stock ranges", Sets:RangesFor("Main-Area52")[99], nil)
+check("its categories reach the bank pass", Sets:WarboundOptions("Main-Area52").tokens, true)
+gear.armor, gear.weapons, gear.tokens, gear.other = false, false, false, false
+check("a warbound set asking for nothing runs no pass", Sets:WarboundOptions("Main-Area52"), nil)
+
 print(string.format("%d StandardSets tests passed", passed))

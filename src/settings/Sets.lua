@@ -46,10 +46,36 @@ local function FillSetOptions(options)
     end
 end
 
+local WARBOUND_OPTIONS = { "armor", "weapons", "tokens", "other" }
+
 local function SetRowEnabled(setting, enabled)
     local control = setting.checkbox or setting.dropdown
     control:SetEnabled(enabled)
     setting.row:SetAlpha(enabled and 1 or 0.35)
+end
+
+-- Rows chain their anchors down the group, so a hidden row gives up its height
+-- as well or the rows below it keep the gap.
+local function SetRowShown(setting, shown)
+    local row = setting.row
+    row.fullHeight = row.fullHeight or row:GetHeight()
+    row:SetHeight(shown and row.fullHeight or 0.001)
+    row:SetShown(shown)
+end
+
+-- This page has no About rail, so a row's description is only ever read as a
+-- tooltip. Hooked rather than set: the library draws the hover highlight there.
+local function AddRowTooltip(setting, title, text)
+    local function Show(frame)
+        GameTooltip:SetOwner(frame, "ANCHOR_RIGHT")
+        GameTooltip:SetText(title, 1, 0.82, 0)
+        GameTooltip:AddLine(type(text) == "function" and text() or text, 1, 1, 1, true)
+        GameTooltip:Show()
+    end
+    for _, frame in ipairs({ setting.row, setting.checkbox or setting.dropdown }) do
+        frame:HookScript("OnEnter", Show)
+        frame:HookScript("OnLeave", GameTooltip_Hide)
+    end
 end
 
 local function UsedByText(set)
@@ -165,17 +191,21 @@ local function Sync(group, options, usedBy, list)
 
     local typeRow = group.byLabel[S.sets.type]
     RedrawSelect(typeRow)
+    SetRowShown(typeRow, hasSet)
     SetRowEnabled(typeRow, hasSet and not set.standard)
 
-    for label, enabled in pairs({
-        [S.sets.returnExtras]     = keeps,
+    local rows = {
         [S.sets.everyCharacter]   = hasSet,
         [S.lowStock.toggle]       = keeps,
-        [S.sets.currentExpansion] = standard and standard.reagent == true,
-    }) do
+        [S.sets.currentExpansion] = (standard and standard.reagent) == true,
+    }
+    for _, option in ipairs(WARBOUND_OPTIONS) do
+        rows[S.warbound[option]] = (standard and standard.warbound) == true
+    end
+    for label, shown in pairs(rows) do
         local row = group.byLabel[label]
         row.checkbox:SetChecked(row.getChecked())
-        SetRowEnabled(row, enabled)
+        SetRowShown(row, shown)
     end
 
     usedBy:SetText(hasSet and UsedByText(set) or "")
@@ -215,14 +245,17 @@ function Settings.BuildSets(group)
         end,
         onSelect = function(key) Sets:SetOption(EditedSet().id, "type", key) end,
     })
-    AddOptionToggle(group, S.sets.returnExtras, S.sets.returnExtrasDesc, SINCE, "returnExtras",
-        function(id, on) Sets:SetOption(id, "returnExtras", on) end)
-    AddOptionToggle(group, S.sets.everyCharacter, S.sets.everyCharacterDesc, SINCE, "everyCharacter",
+    AddRowTooltip(group.byLabel[S.sets.type], S.sets.type, S.sets.typeDesc)
+    AddOptionToggle(group, S.sets.everyCharacter, S.sets.everyCharacterDesc, nil, "everyCharacter",
         function(id, on) Sets:SetEveryCharacter(id, on) end)
     AddOptionToggle(group, S.lowStock.toggle, S.lowStock.tooltip, "1.12.0", "lowStockWarning",
         function(id, on) Sets:SetOption(id, "lowStockWarning", on) end)
     AddOptionToggle(group, S.sets.currentExpansion, S.sets.currentExpansionDesc, nil, "currentExpansionOnly",
         function(id, on) Sets:SetOption(id, "currentExpansionOnly", on) end)
+    for _, option in ipairs(WARBOUND_OPTIONS) do
+        AddOptionToggle(group, S.warbound[option], S.warbound[option .. "Tooltip"], nil, option,
+            function(id, on) Sets:SetOption(id, option, on) end)
+    end
 
     group:Section(S.items.section)
     local list = Settings.CreateItemList(group, {

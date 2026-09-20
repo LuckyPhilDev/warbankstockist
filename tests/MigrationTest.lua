@@ -6,6 +6,7 @@ dofile("../Luckys_Utils/LuckyDB.lua")
 dofile("src/Strings.lua")
 dofile("src/Defaults.lua")
 dofile("src/StockRules.lua")
+dofile("src/StandardSets.lua")
 dofile("src/Sets.lua")
 dofile("src/Migration.lua")
 
@@ -68,6 +69,7 @@ local db = {
     characterClasses = { ["Newbie-Area 52"] = "MAGE", ["Lucky-Area 52"] = "DRUID" },
     ignoredCharacters = { ["Ignored-Area 52"] = true },
     goldManagement = { brackets = { { minLevel = 1, maxLevel = 79, gold = 500 } }, overrides = {} },
+    warboundDeposit = { enabled = true, armor = true, weapons = false, tokens = true },
 }
 local profilesBefore = serialize(db.profiles)
 local assignmentsBefore = serialize(db.assignments)
@@ -76,7 +78,7 @@ local ok, version = Migration.Upgrade(db)
 check("upgrade succeeds", ok, db)
 check("upgrade version", version, 1)
 check("schema version stored", db.__schemaVersion, 1)
-check("one set per profile", count(db.sets), 5)
+check("one set per profile, plus the warbound set", count(db.sets), 6)
 check("profiles left for a downgrade", serialize(db.profiles), profilesBefore)
 check("assignments left for a downgrade", serialize(db.assignments), assignmentsBefore)
 check("gold settings untouched", db.goldManagement.brackets[1].gold, 500)
@@ -87,12 +89,12 @@ local dump, empty, zero = setNamed(db, "Bank Dump"), setNamed(db, "Empty"), setN
 
 check("ids follow sorted names", dump.id, 1)
 check("ids follow sorted names, last", zero.id, 5)
-check("next id", db.nextSetId, 6)
+check("next id", db.nextSetId, 7)
 
 check("default is every character", default.everyCharacter, true)
 check("others are not every character", raiding.everyCharacter, false)
-check("nil excess deposit means on", default.returnExtras, true)
-check("false excess deposit means off", raiding.returnExtras, false)
+check("every set returns extras", default.returnExtras, true)
+check("a profile with excess off still returns extras", raiding.returnExtras, true)
 check("low stock warning carried", default.lowStockWarning, true)
 check("low stock warning off", raiding.lowStockWarning, false)
 check("items carried", default.items[1001], 5)
@@ -100,10 +102,21 @@ check("string items become numbers", raiding.items[2002], 3)
 check("keep type", raiding.type, "keep")
 check("all-zero deposit-only profile becomes Deposit All", dump.type, "deposit")
 check("empty profile with excess on stays Keep", empty.type, "keep")
-check("all-zero profile with excess off stays Keep", zero.type, "keep")
+check("all-zero profile becomes Deposit All whatever excess said", zero.type, "deposit")
 check("Default Qty to 0 is dropped", dump.defaultQtyZero, nil)
 check("sort after deposit goes account-wide", db.sortAfterDeposit, true)
 check("last edited profile carries over", db.lastEditedSet, raiding.id)
+
+local warbound = setNamed(db, "Warbound Items")
+check("warbound toggles become a set", warbound.standard, "warbound")
+check("warbound set deposits", warbound.type, "deposit")
+check("warbound set is every character", warbound.everyCharacter, true)
+check("warbound categories carried", serialize({ warbound.armor, warbound.weapons, warbound.tokens }),
+    serialize({ true, false, true }))
+check("the catch-all category is not switched on behind you", warbound.other, nil)
+check("warbound flags left for a downgrade", db.warboundDeposit.enabled, true)
+Migration.WarboundToSet(db)
+check("warbound imports once", count(db.sets), 6)
 
 check("assigned character ticks its set", db.characters["Lucky-Area 52"].sets[raiding.id], true)
 check("assigned character skips Default", default.skip["Lucky-Area 52"], true)
@@ -122,8 +135,12 @@ check("Default active on its character", Sets:IsActiveFor(default, "Philthy-Area
 check("Default active on an unseen character", Sets:IsActiveFor(default, "Newbie-Area 52"), true)
 check("Default off for Unassigned", Sets:IsActiveFor(default, "Unassigned-Area 52"), false)
 check("ignored character runs nothing", #Sets:ActiveSetsFor("Ignored-Area 52"), 0)
-check("assigned character runs one set", #Sets:ActiveSetsFor("Lucky-Area 52"), 1)
+check("assigned character runs its set and the warbound one", #Sets:ActiveSetsFor("Lucky-Area 52"), 2)
 check("ranges keep 1.13 amounts", Sets:RangesFor("Lucky-Area 52")[2001].min, 20)
+check("the warbound set stays out of the ranges", count(Sets:RangesFor("Lucky-Area 52")), 2)
+check("warbound categories reach the bank pass", serialize(Sets:WarboundOptions("Lucky-Area 52")),
+    serialize({ armor = true, weapons = false, tokens = true, other = false }))
+check("an ignored character runs no warbound pass", Sets:WarboundOptions("Ignored-Area 52"), nil)
 
 local afterFirst = serialize(db)
 Migration.Upgrade(db)
@@ -149,11 +166,18 @@ check("global list imported", global.items[5001], 4)
 check("global list goes to nobody", next(global.skip) == nil and not global.everyCharacter, true)
 check("global list returns extras", global.returnExtras, true)
 check("character list imported", own.items[6001], 2)
-check("character list keeps its excess setting", own.returnExtras, false)
+check("character list returns extras", own.returnExtras, true)
 check("character list ticked", fresh.characters["Oldie-Area 52"].sets[own.id], true)
 Migration.Login(fresh, "Oldie-Area 52", legacyGlobal, legacyChar)
 check("imports run once", count(fresh.sets), 3)
 Migration.Login(fresh, "Newer-Area 52", legacyGlobal, { useDefault = true, override = { [7001] = 1 } })
 check("a character using the global list imports nothing", count(fresh.sets), 3)
+
+-- Lucky's Grab-bag writes these after the first login, so the import keeps looking.
+fresh.warboundDeposit = { enabled = true, weapons = true }
+Migration.Login(fresh, "Oldie-Area 52", legacyGlobal, legacyChar)
+local handover = setNamed(fresh, "Warbound Items")
+check("a later hand-over still imports", handover.weapons, true)
+check("and only what it asked for", handover.armor, false)
 
 print(string.format("%d Migration tests passed", passed))
