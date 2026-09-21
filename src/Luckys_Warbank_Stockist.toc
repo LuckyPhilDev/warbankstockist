@@ -11,16 +11,19 @@
 
 Libs\LuckysUtils\embeds.xml
 Strings.lua
-config.lua
+Defaults.lua
 common-utils.lua
 utils.lua
 character-data.lua
-profiles.lua
-profile-manager.lua
+StockRules.lua
+StandardSets.lua
+Sets.lua
+Migration.lua
 Settings.lua
-settings/Profiles.lua
-settings/Items.lua
-settings/Assignments.lua
+settings/ItemList.lua
+settings/Sets.lua
+settings/Characters.lua
+settings/Reserves.lua
 settings/Gold.lua
 minimap.lua
 inventory.lua

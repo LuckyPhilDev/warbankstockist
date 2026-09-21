@@ -1,8 +1,3 @@
--- Warband Stockist: settings panel.
--- Builds the rich settings panel and owns the state shared between its pages.
--- Each page's rows live in settings/*.lua and are attached to
--- WarbandStorage.Settings by those files.
-
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.Settings = WarbandStorage.Settings or {}
 
@@ -13,10 +8,6 @@ local R_FONT = LuckySettings.Rich.Font
 local C = LuckyUI.C
 
 local ADDON_FOLDER = "Luckys_Warbank_Stockist"
-
--- ############################################################
--- ## Shared inputs
--- ############################################################
 
 --- A numeric entry box styled to match the panel. Blizzard's InputBoxTemplate
 --- carries its own gold border art, which reads as a different addon inside
@@ -65,58 +56,17 @@ function Settings.FieldLabel(parent, text)
     return label
 end
 
--- Pages that show the edited profile register a callback here. Changing the
--- profile from any page then keeps every other page in step, which the panel
--- would otherwise only do the next time it opened.
-Settings.profileListeners = {}
+-- Pages register here to redraw after any change to sets, characters or
+-- reserves, wherever it was made. The panel would otherwise only catch up the
+-- next time it opened.
+Settings.listeners = {}
 
-function Settings.EditedProfileName()
-    return WarbandStorage:GetEditedProfileName()
+function Settings.OnRefresh(redraw)
+    table.insert(Settings.listeners, redraw)
 end
 
-function Settings.SetEditedProfile(name)
-    WarbandStorage:SetEditedProfileName(name)
-end
-
--- The hook the profile and item modules already call after any change that
--- moves a profile in or out of the list, or switches which one is edited.
-function WarbandStorage.RefreshProfileDropdown()
-    for _, refresh in ipairs(Settings.profileListeners) do
-        refresh()
-    end
-end
-
--- Fill `options` in place from the current profile list. Select reads the same
--- table every time its menu opens, so refilling it is what makes a profile
--- created or deleted mid-session show up.
-function Settings.RefreshProfileOptions(options)
-    table.wipe(options)
-    for _, name in ipairs(WarbandStorage:GetAllProfileNames()) do
-        table.insert(options, { key = name, label = name })
-    end
-    return options
-end
-
--- A profile picker, plus the plumbing that keeps it and the page it sits on in
--- step with the other pages. `onChanged` runs after the profile changes,
--- however it changed.
-function Settings.AddProfileSelect(group, onChanged)
-    local options = Settings.RefreshProfileOptions({})
-
-    group:Select({
-        label    = S.profiles.label,
-        desc     = S.profiles.labelDesc,
-        options  = options,
-        value    = Settings.EditedProfileName,
-        onSelect = Settings.SetEditedProfile,
-    })
-
-    local picker = group.byLabel[S.profiles.label]
-    table.insert(Settings.profileListeners, function()
-        Settings.RefreshProfileOptions(options)
-        picker.refreshSelect()
-        if onChanged then onChanged() end
-    end)
+function Settings.Refresh()
+    for _, redraw in ipairs(Settings.listeners) do redraw() end
 end
 
 -- The version rows and the suite links sit on the first group, which is where
@@ -138,28 +88,15 @@ local function AddWhatsNew(panel)
     LuckyPromo:AddToRichGroup(group, ADDON_FOLDER)
 end
 
-local function BuildWarbound(group)
-    local function config()
-        WarbandStockistDB.warboundDeposit = WarbandStockistDB.warboundDeposit or {}
-        return WarbandStockistDB.warboundDeposit
-    end
-
-    local function toggle(key, label, desc, parent, note, since)
-        group:Toggle({
-            label    = label,
-            desc     = desc,
-            note     = note,
-            parent   = parent,
-            since    = since,
-            checked  = function() return config()[key] == true end,
-            onToggle = function(checked) config()[key] = checked end,
-        })
-    end
-
-    toggle("enabled", S.warbound.master, S.warbound.masterTooltip, nil, S.warbound.hint, "1.10.0")
-    toggle("armor", S.warbound.armor, S.warbound.armorTooltip, S.warbound.master)
-    toggle("weapons", S.warbound.weapons, S.warbound.weaponsTooltip, S.warbound.master)
-    toggle("tokens", S.warbound.tokens, S.warbound.tokensTooltip, S.warbound.master)
+local function BuildBank(group)
+    group:Section(S.bank.sorting)
+    group:Toggle({
+        label    = S.bank.sortAfter,
+        desc     = S.bank.sortAfterDesc,
+        since    = "2.0.0",
+        checked  = function() return WarbandStockistDB.sortAfterDeposit == true end,
+        onToggle = function(checked) WarbandStockistDB.sortAfterDeposit = checked end,
+    })
 
     group:Section(S.bankQueue.section)
     LuckyBankRun:AddModeSetting(group, { since = "1.13.0" })
@@ -168,9 +105,6 @@ end
 
 function Settings.Create()
     if WarbandStorage.SettingsPanel then return WarbandStorage.SettingsPanel end
-
-    WarbandStorage:MigrateLegacyIfNeeded()
-    WarbandStorage.ProfileManager:EnsureProfile(WarbandStockistDB.defaultProfile)
 
     local panel = LuckySettings:NewRichPanel(S.addon.title, {
         addonFolder = ADDON_FOLDER,
@@ -193,19 +127,18 @@ function Settings.Create()
         },
     }, function(p)
         AddWhatsNew(p)
-        p:Group(S.profiles.section, { showAbout = false }, Settings.BuildProfiles)
-        p:Group(S.assignments.section, { showAbout = false }, Settings.BuildAssignments)
+        p:Group(S.sets.section, { showAbout = false }, Settings.BuildSets)
+        p:Group(S.reserves.section, { showAbout = false }, Settings.BuildReserves)
+        p:Group(S.characters.section, { showAbout = false }, Settings.BuildCharacters)
         p:Group(S.gold.section, { showAbout = false }, Settings.BuildGold)
-        p:Group(S.warbound.section, BuildWarbound)
+        p:Group(S.bank.section, BuildBank)
     end)
 
     panel:OnOpen(function()
         WarbandStorage.Perf:Reset()
         local perfStart = WarbandStorage.Perf:Now()
 
-        WarbandStorage.RefreshProfileDropdown()
-        if RefreshItemList then RefreshItemList() end
-        if RefreshAssignmentsList then RefreshAssignmentsList() end
+        Settings.Refresh()
         if WarbandStorage.RefreshGoldLists then WarbandStorage.RefreshGoldLists() end
 
         WarbandStorage.Perf:Add("Settings:OnOpen", perfStart)

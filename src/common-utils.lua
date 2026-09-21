@@ -33,9 +33,8 @@ function Utils:ValidateItemInput(itemID, quantity)
   return self:IsValidItemID(itemID) and self:IsValidQuantity(quantity)
 end
 
--- Optional second arg excludeName allows an existing profile with that name (for rename flow)
--- Returns: boolean isValid, string trimmedName (when valid)
-function Utils:ValidateProfileName(name, excludeName)
+-- Returns isValid, trimmedName. excludeName lets a rename keep its own name.
+function Utils:ValidateSetName(name, excludeName)
   -- Helper to show an error in the UI (fallback to print)
   local function showError(msg)
     if UIErrorsFrame and UIErrorsFrame.AddMessage then
@@ -46,44 +45,33 @@ function Utils:ValidateProfileName(name, excludeName)
   end
 
   if type(name) ~= "string" then
-    showError(S.profiles.nameRequired)
+    showError(S.sets.nameRequired)
     return false
   end
 
-  -- Trim whitespace
   local trimmed = name:match("^%s*(.-)%s*$") or ""
   if trimmed == "" then
-    showError(S.profiles.nameEmpty)
+    showError(S.sets.nameEmpty)
     return false
   end
 
-  -- Enforce a reasonable length (dialogs use maxLetters = 40)
+  -- The name dialogs cap input at 40 letters.
   if #trimmed > 40 then
-    showError(S.profiles.nameTooLong)
+    showError(S.sets.nameTooLong)
     return false
   end
 
-  -- Disallow control characters
   if trimmed:find("[%z\1-\31]") then
-    showError(S.profiles.nameInvalid)
+    showError(S.sets.nameInvalid)
     return false
   end
 
-  -- Disallow reserved default profile name except when not changing it
-  local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
-  if trimmed == reserved then
-    -- Only allowed if we're effectively not changing the name (excludeName matches exactly)
-    if not excludeName or excludeName ~= reserved then
-      showError(S.profiles.nameReserved:format(reserved))
-      return false
-    end
-  end
-
-  -- Require uniqueness against existing profiles (except excluded name)
-  if WarbandStockistDB and WarbandStockistDB.profiles and WarbandStockistDB.profiles[trimmed] then
-    if not excludeName or trimmed ~= excludeName then
-      showError(S.profiles.nameTaken:format(trimmed))
-      return false
+  if trimmed ~= excludeName then
+    for _, set in ipairs(WarbandStorage.Sets:All()) do
+      if set.name == trimmed then
+        showError(S.sets.nameTaken:format(trimmed))
+        return false
+      end
     end
   end
 
@@ -221,17 +209,11 @@ end
 
 -- On a cold cache every tracked item resolves its name asynchronously, and each
 -- one landing used to rebuild the whole list. Coalesce them into one rebuild on
--- the next frame so a profile of N items costs one refresh, not N.
-local refreshQueued = false
-local function QueueItemListRefresh()
-  if refreshQueued or not RefreshItemList then return end
-  refreshQueued = true
-  C_Timer.After(0, function()
-    refreshQueued = false
-    WarbandStorage.Perf:Count("GetItemName:coalescedRefresh")
-    RefreshItemList()
-  end)
-end
+-- the next frame so a set of N items costs one refresh, not N.
+local QueueItemListRefresh = LuckyUtils.Debounced(0, function()
+  WarbandStorage.Perf:Count("GetItemName:coalescedRefresh")
+  WarbandStorage.Settings.Refresh()
+end)
 
 -- Resolve an item name through LuckyItem's shared session cache. Returns nil
 -- while the name is still loading; the coalesced refresh repaints the list

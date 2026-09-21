@@ -1,10 +1,10 @@
--- Ensure shared namespace exists
+local ADDON_NAME = ...
+
 WarbandStorage = WarbandStorage or {}
 
 local S = WarbandStorage.Strings
 local PREFIX = S.addon.prefix
 
--- Shared Event Dispatcher
 WarbandStorage.Events = CreateFrame("Frame")
 
 WarbandStorage.Events:SetScript("OnEvent", function(_, event, ...)
@@ -17,51 +17,22 @@ function WarbandStorage:RegisterEvent(event)
     self.Events:RegisterEvent(event)
 end
 
--- Shared OnEvent handler
 function WarbandStorage:OnEvent(event, ...)
-    if event == "PLAYER_LOGIN" then
-        -- Saved variables are now safe to access
-        WarbandStorageData = WarbandStorageData or { default = {} }
-        WarbandStorageCharData = WarbandStorageCharData or {
-            useDefault = true,
-            override = {},
-        }
+    if event == "ADDON_LOADED" then
+        if ... ~= ADDON_NAME then return end
+        self.Events:UnregisterEvent("ADDON_LOADED")
+        -- Here rather than at PLAYER_LOGIN so the upgrade has finished before
+        -- another addon's PLAYER_LOGIN handler calls into this one.
+        WarbandStockistDB = WarbandStockistDB or {}
+        WarbandStorage.Migration.Upgrade(WarbandStockistDB)
 
+    elseif event == "PLAYER_LOGIN" then
+        WarbandStorageCharData = WarbandStorageCharData or {}
         WarbandStorage.inventory = {}
 
-        WarbandStorage:DebugPrint("Loaded saved variables.")
-        
-        -- Store current character's class for proper coloring
-        if WarbandStorage.Utils and WarbandStorage.Utils.StoreCharacterClass then
-            WarbandStorage.Utils:StoreCharacterClass()
-        end
-        
-        -- Warbound auto-deposit settings (missing on saves from before the feature)
-        WarbandStockistDB.warboundDeposit = WarbandStockistDB.warboundDeposit or {}
-
-        -- Ensure reserved default profile exists
-        do
-            WarbandStockistDB.profiles = WarbandStockistDB.profiles or {}
-            local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
-            WarbandStockistDB.profiles[reserved] = WarbandStockistDB.profiles[reserved] or { items = {} }
-        end
-
-        -- Auto-assign default profile to new characters (first-seen) while preserving Unassigned if user sets it
-        do
-            WarbandStockistDB.assignments = WarbandStockistDB.assignments or {}
-            WarbandStockistDB._seenCharacters = WarbandStockistDB._seenCharacters or {}
-            local charKey = WarbandStorage.Utils:GetCharacterKey()
-            local reserved = (WarbandStockistDB and WarbandStockistDB.defaultProfile) or "Default"
-            if not WarbandStockistDB._seenCharacters[charKey] then
-                -- First time we see this character in SavedVariables for this account
-                if WarbandStockistDB.assignments[charKey] == nil then
-                    -- Assign default profile by default; user can still set Unassigned later
-                    WarbandStockistDB.assignments[charKey] = reserved
-                    WarbandStorage:DebugPrint("Assigned default profile to new character: " .. tostring(charKey))
-                end
-                WarbandStockistDB._seenCharacters[charKey] = true
-            end
-        end
+        WarbandStorage.Utils:StoreCharacterClass()
+        WarbandStorage.Migration.Login(WarbandStockistDB, WarbandStorage.Utils:GetCharacterKey(),
+            WarbandStorageData, WarbandStorageCharData)
 
         WarbandStorage.Settings.Create()
 
@@ -102,24 +73,17 @@ function WarbandStorage:OnEvent(event, ...)
             WarbandStorage:DebugPrint("Bank Opened")
             -- Slight delay to ensure bank APIs/tab IDs are available
             C_Timer.After(0.2, function()
-                -- Log current profile assignment and desired stock size
-                local activeProfileName = WarbandStorage.ProfileManager and WarbandStorage.ProfileManager:GetActiveProfileName() or (WarbandStorage.GetActiveProfileName and WarbandStorage:GetActiveProfileName())
-                if activeProfileName then
-                    WarbandStorage:DebugPrint("Active profile: " .. tostring(activeProfileName))
-                else
-                    WarbandStorage:DebugPrint("No active profile assigned to this character (unassigned)")
+                local names = {}
+                for _, set in ipairs(WarbandStorage.Sets:ActiveSetsFor(WarbandStorage.Utils:GetCharacterKey())) do
+                    names[#names + 1] = set.name
                 end
-                -- Show how many desired items we think there are
-                local desired = WarbandStorage.GetDesiredStock and WarbandStorage:GetDesiredStock() or {}
-                local desiredCount = 0
-                for _ in pairs(desired) do desiredCount = desiredCount + 1 end
-                WarbandStorage:DebugPrint(("Desired stock entries: %d"):format(desiredCount))
+                WarbandStorage:DebugPrint("Active sets: " .. (#names > 0 and table.concat(names, ", ") or "none"))
                 WarbandStorage:ManageGoldWithWarbank()
             end)
     end
 end
 
--- Register PLAYER_LOGIN via dispatcher
+WarbandStorage:RegisterEvent("ADDON_LOADED")
 WarbandStorage:RegisterEvent("PLAYER_LOGIN")
 WarbandStorage:RegisterEvent("BANKFRAME_OPENED")
 WarbandStorage:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -200,19 +164,8 @@ SlashCmdList["WARBANDSTORAGE"] = function(msg)
         return
     end
 
-    -- /wbs report - scan bags and print tracked inventory (previous default behavior)
     if msg:lower():find("^report") then
-        local wasEnabled = WarbandStockistDB.debugEnabled
-        WarbandStockistDB.debugEnabled = true
-        WarbandStorage:DebugPrint("Running /wbs report")
-
-        WarbandStorage:ScanBags()
-
-        C_Timer.After(0.3, function()
-            WarbandStorage:PrintTrackedInventory()
-            WarbandStorage:ReportMissingItems()
-            WarbandStockistDB.debugEnabled = wasEnabled
-        end)
+        WarbandStorage:PrintReport()
         return
     end
 
