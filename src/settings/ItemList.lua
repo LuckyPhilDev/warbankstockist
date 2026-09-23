@@ -213,7 +213,7 @@ function ItemList:BuildControls(strip)
     addBtn:SetScript("OnClick", function()
         local itemID = tonumber(idBox:GetText())
         local qty = 0
-        if list.showQty then qty = tonumber(qtyBox:GetText()) end
+        if list.showQty and qtyBox:GetText() ~= "" then qty = tonumber(qtyBox:GetText()) end
         if not WarbandStorage.Utils:ValidateItemInput(itemID, qty) then
             WarbandStorage:DebugPrint("Invalid item ID or quantity.")
             return
