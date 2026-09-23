@@ -1,4 +1,4 @@
-## [Unreleased]
+## [2.0.1] - 2026-09-23
 
 ### Fixed
 - The Add button on the Sets page works again with the Keep box left blank, adding the item with a Keep of 0. (Thanks for the report Miserian)
