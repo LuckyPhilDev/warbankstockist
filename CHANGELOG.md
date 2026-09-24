@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Added
+- **Keep Open While Resting** A new option on the Bank page keeps the Low Stock window up while you are in a city or inn, until you restock or head out. (Thanks for the suggestion Halliday)
+- **Show For** Set how long the Low Stock window stays up before fading, on the Bank page. (Thanks for the suggestion Halliday)
+
+### Improved
+- **Low Stock Warning** The window now also opens when you enter a city or inn, so hearthing home after a raid tells you what to restock. It updates as you restock and closes once nothing is short.
+- **Red Minimap Button** A new option on the Bank page turns the minimap button red while any item on a Low Stock Warning set is short. The button's tooltip always says how many.
+
 ## [2.0.1] - 2026-09-23
 
 ### Fixed

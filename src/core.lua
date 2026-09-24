@@ -67,7 +67,18 @@ function WarbandStorage:OnEvent(event, ...)
             -- ponytail: bag contents can still be streaming in here; a fixed
             -- delay beats tracking BAG_UPDATE_DELAYED for a one-off line.
             C_Timer.After(2, function() WarbandStorage:WarnLowStock() end)
+            WarbandStorage.wasResting = IsResting()
+            WarbandStorage:RegisterEvent("PLAYER_UPDATE_RESTING")
+            WarbandStorage:RegisterEvent("BAG_UPDATE_DELAYED")
         end
+
+    elseif event == "PLAYER_UPDATE_RESTING" then
+        WarbandStorage:OnRestingChanged()
+
+    elseif event == "BAG_UPDATE_DELAYED" then
+        -- ponytail: re-resolves every set on each bag batch; debounce if a
+        -- bank run ever shows it in /wbs perf.
+        WarbandStorage:WarnLowStock(true)
 
     elseif event == "BANKFRAME_OPENED" then
             WarbandStorage:DebugPrint("Bank Opened")

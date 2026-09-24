@@ -98,6 +98,36 @@ local function BuildBank(group)
         onToggle = function(checked) WarbandStockistDB.sortAfterDeposit = checked end,
     })
 
+    group:Section(S.lowStock.section)
+    group:Slider({
+        label     = S.lowStock.seconds,
+        desc      = S.lowStock.secondsDesc,
+        key       = "WarbandStockistLowStockSeconds",
+        since     = "2.1.0",
+        min       = 5,
+        max       = 60,
+        suffix    = S.lowStock.secondsUnit,
+        value     = function() return WarbandStockistDB.lowStockSeconds end,
+        onChanged = function(value) WarbandStockistDB.lowStockSeconds = value end,
+    })
+    group:Toggle({
+        label    = S.lowStock.stay,
+        desc     = S.lowStock.stayDesc,
+        since    = "2.1.0",
+        checked  = function() return WarbandStockistDB.lowStockStayWhileResting == true end,
+        onToggle = function(checked) WarbandStockistDB.lowStockStayWhileResting = checked end,
+    })
+    group:Toggle({
+        label    = S.lowStock.tint,
+        desc     = S.lowStock.tintDesc,
+        since    = "2.1.0",
+        checked  = function() return WarbandStockistDB.lowStockMinimapTint == true end,
+        onToggle = function(checked)
+            WarbandStockistDB.lowStockMinimapTint = checked
+            WarbandStorage.Minimap:SetLowCount(WarbandStorage.Minimap.lowCount)
+        end,
+    })
+
     group:Section(S.bankQueue.section)
     LuckyBankRun:AddModeSetting(group, { since = "1.13.0" })
     LuckyBankRun:AddSettingsToggle(group, "1.13.0")

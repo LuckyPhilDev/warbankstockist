@@ -61,10 +61,9 @@ function WarbandStorage:PrintReport()
 end
 
 -- Small window listing every tracked item this character's bags are short
--- of. Opens at login for sets that opt in.
+-- of. Opens at login and on entering a rest area, for sets that opt in.
 local MAX_ROWS = 12
 local ROW_H = 22
-local HIDE_AFTER = 10
 
 local function LowStockFrame(self)
     if self.lowStockFrame then return self.lowStockFrame end
@@ -73,7 +72,7 @@ local function LowStockFrame(self)
     LuckyUI.CreateHeader(f, S.lowStock.title)
     f:SetFrameStrata("MEDIUM")
     LuckyUI.EnableDrag(f, { db = WarbandStockistDB, key = "lowStockPos", default = { "TOPLEFT", "TOPLEFT", 20, -120 } })
-    LuckyUI.EnableAutoHide(f, HIDE_AFTER)
+    LuckyUI.EnableAutoHide(f, WarbandStockistDB.lowStockSeconds)
     f.rows = {}
     self.lowStockFrame = f
     return f
@@ -103,7 +102,9 @@ local function LowStockRow(f, i)
     return row
 end
 
-function WarbandStorage:WarnLowStock()
+-- short[itemID] = { have, want } for each warned item the bags are below, and
+-- ids lists those items.
+function WarbandStorage:LowStock()
     local short, ids = {}, {}
     for itemID, range in pairs(CurrentRanges()) do
         local have = C_Item.GetItemCount(itemID, false) or 0
@@ -112,7 +113,27 @@ function WarbandStorage:WarnLowStock()
             table.insert(ids, itemID)
         end
     end
-    if #ids == 0 then return end
+    return short, ids
+end
+
+local function HoldWhileResting()
+    return WarbandStockistDB.lowStockStayWhileResting and IsResting()
+end
+
+-- Opens the window, or with refreshOnly redraws it only if it is already up,
+-- so a restock shrinks the list without popping the window back open.
+function WarbandStorage:WarnLowStock(refreshOnly)
+    local short, ids = self:LowStock()
+    self.Minimap:SetLowCount(#ids)
+    local f = self.lowStockFrame
+    if #ids == 0 then
+        if f and f:IsShown() then
+            f:StopAutoHide()
+            f:Hide()
+        end
+        return
+    end
+    if refreshOnly and not (f and f:IsShown()) then return end
 
     local S = self.Strings
     LuckyItem:GetMany(ids, function(infos)
@@ -121,6 +142,7 @@ function WarbandStorage:WarnLowStock()
             return na < nb
         end)
         local f = LowStockFrame(self)
+        if refreshOnly and not f:IsShown() then return end
         local shown = math.min(#ids, MAX_ROWS)
         for i, row in ipairs(f.rows) do row:SetShown(i <= shown or (i == shown + 1 and #ids > MAX_ROWS)) end
         for i = 1, shown do
@@ -140,6 +162,23 @@ function WarbandStorage:WarnLowStock()
         end
         f:SetHeight(36 + shown * ROW_H + 10)
         f:Show()
-        f:StartAutoHide()
+        if refreshOnly then return end
+        if HoldWhileResting() then
+            f:StopAutoHide()
+        else
+            f:StartAutoHide(WarbandStockistDB.lowStockSeconds)
+        end
     end)
+end
+
+-- Leaving the rest area lets a window held open by the setting fade as usual.
+function WarbandStorage:OnRestingChanged()
+    local resting = IsResting()
+    if resting == self.wasResting then return end
+    self.wasResting = resting
+    if resting then
+        self:WarnLowStock()
+    elseif self.lowStockFrame and self.lowStockFrame:IsShown() and WarbandStockistDB.lowStockStayWhileResting then
+        self.lowStockFrame:StartAutoHide(WarbandStockistDB.lowStockSeconds)
+    end
 end

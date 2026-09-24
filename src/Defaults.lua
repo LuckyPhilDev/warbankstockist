@@ -18,5 +18,8 @@ WarbandStorage.DB_DEFAULTS = {
     goldManagement = { brackets = {}, overrides = {} },
     warboundDeposit = { enabled = false, armor = false, weapons = false, tokens = false },
     devOpenOnLogin = false,
+    lowStockSeconds = 10,
+    lowStockStayWhileResting = false,
+    lowStockMinimapTint = false,
     minimap = {},
 }
