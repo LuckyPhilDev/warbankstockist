@@ -170,6 +170,16 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         more         = "and %d more",
     },
 
+    restock = {
+        tooltip          = "Restock From the Auction House",
+        tooltipPrice     = "Click to ask the Auction House for a price.",
+        tooltipConfirm   = "Click to buy %s for %s.",
+        priced           = "%s costs %s. Click the Restock button again to buy.",
+        noPrice          = "The Auction House has no price for %s, skipping it.",
+        notEnoughGold    = "Not enough gold for %s.",
+        done             = "Nothing left to restock.",
+    },
+
     warbound = {
         armor          = "Warbound Armor",
         armorTooltip   = "Deposits warbound armor from your bags.",

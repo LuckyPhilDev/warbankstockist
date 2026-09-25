@@ -39,3 +39,10 @@ end
 function StockRules.Deposit(range, inBags)
     return math.max(0, inBags - range.max)
 end
+
+-- What the Auction House still has to supply once the Warband Bank has given
+-- what it can.
+function StockRules.Purchase(range, inBags, inBank, reserve, priority)
+    local need = range.min - inBags
+    return math.max(0, need - StockRules.Withdrawal(range, inBags, inBank, reserve, priority))
+end

@@ -27,6 +27,7 @@ settings/Reserves.lua
 settings/Gold.lua
 minimap.lua
 inventory.lua
+AuctionHouse.lua
 bank.lua
 deposit-commands.lua
 core.lua
