@@ -97,15 +97,12 @@ end
 
 local function Button()
     if button then return button end
-    button = LuckyUI.CreateIconButton(AuctionHouseFrame, {
-        icon     = "Interface\\Icons\\INV_Misc_Bag_10",
-        size     = 42,
-        color    = { 1, 1, 1 },
-        texCoord = { 0.07, 0.93, 0.07, 0.93 },
-        tooltip  = BuildTooltip,
+    -- Shared with the other Lucky addons, so every Auction House button stacks in one column.
+    button = LuckyUI.SideColumn("AuctionHouse", AuctionHouseFrame):AddButton({
+        order   = 40,
+        texture = "Interface\\Icons\\INV_Misc_Bag_10",
+        tooltip = BuildTooltip,
     })
-    -- Bottom right, since Lucky's Grab-bag stacks its buttons down from the top right.
-    button:SetPoint("BOTTOMLEFT", AuctionHouseFrame, "BOTTOMRIGHT", 5, 0)
     button:SetScript("OnClick", OnClick)
     return button
 end
