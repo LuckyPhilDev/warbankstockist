@@ -1,7 +1,6 @@
 WarbandStorage = WarbandStorage or {}
 
 local S = WarbandStorage.Strings
-local StockRules = WarbandStorage.StockRules
 
 local MUTED = LuckyUI.C.textMuted
 local PRICE_TIMEOUT = 5
@@ -30,19 +29,14 @@ local function Describe(item)
 end
 
 local function Shortfalls(log)
-    local Sets = WarbandStorage.Sets
-    local charKey = WarbandStorage.Utils:GetCharacterKey()
-    local priority = Sets:IsPriority(charKey)
     local list = {}
-    for itemID, range in pairs(Sets:RangesFor(charKey)) do
+    for itemID, range in pairs(WarbandStorage.Sets:RangesFor(WarbandStorage.Utils:GetCharacterKey())) do
         if range.min > 0 and not settled[itemID] then
             local bindType = select(14, C_Item.GetItemInfo(itemID))
-            local inBags = C_Item.GetItemCount(itemID, false) or 0
-            local inWarbank = (C_Item.GetItemCount(itemID, false, false, false, true) or 0) - inBags
-            local quantity = StockRules.Purchase(range, inBags, inWarbank, Sets:GetReserve(itemID), priority)
+            local inBags, fromBank, quantity = WarbandStorage:Supply(itemID, range)
             if log then
-                WarbandStorage:DebugPrint(("Restock %d: keep %d, bags %d, warbank %d, bind %s, buy %d"):format(
-                    itemID, range.min, inBags, inWarbank, tostring(bindType), quantity))
+                WarbandStorage:DebugPrint(("Restock %d: keep %d, bags %d, from bank %d, bind %s, buy %d"):format(
+                    itemID, range.min, inBags, fromBank, tostring(bindType), quantity))
             end
             if quantity > 0 and LISTABLE[bindType] then list[#list + 1] = { itemID = itemID, quantity = quantity } end
         end

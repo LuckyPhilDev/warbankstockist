@@ -7,6 +7,7 @@
 
 ### Improved
 - **Low Stock Warning** The window now also opens when you enter a city or inn, so hearthing home after a raid tells you what to restock. It updates as you restock and closes once nothing is short.
+- **Low Stock Warning** Each item now shows how many the Warband Bank can cover, and the count turns red when you still need to buy or craft more.
 - **Red Minimap Button** A new option on the Bank page turns the minimap button red while any item on a Low Stock Warning set is short. The button's tooltip always says how many.
 
 ## [2.0.1] - 2026-09-23

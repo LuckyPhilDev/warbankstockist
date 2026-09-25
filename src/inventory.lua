@@ -68,7 +68,7 @@ local ROW_H = 22
 local function LowStockFrame(self)
     if self.lowStockFrame then return self.lowStockFrame end
     local S = self.Strings
-    local f = LuckyUI.CreatePanel("WarbandStockistLowStock", UIParent, 300, 100)
+    local f = LuckyUI.CreatePanel("WarbandStockistLowStock", UIParent, 340, 100)
     LuckyUI.CreateHeader(f, S.lowStock.title)
     f:SetFrameStrata("MEDIUM")
     LuckyUI.EnableDrag(f, { db = WarbandStockistDB, key = "lowStockPos", default = { "TOPLEFT", "TOPLEFT", 20, -120 } })
@@ -102,18 +102,42 @@ local function LowStockRow(f, i)
     return row
 end
 
--- short[itemID] = { have, want } for each warned item the bags are below, and
--- ids lists those items.
+-- What the bags hold, what the Warband Bank can hand over towards range.min,
+-- and what has to be bought or crafted on top.
+function WarbandStorage:Supply(itemID, range)
+    local StockRules = self.StockRules
+    local inBags = C_Item.GetItemCount(itemID, false) or 0
+    local inWarbank = (C_Item.GetItemCount(itemID, false, false, false, true) or 0) - inBags
+    local reserve, priority = self.Sets:GetReserve(itemID), self.Sets:IsPriority(self.Utils:GetCharacterKey())
+    return inBags,
+        StockRules.Withdrawal(range, inBags, inWarbank, reserve, priority),
+        StockRules.Purchase(range, inBags, inWarbank, reserve, priority)
+end
+
+-- short[itemID] = { have, want, fromBank, toBuy } for each warned item the bags
+-- are below, and ids lists those items.
 function WarbandStorage:LowStock()
     local short, ids = {}, {}
     for itemID, range in pairs(CurrentRanges()) do
-        local have = C_Item.GetItemCount(itemID, false) or 0
-        if range.warn and have < range.min then
-            short[itemID] = { have = have, want = range.min }
-            table.insert(ids, itemID)
+        if range.warn then
+            local have, fromBank, toBuy = self:Supply(itemID, range)
+            if have < range.min then
+                short[itemID] = { have = have, want = range.min, fromBank = fromBank, toBuy = toBuy }
+                table.insert(ids, itemID)
+            end
         end
     end
     return short, ids
+end
+
+local function CountText(S, item)
+    local WC = LuckyUI.WC
+    local text = S.lowStock.count:format(item.have, item.want)
+    if item.toBuy > 0 then text = WC.danger .. text .. WC.reset end
+    if item.fromBank > 0 then
+        text = WC.info .. S.lowStock.inBank:format(item.fromBank) .. WC.reset .. "  " .. text
+    end
+    return text
 end
 
 local function HoldWhileResting()
@@ -149,7 +173,7 @@ function WarbandStorage:WarnLowStock(refreshOnly)
             local itemID, info, row = ids[i], infos[ids[i]], LowStockRow(f, i)
             row.icon:SetTexture(info and info.icon or 134400)
             row.name:SetText(info and info.link or S.commands.itemIdFallback:format(itemID))
-            row.count:SetText(S.lowStock.count:format(short[itemID].have, short[itemID].want))
+            row.count:SetText(CountText(S, short[itemID]))
             row:Show()
         end
         if #ids > MAX_ROWS then
