@@ -11,6 +11,7 @@ local ITEMS = {
     [4] = { "Copper Ore", 7, 7, 11 },
     [5] = { "Some Sword", 2, 7, 11 },
     [6] = { "Misc Thing", 7, 11, 11 },
+    [9] = { "Yellow Housing Dye", 20, 1, 11 },
 }
 local ALCHEMY, MINING = 245755, 245762
 
@@ -75,6 +76,7 @@ check("herbs", keys(items("herb")), "1,2")
 check("herbs of the current expansion", keys(items("herb", { currentExpansionOnly = true })), "1")
 check("metal and stone", keys(items("metalstone")), "4")
 check("lumber by name only", keys(items("lumber")), "3")
+check("housing dyes", keys(items("housingDye")), "9")
 check("other reagents", keys(items("other")), "3,6")
 check("deposit all sets send everything", items("herb")[1], 0)
 

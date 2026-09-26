@@ -5,6 +5,7 @@ local Standard = WarbandStorage.StandardSets
 
 local TRADEGOODS = 7
 local OTHER_SUBCLASS = 11
+local HOUSING, HOUSING_DYE = 20, 1
 
 -- Keys and Tradegoods subclasses match Lucky's Grab-bag's Reagent Mains
 -- categories, so its settings carry over category for category.
@@ -98,6 +99,15 @@ Add("lumber", {
             -- of lumber item IDs if other locales need it.
             return info.classID == TRADEGOODS and info.subclassID == OTHER_SUBCLASS
                 and info.name ~= nil and info.name:lower():find("lumber", 1, true) ~= nil
+        end)
+    end,
+})
+
+Add("housingDye", {
+    type = "deposit",
+    items = function()
+        return BagItems(function(info)
+            return info.classID == HOUSING and info.subclassID == HOUSING_DYE
         end)
     end,
 })
