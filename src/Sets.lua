@@ -160,7 +160,7 @@ function Sets:SetType(id, setType)
     local set = db.sets[id]
     if set.type == setType then return end
     local base = set.standard and (set.name:gsub(" %d+$", ""))
-    local ownName = base == Sets.StandardName(set) or base == WarbandStorage.Strings.standard[set.standard]
+    local ownName = base and (base == Sets.StandardName(set) or base == WarbandStorage.Strings.standard[set.standard])
     set.type = setType
     if ownName then set.name = Sets.UniqueName(db, Sets.StandardName(set)) end
     Changed()

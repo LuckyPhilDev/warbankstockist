@@ -166,6 +166,9 @@ Sets:SetType(herbs.id, "keep")
 check("a set from before directions is renamed", herbs.name, "Herbs: Withdraw")
 Sets:SetType(herbs.id, "deposit")
 check("lumber has no direction", Sets:AddStandard("lumber").name, "Lumber")
+Sets:SetType(raiding.id, "deposit")
+check("a set of your own changes direction", raiding.type, "deposit")
+check("and keeps its name", raiding.name, "Raiding")
 
 -- What Lucky's Grab-bag calls to hand its settings over.
 local skip = { ["Main-Area52"] = true }
