@@ -190,6 +190,10 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         tokensTooltip  = "Deposits warbound tier tokens from your bags.",
         other          = "Other Warbound Items",
         otherTooltip   = "Deposits every other warbound item from your bags, consumables and reagents included.",
+        quality        = "Gear Quality",
+        qualityTooltip = "Only deposits warbound armor and weapons of this quality or better. Tokens and other items are not affected.",
+        qualityAny     = "Any quality",
+        qualityOrBetter = "%s or better",
     },
 
     bank = {

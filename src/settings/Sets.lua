@@ -165,6 +165,26 @@ local function AddOptionToggle(group, label, desc, since, key, apply)
     AddRowTooltip(group.byLabel[label], label, desc)
 end
 
+local function AddGearQualitySelect(group)
+    local options = { { key = 0, label = S.warbound.qualityAny } }
+    for quality = Enum.ItemQuality.Uncommon, Enum.ItemQuality.Epic do
+        local name = ITEM_QUALITY_COLORS[quality].color:WrapTextInColorCode(_G["ITEM_QUALITY" .. quality .. "_DESC"])
+        options[#options + 1] = { key = quality, label = S.warbound.qualityOrBetter:format(name) }
+    end
+    group:Select({
+        label    = S.warbound.quality,
+        desc     = S.warbound.qualityTooltip,
+        since    = "2.2.0",
+        options  = options,
+        value    = function()
+            local set = EditedSet()
+            return set and (set.minGearQuality or 0)
+        end,
+        onSelect = function(quality) Sets:SetOption(EditedSet().id, "minGearQuality", quality) end,
+    })
+    AddRowTooltip(group.byLabel[S.warbound.quality], S.warbound.quality, S.warbound.qualityTooltip)
+end
+
 -- A dropdown keeps showing its last pick until its menu is generated again;
 -- the library's refresh only sets the text shown when nothing is picked.
 local function RedrawSelect(setting)
@@ -207,6 +227,11 @@ local function Sync(group, options, usedBy, list)
         row.checkbox:SetChecked(row.getChecked())
         SetRowShown(row, shown)
     end
+
+    local qualityRow = group.byLabel[S.warbound.quality]
+    RedrawSelect(qualityRow)
+    SetRowShown(qualityRow, (standard and standard.warbound) == true)
+    SetRowEnabled(qualityRow, hasSet and (set.armor or set.weapons) == true)
 
     usedBy:SetText(hasSet and UsedByText(set) or "")
     list:Refresh()
@@ -256,6 +281,7 @@ function Settings.BuildSets(group)
         AddOptionToggle(group, S.warbound[option], S.warbound[option .. "Tooltip"], nil, option,
             function(id, on) Sets:SetOption(id, option, on) end)
     end
+    AddGearQualitySelect(group)
 
     group:Section(S.items.section)
     local list = Settings.CreateItemList(group, {

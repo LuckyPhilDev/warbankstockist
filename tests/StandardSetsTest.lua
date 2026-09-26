@@ -148,6 +148,14 @@ check("the scan reads the set's own categories", scanned, gear)
 Sets:SetEveryCharacter(gear.id, true)
 check("warbound stays out of the stock ranges", Sets:RangesFor("Main-Area52")[99], nil)
 check("its categories reach the bank pass", Sets:WarboundOptions("Main-Area52").tokens, true)
+check("no gear quality floor by default", Sets:WarboundOptions("Main-Area52").minGearQuality, 0)
+local epicOnly = Sets:AddStandard("warbound")
+epicOnly.minGearQuality = 4
+Sets:SetEveryCharacter(epicOnly.id, true)
+check("the loosest quality floor wins", Sets:WarboundOptions("Main-Area52").minGearQuality, 0)
+gear.minGearQuality = 3
+check("floors combine to the lowest", Sets:WarboundOptions("Main-Area52").minGearQuality, 3)
+Sets:Delete(epicOnly.id)
 gear.armor, gear.weapons, gear.tokens, gear.other = false, false, false, false
 check("a warbound set asking for nothing runs no pass", Sets:WarboundOptions("Main-Area52"), nil)
 

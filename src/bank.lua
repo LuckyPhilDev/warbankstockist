@@ -606,12 +606,25 @@ local function WarboundCategory(classID, subclassID)
     return "other"
 end
 
+-- Quality is read per slot: the same item id can sit in bags at more than one
+-- quality, and the floor only applies to armor and weapons.
+local function WarboundSlotFilter(cfg)
+    local minQuality = cfg.minGearQuality or 0
+    return function(bag, slot, info)
+        if not IsInstanceWarbound(bag, slot, info) then return false end
+        local classID = select(6, C_Item.GetItemInfoInstant(info.itemID))
+        local isGear = classID == ARMOR_CLASS or classID == WEAPON_CLASS
+        return not isGear or (info.quality or 0) >= minQuality
+    end
+end
+
 -- The warbound items in bags that cfg's categories cover, as { [itemID] = 0 }.
 -- The Warbound set lists this, so the Sets page shows what the bank pass takes.
 function WarbandStorage:WarboundBagItems(cfg)
     -- Items a set keeps in bags must not be deposited here; the withdraw pass
     -- that follows would just pull them straight back.
     local ranges = CurrentRanges()
+    local slotFilter = WarboundSlotFilter(cfg)
 
     local toDeposit = {}
     for _, bag in ipairs(GetAllPlayerBagIDs()) do
@@ -626,7 +639,7 @@ function WarbandStorage:WarboundBagItems(cfg)
                 local _, _, quality, _, _, _, _, _, _, _, _, classID, subclassID = C_Item.GetItemInfo(info.itemID)
                 if quality and quality > Enum.ItemQuality.Poor
                     and C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc)
-                    and IsInstanceWarbound(bag, slot, info) then
+                    and slotFilter(bag, slot, info) then
                     if cfg[WarboundCategory(classID, subclassID)] then
                         toDeposit[info.itemID] = 0
                         self:DebugPrint(("Warbound deposit: queueing item %d"):format(info.itemID))
@@ -642,7 +655,7 @@ end
 -- Counts may overcount non-warbound copies; the deposit loop's slot filter
 -- simply runs out of eligible stacks.
 local function PlanWarboundQueue(self, cfg)
-    local queue = {}
+    local queue = { slotFilter = WarboundSlotFilter(cfg) }
     for itemID in pairs(self:WarboundBagItems(cfg)) do
         local count = C_Item.GetItemCount(itemID, false) or 0
         if count > 0 then
@@ -667,7 +680,7 @@ local function RunWarboundQueue(self, queue, index, job)
         job:After(perItemDelay, function()
             RunWarboundQueue(self, queue, index + 1, job)
         end)
-    end, IsInstanceWarbound)
+    end, queue.slotFilter)
 end
 
 -- The warbound gear deposits, for DepositWarboundItems. Runs before the

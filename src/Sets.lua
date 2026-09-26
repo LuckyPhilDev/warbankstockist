@@ -230,19 +230,23 @@ function Sets.IsWarbound(set)
 end
 
 -- The categories the warbound sets this character runs ask for between them,
--- or nil when it runs none that ask for anything.
+-- and the loosest gear quality floor among them, or nil when it runs none that
+-- ask for anything.
 function Sets:WarboundOptions(charKey)
     local cfg = { armor = false, weapons = false, tokens = false, other = false }
-    local any = false
+    local any, minGearQuality = false, nil
     for _, set in ipairs(self:ActiveSetsFor(charKey)) do
         if Sets.IsWarbound(set) then
             for option in pairs(cfg) do
                 cfg[option] = cfg[option] or set[option] == true
                 any = any or cfg[option]
             end
+            minGearQuality = math.min(minGearQuality or math.huge, set.minGearQuality or 0)
         end
     end
-    return any and cfg or nil
+    if not any then return nil end
+    cfg.minGearQuality = minGearQuality
+    return cfg
 end
 
 function WarbandStorage:GetAllCharacterKeys()
