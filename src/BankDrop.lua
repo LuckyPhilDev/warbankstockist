@@ -177,12 +177,14 @@ end
 -- stacks on the cursor too, and those are not being dropped anywhere.
 local function Refresh()
     local itemID, link = HeldItem()
-    if bankOpen and itemID and not LuckyBankRun.current and C_Bank.CanViewBank(Enum.BankType.Account) then
+    if WarbandStockistDB.bankDropSlot and bankOpen and itemID and not LuckyBankRun.current and C_Bank.CanViewBank(Enum.BankType.Account) then
         Open(link)
     else
         Close()
     end
 end
+
+WarbandStorage.RefreshBankDrop = Refresh
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("BANKFRAME_OPENED")

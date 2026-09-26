@@ -225,7 +225,11 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
     },
 
     bankQueue = {
-        section = "Bank Queue",
+        section        = "Bank Queue",
+        dropSlot       = "Show Always Deposit Slot",
+        dropSlotDesc   = "Slides out a slot under the Bank Queue window while you hold an item at the bank. Drop the item on it to add it to your Always Deposit list.",
+        activeSets     = "Show Active Sets",
+        activeSetsDesc = "Lists the sets this character runs at the foot of the Bank Queue window.",
     },
 
     gold = {

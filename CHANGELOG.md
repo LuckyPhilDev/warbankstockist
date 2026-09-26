@@ -2,6 +2,8 @@
 
 ### Added
 - **Always Deposit Master List** A new set every character uses that can't be deleted. Pick up an item at the bank and drop it on the slot that slides out under the Bank Queue window: it joins the list and goes into your Warband Bank there and then.
+- **Active Sets in the Bank Queue** The Bank Queue window lists the sets this character runs.
+- **Bank Queue Toggles** Turn off the Always Deposit slot or the Active Sets list in the Bank settings.
 
 ## [2.1.0] - 2026-09-26
 

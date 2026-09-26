@@ -6,6 +6,7 @@ local Standard = WarbandStorage.StandardSets
 local WC = LuckyUI.WC
 
 local function Text()
+    if not WarbandStockistDB.bankActiveSets then return nil end
     local charKey = WarbandStorage.Utils:GetCharacterKey()
     local title = WC.goldPrimary .. S.bankSets.title .. WC.reset
     if Sets:IsIgnored(charKey) then return title .. "\n" .. S.bankSets.ignored end

@@ -21,5 +21,7 @@ WarbandStorage.DB_DEFAULTS = {
     lowStockSeconds = 10,
     lowStockStayWhileResting = false,
     lowStockMinimapTint = false,
+    bankDropSlot = true,
+    bankActiveSets = true,
     minimap = {},
 }
