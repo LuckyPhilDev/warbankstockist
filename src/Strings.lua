@@ -116,6 +116,7 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         housingDyeDesc = "A standard set: all housing dyes go from your bags to your Warband Bank.",
         treatiseDesc = "A standard set: keeps one Thalassian Treatise for each of your professions in your bags until you use it this week, withdrawn from your Warband Bank.",
         warboundDesc = "A standard set: the warbound items you tick go from your bags to your Warband Bank as it opens, before your sets restock. Anything a set keeps in your bags is left where it is.",
+        noExpansion  = "Any Expansion",
     },
 
     items = {

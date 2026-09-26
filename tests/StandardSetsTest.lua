@@ -39,6 +39,7 @@ C_TooltipInfo = {
 
 dofile("src/Strings.lua")
 dofile("src/StockRules.lua")
+dofile("src/StandardItems.lua")
 dofile("src/StandardSets.lua")
 dofile("src/Sets.lua")
 WarbandStorage.Settings = { Refresh = function() end }
@@ -92,7 +93,29 @@ check("unloaded items wait", keys(items("herb")), "1,2")
 loaded[8] = true
 check("a late load joins the next scan", keys(items("herb")), "1,2,8")
 
+-- The settings list every item a rule can match, not only what is in the bags.
+local LUREDROP, THALASSIAN_LUMBER = 210799, 256963
+local function entries(kind, set)
+    set = set or {}
+    set.standard, set.type = kind, set.type or Standard.kinds[kind].type
+    return Standard.Entries(set)
+end
+check("herbs list the bundled catalog", entries("herb")[LUREDROP], 0)
+check("and what is in the bags", entries("herb")[1], 0)
+check("the expansion filter narrows the catalog", entries("herb", { currentExpansionOnly = true })[LUREDROP], nil)
+check("but keeps matching bag items", entries("herb", { currentExpansionOnly = true })[1], 0)
+check("lumber lists every lumber", entries("lumber")[THALASSIAN_LUMBER], 0)
+check("no herbs in the lumber list", entries("lumber")[LUREDROP], nil)
+warbank = { [1] = 50 }
+check("withdraw all keeps its amounts", entries("herb", { type = "keep" })[1], math.huge)
+warbank = {}
+check("bundled expansion", Standard.Expansion(LUREDROP), 10)
+check("loaded item expansion", Standard.Expansion(1), 11)
+check("unknown expansion", Standard.Expansion(7), nil)
+
 check("no profession, no treatise", keys(items("treatise")), "")
+check("but every treatise is listed", entries("treatise")[ALCHEMY], 0)
+check("treatises are Midnight", Standard.Expansion(ALCHEMY), 11)
 knownLines = { 2871 }
 check("treatise for a known profession", items("treatise")[ALCHEMY], 1)
 knownSpells[423341] = true
@@ -175,6 +198,7 @@ check("weapons on by default", gear.weapons, true)
 check("tokens on by default", gear.tokens, true)
 check("everything else on by default", gear.other, true)
 check("warbound items come from the bag scan", keys(Standard.Resolve(gear).items), "99")
+check("warbound has no catalog", keys(Standard.Entries(gear)), "99")
 check("the scan reads the set's own categories", scanned, gear)
 Sets:SetEveryCharacter(gear.id, true)
 check("warbound stays out of the stock ranges", Sets:RangesFor("Main-Area52")[99], nil)

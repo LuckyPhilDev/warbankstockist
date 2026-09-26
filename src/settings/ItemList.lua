@@ -22,6 +22,13 @@ local function ItemIDFromLink(link)
     return tonumber(link and link:match("item:(%d+)"))
 end
 
+-- Blizzard bakes the rank into some item names and not others, so the name is
+-- stripped of it and every ranked item gets the game's own icon back.
+local function QualityIcon(itemID)
+    local info = C_TradeSkillUI.GetItemReagentQualityInfo(itemID) or C_TradeSkillUI.GetItemCraftedQualityInfo(itemID)
+    return info and CreateAtlasMarkup(info.iconChat, 17, 15, 1, 0) .. " " or ""
+end
+
 function ItemList:BuildRow()
     local opts = self.opts
     local row = CreateFrame("Frame", nil, self.scroll)
@@ -107,7 +114,7 @@ function ItemList:UpdateRow(row, index, itemID, qty)
     row.label:SetPoint("RIGHT", self.showQty and row.qtyLabel or row.removeBtn, "LEFT", -8, 0)
 
     local name = WarbandStorage.Utils:GetItemName(itemID) or S.items.unknownItem:format(itemID)
-    local text = name .. " |cff6b6250(" .. itemID .. ")|r"
+    local text = QualityIcon(itemID) .. name:gsub("%s*|A.-|a", "") .. " |cff6b6250(" .. itemID .. ")|r"
     local tag = self.opts.tag and self.opts.tag(itemID)
     if tag then text = text .. "   " .. DIM .. tag .. "|r" end
     row.label:SetText(text)
@@ -136,12 +143,14 @@ function ItemList:Refresh()
         scanned = scanned + 1
         local name = WarbandStorage.Utils:GetItemName(itemID) or ""
         if not filter or (name .. " " .. itemID):lower():find(filter, 1, true) then
-            matches[#matches + 1] = { itemID = itemID, qty = qty, sortKey = name:lower() }
+            local group = opts.group and opts.group(itemID) or -math.huge
+            matches[#matches + 1] = { itemID = itemID, qty = qty, group = group, sortKey = name:lower() }
         end
     end
     -- Sorted rather than taken straight from the table, so a refresh does not
     -- reshuffle the list under the cursor.
     table.sort(matches, function(a, b)
+        if a.group ~= b.group then return a.group > b.group end
         if a.sortKey ~= b.sortKey then return a.sortKey < b.sortKey end
         return a.itemID < b.itemID
     end)
@@ -223,7 +232,9 @@ function ItemList:BuildControls(strip)
         opts.setQty(itemID, qty)
     end)
 
-    self.controls = { search, idBox, qtyBox, addBtn }
+    -- The search box stays usable on a locked list: a standard set lists
+    -- hundreds of items worth searching.
+    self.controls = { idBox, qtyBox, addBtn }
     if opts.clear then
         local clearBtn = LuckyUI.CreateButton(strip, S.items.clear, 90, CONTROL_HEIGHT, "danger")
         clearBtn:SetPoint("LEFT", addBtn, "RIGHT", 8, 0)
@@ -240,7 +251,8 @@ end
 --- list the items it currently matches.
 --- opts: entries() -> { [itemID] = qty }, setQty(itemID, qty), remove(itemID),
 --- qtyLabel, qtyTooltip, emptyText (string or function), and optionally
---- clear() for a Clear List button, enabled(), showQty() and tag(itemID).
+--- clear() for a Clear List button, enabled(), showQty(), tag(itemID) and
+--- group(itemID), a number the list sorts by, highest first, before names.
 --- Must be the last thing added to the group: the list fills what is left.
 function Settings.CreateItemList(group, opts)
     local list = setmetatable({ opts = opts, filter = "", rows = {} }, ItemList)
