@@ -109,6 +109,7 @@ end
 -- character.
 function Migration.Login(db, charKey, legacyGlobal, legacyChar)
     local char = Sets.EnsureCharacter(db, charKey)
+    Sets.EnsureMaster(db)
     Migration.WarboundToSet(db)
 
     if not db.migratedLegacyGlobal and type(legacyGlobal) == "table"

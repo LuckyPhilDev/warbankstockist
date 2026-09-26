@@ -207,17 +207,19 @@ local function Sync(group, options, typeOptions, usedBy, list)
     FillSetOptions(options)
     RedrawSelect(group.byLabel[S.sets.label])
 
-    for _, label in ipairs({ S.sets.rename, S.sets.duplicate, S.sets.delete }) do
+    local master = hasSet and Sets.IsMaster(set)
+    local buttons = { [S.sets.rename] = hasSet, [S.sets.duplicate] = hasSet, [S.sets.delete] = hasSet and not master }
+    for label, enabled in pairs(buttons) do
         local button = group.byLabel[label].button
-        button:SetEnabled(hasSet)
-        button:SetAlpha(hasSet and 1 or 0.35)
+        button:SetEnabled(enabled)
+        button:SetAlpha(enabled and 1 or 0.35)
     end
 
     typeOptions[1].label = reagent and S.sets.typeWithdrawAll or S.sets.typeKeep
     local typeRow = group.byLabel[S.sets.type]
     RedrawSelect(typeRow)
     SetRowShown(typeRow, hasSet)
-    SetRowEnabled(typeRow, hasSet and (not set.standard or reagent))
+    SetRowEnabled(typeRow, hasSet and not master and (not set.standard or reagent))
 
     local rows = {
         [S.sets.everyCharacter]   = hasSet,
@@ -317,7 +319,8 @@ function Settings.BuildSets(group)
         emptyText  = function()
             local set = EditedSet()
             if not set then return S.sets.none end
-            return set.standard and StandardDescription(set) or S.items.empty
+            if set.standard then return StandardDescription(set) end
+            return Sets.IsMaster(set) and S.sets.masterEmpty or S.items.empty
         end,
         tag        = function(itemID)
             local reserve = Sets:GetReserve(itemID)

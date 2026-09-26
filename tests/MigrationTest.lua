@@ -168,10 +168,14 @@ check("global list returns extras", global.returnExtras, true)
 check("character list imported", own.items[6001], 2)
 check("character list returns extras", own.returnExtras, true)
 check("character list ticked", fresh.characters["Oldie-Area 52"].sets[own.id], true)
+local master = fresh.sets[fresh.masterSetId]
+check("login adds the master list", master.name, "Always Deposit Master List")
+check("master list deposits", master.type, "deposit")
+check("master list is every character", master.everyCharacter, true)
 Migration.Login(fresh, "Oldie-Area 52", legacyGlobal, legacyChar)
-check("imports run once", count(fresh.sets), 3)
+check("imports run once", count(fresh.sets), 4)
 Migration.Login(fresh, "Newer-Area 52", legacyGlobal, { useDefault = true, override = { [7001] = 1 } })
-check("a character using the global list imports nothing", count(fresh.sets), 3)
+check("a character using the global list imports nothing", count(fresh.sets), 4)
 
 -- Lucky's Grab-bag writes these after the first login, so the import keeps looking.
 fresh.warboundDeposit = { enabled = true, weapons = true }
@@ -179,5 +183,9 @@ Migration.Login(fresh, "Oldie-Area 52", legacyGlobal, legacyChar)
 local handover = setNamed(fresh, "Warbound Items")
 check("a later hand-over still imports", handover.weapons, true)
 check("and only what it asked for", handover.armor, false)
+
+fresh.sets[master.id] = nil
+Migration.Login(fresh, "Oldie-Area 52", legacyGlobal, legacyChar)
+check("a missing master list comes back", fresh.sets[fresh.masterSetId].name, "Always Deposit Master List")
 
 print(string.format("%d Migration tests passed", passed))

@@ -48,6 +48,21 @@ function Sets.EnsureCharacter(db, charKey)
     return db.characters[charKey]
 end
 
+-- The Deposit All set the bank's drop slot adds to. It can be renamed but not
+-- deleted; this puts it back if it goes missing all the same.
+function Sets.EnsureMaster(db)
+    if db.masterSetId and db.sets[db.masterSetId] then return db.sets[db.masterSetId] end
+    local set = Sets.NewSet(db, Sets.UniqueName(db, WarbandStorage.Strings.sets.masterName))
+    set.type = "deposit"
+    set.everyCharacter = true
+    db.masterSetId = set.id
+    return set
+end
+
+function Sets.IsMaster(set)
+    return set.id == DB().masterSetId
+end
+
 function Sets:All()
     local list = {}
     for _, set in pairs(DB().sets) do list[#list + 1] = set end
