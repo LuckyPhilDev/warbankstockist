@@ -127,7 +127,7 @@ Add("lumber", {
                 and info.name ~= nil and info.name:lower():find("lumber", 1, true) ~= nil
         end)
     end,
-    catalog = function() return Catalog({ Data.lumber }) end,
+    catalog = function() return Catalog({ IndexExpansions(Data.lumber) }) end,
 })
 
 Add("housingDye", {

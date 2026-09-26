@@ -344,8 +344,9 @@ function Settings.BuildSets(group)
         end,
         tag        = function(itemID)
             local reserve = Sets:GetReserve(itemID)
-            local tags = { reserve and S.items.reserveTag:format(reserve) }
             local set = EditedSet()
+            local tags = {}
+            if reserve then tags[#tags + 1] = S.items.reserveTag:format(reserve) end
             if set and set.standard then tags[#tags + 1] = ExpansionName(Standard.Expansion(itemID)) end
             return #tags > 0 and table.concat(tags, "   ") or nil
         end,

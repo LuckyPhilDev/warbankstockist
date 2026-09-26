@@ -279,15 +279,12 @@ end
 -- ponytail: ignores which categories each set asks for, so an armour-only set
 -- excluding a piece does not hold it back from a second set taking everything.
 local function ExcludedByAll(excluded, set)
-    if not excluded then
-        excluded = {}
-        for itemID in pairs(set.excluded or {}) do excluded[itemID] = true end
-        return excluded
+    local own = set.excluded or {}
+    local kept = {}
+    for itemID in pairs(excluded or own) do
+        if own[itemID] then kept[itemID] = true end
     end
-    for itemID in pairs(excluded) do
-        if not (set.excluded and set.excluded[itemID]) then excluded[itemID] = nil end
-    end
-    return excluded
+    return kept
 end
 
 -- The categories the warbound sets this character runs ask for between them,
