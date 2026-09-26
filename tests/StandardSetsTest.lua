@@ -210,6 +210,9 @@ Sets:SetEveryCharacter(gear.id, true)
 check("warbound stays out of the stock ranges", Sets:RangesFor("Main-Area52")[99], nil)
 check("its categories reach the bank pass", Sets:WarboundOptions("Main-Area52").tokens, true)
 check("no gear quality floor by default", Sets:WarboundOptions("Main-Area52").minGearQuality, 0)
+Sets:SetExcluded(gear.id, 99, true)
+check("a lone warbound set holds back what it excludes", Sets:WarboundOptions("Main-Area52").excluded[99], true)
+Sets:SetExcluded(gear.id, 99, false)
 local epicOnly = Sets:AddStandard("warbound")
 epicOnly.minGearQuality = 4
 Sets:SetEveryCharacter(epicOnly.id, true)
@@ -221,6 +224,12 @@ check("every set excluding it holds it back", Sets:WarboundOptions("Main-Area52"
 check("excluded warbound gear stays listed", keys(Standard.Entries(gear)), "99")
 Sets:SetExcluded(gear.id, 99, false)
 check("included again", gear.excluded[99], nil)
+check("the second set excluding it alone lets the first take it", Sets:WarboundOptions("Main-Area52").excluded[99], nil)
+for _, itemID in ipairs({ 97, 98 }) do Sets:SetExcluded(gear.id, itemID, true) end
+for _, itemID in ipairs({ 98, 99 }) do Sets:SetExcluded(epicOnly.id, itemID, true) end
+check("only what every set excludes is held back", keys(Sets:WarboundOptions("Main-Area52").excluded), "98")
+for _, itemID in ipairs({ 97, 98 }) do Sets:SetExcluded(gear.id, itemID, false) end
+for _, itemID in ipairs({ 98, 99 }) do Sets:SetExcluded(epicOnly.id, itemID, false) end
 gear.minGearQuality = 3
 check("floors combine to the lowest", Sets:WarboundOptions("Main-Area52").minGearQuality, 3)
 Sets:Delete(epicOnly.id)
