@@ -42,6 +42,12 @@ function ItemList:BuildRow()
     row.icon:SetSize(20, 20)
     row.icon:SetPoint("LEFT", 4, 0)
 
+    -- A square of the rarity colour a pixel wider than the icon on each side,
+    -- drawn beneath it so only the rim shows.
+    row.rarityBorder = row:CreateTexture(nil, "BORDER")
+    row.rarityBorder:SetPoint("TOPLEFT", row.icon, -1, 1)
+    row.rarityBorder:SetPoint("BOTTOMRIGHT", row.icon, 1, -1)
+
     -- Textures take no mouse input of their own, so the tooltip hangs off a
     -- frame sized to the icon.
     row.iconHit = CreateFrame("Frame", nil, row)
@@ -104,6 +110,14 @@ function ItemList:UpdateRow(row, index, itemID, qty)
     local dim = self.showQty and (qty or 0) == 0
     row.icon:SetTexture(C_Item.GetItemIconByID(itemID))
     row.icon:SetDesaturated(dim)
+
+    -- GetItemQualityByID answers nil for an item the client has not cached,
+    -- which is most of a standard set's catalog; LuckyItem kept the quality
+    -- when it loaded the name.
+    local loaded = LuckyItem:GetCached(itemID)
+    local rarity = ITEM_QUALITY_COLORS[loaded and loaded.quality or C_Item.GetItemQualityByID(itemID)]
+    if rarity then row.rarityBorder:SetColorTexture(rarity.r, rarity.g, rarity.b, dim and 0.35 or 1) end
+    row.rarityBorder:SetShown(rarity ~= nil)
 
     row.qtyLabel:SetShown(self.showQty)
     row.qtyBox:SetShown(self.showQty)
