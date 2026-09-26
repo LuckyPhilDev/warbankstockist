@@ -1,5 +1,5 @@
 WarbandStorage = WarbandStorage or {}
-WarbandStorage.Minimap = {}
+WarbandStorage.Minimap = { lowCount = 0 }
 
 local ICON = LuckyMedia("promo-warbank-stockist.tga")
 local S = WarbandStorage.Strings
@@ -34,10 +34,25 @@ function WarbandStorage.Minimap:Init(db)
         end,
         tooltip = function(tt)
             tt:AddLine(S.minimap.tooltipTitle)
+            if self.lowCount > 0 then
+                tt:AddLine(S.minimap.lowStock:format(self.lowCount), 1, 0.35, 0.35)
+            end
             tt:AddLine(" ")
             tt:AddLine(S.minimap.click, 0.91, 0.86, 0.78)
             tt:AddLine(S.minimap.middleClick, 0.91, 0.86, 0.78)
             tt:AddLine(S.minimap.drag, 0.54, 0.49, 0.42)
         end,
     })
+end
+
+-- Optionally tints the icon red while any warned item is short, so the
+-- warning outlives the window.
+function WarbandStorage.Minimap:SetLowCount(count)
+    self.lowCount = count
+    if not self.button then return end
+    if count > 0 and WarbandStockistDB.lowStockMinimapTint then
+        self.button.icon:SetVertexColor(1, 0.35, 0.35)
+    else
+        self.button.icon:SetVertexColor(1, 1, 1)
+    end
 end

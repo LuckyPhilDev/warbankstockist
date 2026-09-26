@@ -82,6 +82,15 @@ check("any warning set warns", range({ keepSet(3, true, false), keepSet(1, true,
 check("a later quiet set keeps the warning", range({ keepSet(1, true, true), keepSet(3, true, false) }).warn, true)
 check("deposit all does not warn", range({ depositSet() }).warn, false)
 
+-- Buying covers only what the bank cannot.
+r = range({ keepSet(20, true) })
+check("buy the whole shortfall", StockRules.Purchase(r, 5, 0), 15)
+check("bank covers it", StockRules.Purchase(r, 5, 60), 0)
+check("bank covers part", StockRules.Purchase(r, 5, 10), 5)
+check("reserve held back from the bank", StockRules.Purchase(r, 0, 30, 25, false), 15)
+check("priority ignores the reserve", StockRules.Purchase(r, 0, 30, 25, true), 0)
+check("already stocked buys nothing", StockRules.Purchase(r, 25, 0), 0)
+
 check("unlisted item has no range", StockRules.Merge({ keepSet(3, true) })[1], nil)
 
 print(string.format("%d StockRules tests passed", passed))

@@ -61,19 +61,18 @@ function WarbandStorage:PrintReport()
 end
 
 -- Small window listing every tracked item this character's bags are short
--- of. Opens at login for sets that opt in.
+-- of. Opens at login and on entering a rest area, for sets that opt in.
 local MAX_ROWS = 12
 local ROW_H = 22
-local HIDE_AFTER = 10
 
 local function LowStockFrame(self)
     if self.lowStockFrame then return self.lowStockFrame end
     local S = self.Strings
-    local f = LuckyUI.CreatePanel("WarbandStockistLowStock", UIParent, 300, 100)
+    local f = LuckyUI.CreatePanel("WarbandStockistLowStock", UIParent, 340, 100)
     LuckyUI.CreateHeader(f, S.lowStock.title)
     f:SetFrameStrata("MEDIUM")
     LuckyUI.EnableDrag(f, { db = WarbandStockistDB, key = "lowStockPos", default = { "TOPLEFT", "TOPLEFT", 20, -120 } })
-    LuckyUI.EnableAutoHide(f, HIDE_AFTER)
+    LuckyUI.EnableAutoHide(f, WarbandStockistDB.lowStockSeconds)
     f.rows = {}
     self.lowStockFrame = f
     return f
@@ -103,16 +102,62 @@ local function LowStockRow(f, i)
     return row
 end
 
-function WarbandStorage:WarnLowStock()
+-- What the bags hold, what the Warband Bank can hand over towards range.min,
+-- and what has to be bought or crafted on top.
+function WarbandStorage:Supply(itemID, range)
+    local StockRules = self.StockRules
+    local inBags = C_Item.GetItemCount(itemID, false) or 0
+    local inWarbank = (C_Item.GetItemCount(itemID, false, false, false, true) or 0) - inBags
+    local reserve, priority = self.Sets:GetReserve(itemID), self.Sets:IsPriority(self.Utils:GetCharacterKey())
+    return inBags,
+        StockRules.Withdrawal(range, inBags, inWarbank, reserve, priority),
+        StockRules.Purchase(range, inBags, inWarbank, reserve, priority)
+end
+
+-- short[itemID] = { have, want, fromBank, toBuy } for each warned item the bags
+-- are below, and ids lists those items.
+function WarbandStorage:LowStock()
     local short, ids = {}, {}
     for itemID, range in pairs(CurrentRanges()) do
-        local have = C_Item.GetItemCount(itemID, false) or 0
-        if range.warn and have < range.min then
-            short[itemID] = { have = have, want = range.min }
-            table.insert(ids, itemID)
+        if range.warn then
+            local have, fromBank, toBuy = self:Supply(itemID, range)
+            if have < range.min then
+                short[itemID] = { have = have, want = range.min, fromBank = fromBank, toBuy = toBuy }
+                table.insert(ids, itemID)
+            end
         end
     end
-    if #ids == 0 then return end
+    return short, ids
+end
+
+local function CountText(S, item)
+    local WC = LuckyUI.WC
+    local text = S.lowStock.count:format(item.have, item.want)
+    if item.toBuy > 0 then text = WC.danger .. text .. WC.reset end
+    if item.fromBank > 0 then
+        text = WC.info .. S.lowStock.inBank:format(item.fromBank) .. WC.reset .. "  " .. text
+    end
+    return text
+end
+
+local function HoldWhileResting()
+    return WarbandStockistDB.lowStockStayWhileResting and IsResting()
+end
+
+-- Opens the window, or with refreshOnly redraws it only if it is already up,
+-- so a restock shrinks the list without popping the window back open.
+function WarbandStorage:WarnLowStock(refreshOnly)
+    local short, ids = self:LowStock()
+    self.Minimap:SetLowCount(#ids)
+    local f = self.lowStockFrame
+    if #ids == 0 then
+        if f and f:IsShown() then
+            f:StopAutoHide()
+            f:Hide()
+        end
+        return
+    end
+    if refreshOnly and not (f and f:IsShown()) then return end
 
     local S = self.Strings
     LuckyItem:GetMany(ids, function(infos)
@@ -121,13 +166,14 @@ function WarbandStorage:WarnLowStock()
             return na < nb
         end)
         local f = LowStockFrame(self)
+        if refreshOnly and not f:IsShown() then return end
         local shown = math.min(#ids, MAX_ROWS)
         for i, row in ipairs(f.rows) do row:SetShown(i <= shown or (i == shown + 1 and #ids > MAX_ROWS)) end
         for i = 1, shown do
             local itemID, info, row = ids[i], infos[ids[i]], LowStockRow(f, i)
             row.icon:SetTexture(info and info.icon or 134400)
             row.name:SetText(info and info.link or S.commands.itemIdFallback:format(itemID))
-            row.count:SetText(S.lowStock.count:format(short[itemID].have, short[itemID].want))
+            row.count:SetText(CountText(S, short[itemID]))
             row:Show()
         end
         if #ids > MAX_ROWS then
@@ -140,6 +186,23 @@ function WarbandStorage:WarnLowStock()
         end
         f:SetHeight(36 + shown * ROW_H + 10)
         f:Show()
-        f:StartAutoHide()
+        if refreshOnly then return end
+        if HoldWhileResting() then
+            f:StopAutoHide()
+        else
+            f:StartAutoHide(WarbandStockistDB.lowStockSeconds)
+        end
     end)
+end
+
+-- Leaving the rest area lets a window held open by the setting fade as usual.
+function WarbandStorage:OnRestingChanged()
+    local resting = IsResting()
+    if resting == self.wasResting then return end
+    self.wasResting = resting
+    if resting then
+        self:WarnLowStock()
+    elseif self.lowStockFrame and self.lowStockFrame:IsShown() and WarbandStockistDB.lowStockStayWhileResting then
+        self.lowStockFrame:StartAutoHide(WarbandStockistDB.lowStockSeconds)
+    end
 end
