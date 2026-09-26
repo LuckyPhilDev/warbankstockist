@@ -7,6 +7,7 @@
 
 ### Improved
 - **Standard Sets List Every Item** A standard set's item list now shows every item it covers, not just what is in your bags, newest expansion first with each item's expansion beside it. The search box works on them too.
+- **Exclude Items From Standard Sets** Click the cross beside any item in a standard set's list to leave it out. The row greys out and the item stays where it is; click the plus to put it back.
 - **Crafting Quality in Item Lists** Every item list in the settings shows a reagent's quality icon in front of its name, so two ranks of the same reagent can be told apart.
 
 ## [2.1.0] - 2026-09-26

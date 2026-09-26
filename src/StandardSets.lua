@@ -186,28 +186,35 @@ Add("treatise", {
     catalog = function() return Catalog({ TREATISE_ITEMS }) end,
 })
 
+-- A kind added by a newer version of the addon has no rule here.
+local function RuleItems(set)
+    local kind = Standard.kinds[set.standard]
+    return kind and kind.items(set) or {}
+end
+
 -- The set as StockRules.Merge reads it, with its items worked out now.
 function Standard.Resolve(set)
-    local kind = Standard.kinds[set.standard]
+    local items = RuleItems(set)
+    for itemID in pairs(set.excluded or {}) do items[itemID] = nil end
     return {
         type = set.type,
         returnExtras = set.returnExtras,
         lowStockWarning = set.lowStockWarning,
-        -- A kind added by a newer version of the addon has no rule here.
-        items = kind and kind.items(set) or {},
+        items = items,
     }
 end
 
 -- What the settings list for a standard set: everything its rule can match,
--- with the amounts it would move right now. Warbound gear is matched slot by
--- slot, so it has no catalog and lists only what is in your bags.
+-- with the amounts it would move right now. Excluded items stay listed so they
+-- can be included again. Warbound gear is matched slot by slot, so it has no
+-- catalog and lists only what is in your bags.
 function Standard.Entries(set)
     local kind = Standard.kinds[set.standard]
     local entries = {}
     if kind and kind.catalog then
         for itemID in pairs(kind.catalog(set)) do entries[itemID] = 0 end
     end
-    for itemID, qty in pairs(Standard.Resolve(set).items) do entries[itemID] = qty end
+    for itemID, qty in pairs(RuleItems(set)) do entries[itemID] = qty end
     return entries
 end
 

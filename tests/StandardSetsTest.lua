@@ -112,6 +112,9 @@ warbank = {}
 check("bundled expansion", Standard.Expansion(LUREDROP), 10)
 check("loaded item expansion", Standard.Expansion(1), 11)
 check("unknown expansion", Standard.Expansion(7), nil)
+check("an excluded item is not moved", items("herb", { excluded = { [1] = true } })[1], nil)
+check("but the rest are", items("herb", { excluded = { [1] = true } })[2], 0)
+check("and it stays listed", entries("herb", { excluded = { [1] = true } })[1], 0)
 
 check("no profession, no treatise", keys(items("treatise")), "")
 check("but every treatise is listed", entries("treatise")[ALCHEMY], 0)
@@ -208,6 +211,13 @@ local epicOnly = Sets:AddStandard("warbound")
 epicOnly.minGearQuality = 4
 Sets:SetEveryCharacter(epicOnly.id, true)
 check("the loosest quality floor wins", Sets:WarboundOptions("Main-Area52").minGearQuality, 0)
+Sets:SetExcluded(gear.id, 99, true)
+check("one set excluding an item still lets the other take it", Sets:WarboundOptions("Main-Area52").excluded[99], nil)
+Sets:SetExcluded(epicOnly.id, 99, true)
+check("every set excluding it holds it back", Sets:WarboundOptions("Main-Area52").excluded[99], true)
+check("excluded warbound gear stays listed", keys(Standard.Entries(gear)), "99")
+Sets:SetExcluded(gear.id, 99, false)
+check("included again", gear.excluded[99], nil)
 gear.minGearQuality = 3
 check("floors combine to the lowest", Sets:WarboundOptions("Main-Area52").minGearQuality, 3)
 Sets:Delete(epicOnly.id)

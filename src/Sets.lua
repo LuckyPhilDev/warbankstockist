@@ -132,6 +132,14 @@ function Sets:RemoveItem(id, itemID)
     Changed()
 end
 
+-- Standard sets list their items by rule, so an item is left out rather than removed.
+function Sets:SetExcluded(id, itemID, excluded)
+    local set = DB().sets[id]
+    set.excluded = set.excluded or {}
+    set.excluded[tonumber(itemID)] = excluded or nil
+    Changed()
+end
+
 function Sets:ClearItems(id)
     DB().sets[id].items = {}
     Changed()
@@ -266,14 +274,31 @@ function Sets.IsWarbound(set)
     return rule ~= nil and rule.warbound == true
 end
 
+-- Only what every warbound set leaves out is kept back, as any one of them
+-- would deposit the rest.
+-- ponytail: ignores which categories each set asks for, so an armour-only set
+-- excluding a piece does not hold it back from a second set taking everything.
+local function ExcludedByAll(excluded, set)
+    if not excluded then
+        excluded = {}
+        for itemID in pairs(set.excluded or {}) do excluded[itemID] = true end
+        return excluded
+    end
+    for itemID in pairs(excluded) do
+        if not (set.excluded and set.excluded[itemID]) then excluded[itemID] = nil end
+    end
+    return excluded
+end
+
 -- The categories the warbound sets this character runs ask for between them,
--- and the loosest gear quality floor among them, or nil when it runs none that
--- ask for anything.
+-- the loosest gear quality floor among them and the items all of them exclude,
+-- or nil when it runs none that ask for anything.
 function Sets:WarboundOptions(charKey)
     local cfg = { armor = false, weapons = false, tokens = false, other = false }
-    local any, minGearQuality = false, nil
+    local any, minGearQuality, excluded = false, nil, nil
     for _, set in ipairs(self:ActiveSetsFor(charKey)) do
         if Sets.IsWarbound(set) then
+            excluded = ExcludedByAll(excluded, set)
             for option in pairs(cfg) do
                 cfg[option] = cfg[option] or set[option] == true
                 any = any or cfg[option]
@@ -283,6 +308,7 @@ function Sets:WarboundOptions(charKey)
     end
     if not any then return nil end
     cfg.minGearQuality = minGearQuality
+    cfg.excluded = excluded
     return cfg
 end
 

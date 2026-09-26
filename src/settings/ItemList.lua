@@ -24,9 +24,25 @@ end
 
 -- Blizzard bakes the rank into some item names and not others, so the name is
 -- stripped of it and every ranked item gets the game's own icon back.
-local function QualityIcon(itemID)
+-- Markup cannot be desaturated, so a greyed icon is tinted dark instead.
+local function QualityIcon(itemID, greyed)
     local info = C_TradeSkillUI.GetItemReagentQualityInfo(itemID) or C_TradeSkillUI.GetItemCraftedQualityInfo(itemID)
-    return info and CreateAtlasMarkup(info.iconChat, 17, 15, 1, 0) .. " " or ""
+    if not info then return "" end
+    local tint = greyed and 90 or 255
+    return CreateAtlasMarkup(info.iconChat, 17, 15, 1, 0, tint, tint, tint) .. " "
+end
+
+local function ToggleButton(row, icon, title, text)
+    local button = LuckyUI.CreateIconButton(row, {
+        icon = icon,
+        size = 18,
+        tooltip = function(tooltip)
+            tooltip:SetText(title, 1, 0.82, 0)
+            tooltip:AddLine(text, 1, 1, 1, true)
+        end,
+    })
+    button:SetPoint("RIGHT", -10, 0)
+    return button
 end
 
 function ItemList:BuildRow()
@@ -63,8 +79,14 @@ function ItemList:BuildRow()
     row.removeBtn:SetPoint("RIGHT", -6, 0)
     row.removeBtn:SetScript("OnClick", function() opts.remove(row.itemID) end)
 
+    -- Two buttons rather than one that swaps its art, so each keeps the
+    -- library's tinting.
+    row.excludeBtn = ToggleButton(row, "x", S.items.exclude, S.items.excludeTooltip)
+    row.excludeBtn:SetScript("OnClick", function() opts.setExcluded(row.itemID, true) end)
+    row.includeBtn = ToggleButton(row, "plus", S.items.include, S.items.includeTooltip)
+    row.includeBtn:SetScript("OnClick", function() opts.setExcluded(row.itemID, false) end)
+
     row.qtyBox = Settings.NumberBox(row, 50)
-    row.qtyBox:SetPoint("RIGHT", row.removeBtn, "LEFT", -8, 0)
     row.qtyBox:SetScript("OnEnterPressed", function(box)
         box:ClearFocus()
         local qty = tonumber(box:GetText())
@@ -107,15 +129,19 @@ function ItemList:UpdateRow(row, index, itemID, qty)
     row.itemID, row.qty = itemID, qty
     row.stripe:SetShown(index % 2 == 0)
 
-    local dim = self.showQty and (qty or 0) == 0
+    local excluded = self.excludable and self.opts.excluded(itemID) == true
+    local dim = excluded or (self.showQty and (qty or 0) == 0)
     row.icon:SetTexture(C_Item.GetItemIconByID(itemID))
     row.icon:SetDesaturated(dim)
+    row.icon:SetAlpha(excluded and 0.4 or 1)
+    row.label:SetAlpha(excluded and 0.6 or 1)
 
     -- GetItemQualityByID answers nil for an item the client has not cached,
     -- which is most of a standard set's catalog; LuckyItem kept the quality
     -- when it loaded the name.
     local loaded = LuckyItem:GetCached(itemID)
     local rarity = ITEM_QUALITY_COLORS[loaded and loaded.quality or C_Item.GetItemQualityByID(itemID)]
+    if excluded then rarity = { r = R.textDim[1], g = R.textDim[2], b = R.textDim[3] } end
     if rarity then row.rarityBorder:SetColorTexture(rarity.r, rarity.g, rarity.b, dim and 0.35 or 1) end
     row.rarityBorder:SetShown(rarity ~= nil)
 
@@ -123,12 +149,16 @@ function ItemList:UpdateRow(row, index, itemID, qty)
     row.qtyBox:SetShown(self.showQty)
     row.qtyBox:SetEnabled(self.editable)
     row.removeBtn:SetShown(self.editable)
+    row.excludeBtn:SetShown(self.excludable and not excluded)
+    row.includeBtn:SetShown(excluded)
     -- A refresh can land while a quantity is being typed.
     if not row.qtyBox:HasFocus() then row.qtyBox:SetText(tostring(qty or 0)) end
-    row.label:SetPoint("RIGHT", self.showQty and row.qtyLabel or row.removeBtn, "LEFT", -8, 0)
+    local rightmost = self.excludable and row.excludeBtn or row.removeBtn
+    row.qtyBox:SetPoint("RIGHT", rightmost, "LEFT", -8, 0)
+    row.label:SetPoint("RIGHT", self.showQty and row.qtyLabel or rightmost, "LEFT", -8, 0)
 
     local name = WarbandStorage.Utils:GetItemName(itemID) or S.items.unknownItem:format(itemID)
-    local text = QualityIcon(itemID) .. name:gsub("%s*|A.-|a", "") .. " |cff6b6250(" .. itemID .. ")|r"
+    local text = QualityIcon(itemID, excluded) .. name:gsub("%s*|A.-|a", "") .. " |cff6b6250(" .. itemID .. ")|r"
     local tag = self.opts.tag and self.opts.tag(itemID)
     if tag then text = text .. "   " .. DIM .. tag .. "|r" end
     row.label:SetText(text)
@@ -143,6 +173,7 @@ function ItemList:Refresh()
     local enabled = Resolve(opts.enabled) ~= false
     self.editable = enabled
     self.showQty = Resolve(opts.showQty) ~= false
+    self.excludable = Resolve(opts.excludable) == true
     for _, control in ipairs(self.controls) do
         control:SetEnabled(enabled)
         control:SetAlpha(enabled and 1 or 0.35)
@@ -267,6 +298,8 @@ end
 --- qtyLabel, qtyTooltip, emptyText (string or function), and optionally
 --- clear() for a Clear List button, enabled(), showQty(), tag(itemID) and
 --- group(itemID), a number the list sorts by, highest first, before names.
+--- excludable() swaps Remove for an Exclude button that greys the row out
+--- instead, reading excluded(itemID) and calling setExcluded(itemID, on).
 --- Must be the last thing added to the group: the list fills what is left.
 function Settings.CreateItemList(group, opts)
     local list = setmetatable({ opts = opts, filter = "", rows = {} }, ItemList)

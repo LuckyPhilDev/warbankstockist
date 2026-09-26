@@ -319,6 +319,15 @@ function Settings.BuildSets(group)
             local set = EditedSet()
             return set and set.standard and Standard.Expansion(itemID)
         end,
+        excludable = function()
+            local set = EditedSet()
+            return set ~= nil and set.standard ~= nil
+        end,
+        excluded   = function(itemID)
+            local set = EditedSet()
+            return set.excluded ~= nil and set.excluded[itemID] == true
+        end,
+        setExcluded = function(itemID, on) Sets:SetExcluded(EditedSet().id, itemID, on) end,
         setQty     = function(itemID, qty) Sets:SetItem(EditedSet().id, itemID, qty) end,
         remove     = function(itemID) Sets:RemoveItem(EditedSet().id, itemID) end,
         clear      = function()
