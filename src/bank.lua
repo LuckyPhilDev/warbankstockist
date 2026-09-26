@@ -364,7 +364,6 @@ function WarbandStorage:PlanExcessDeposits()
     return depositQueue
 end
 
--- Every copy of itemID the Warband Bank will take, for ProcessDepositQueue.
 function WarbandStorage:PlanDepositAll(itemID)
     local count = DepositableCount(itemID)
     return count > 0 and { { itemID = itemID, amount = count } } or {}

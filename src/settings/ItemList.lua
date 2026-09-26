@@ -22,8 +22,10 @@ local function ItemIDFromLink(link)
     return tonumber(link and link:match("item:(%d+)"))
 end
 
--- Blizzard bakes the rank into some item names and not others, so the name is
--- stripped of it and every ranked item gets the game's own icon back.
+local function WithoutRankIcon(name)
+    return (name:gsub("%s*|A.-|a", ""))
+end
+
 -- Markup cannot be desaturated, so a greyed icon is tinted dark instead.
 local function QualityIcon(itemID, greyed)
     local info = C_TradeSkillUI.GetItemReagentQualityInfo(itemID) or C_TradeSkillUI.GetItemCraftedQualityInfo(itemID)
@@ -59,8 +61,6 @@ function ItemList:BuildRow()
     row.icon:SetSize(20, 20)
     row.icon:SetPoint("LEFT", 4, 0)
 
-    -- A square of the rarity colour a pixel wider than the icon on each side,
-    -- drawn beneath it so only the rim shows.
     row.rarityBorder = row:CreateTexture(nil, "BORDER")
     row.rarityBorder:SetPoint("TOPLEFT", row.icon, -1, 1)
     row.rarityBorder:SetPoint("BOTTOMRIGHT", row.icon, 1, -1)
@@ -158,7 +158,7 @@ function ItemList:UpdateRow(row, index, itemID, qty)
     row.label:SetPoint("RIGHT", self.showQty and row.qtyLabel or rightmost, "LEFT", -8, 0)
 
     local name = WarbandStorage.Utils:GetItemName(itemID) or S.items.unknownItem:format(itemID)
-    local text = QualityIcon(itemID, excluded) .. name:gsub("%s*|A.-|a", "") .. " |cff6b6250(" .. itemID .. ")|r"
+    local text = QualityIcon(itemID, excluded) .. WithoutRankIcon(name) .. " |cff6b6250(" .. itemID .. ")|r"
     local tag = self.opts.tag and self.opts.tag(itemID)
     if tag then text = text .. "   " .. DIM .. tag .. "|r" end
     row.label:SetText(text)

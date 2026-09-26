@@ -4,7 +4,6 @@ local Sets = WarbandStorage.Sets
 local S = WarbandStorage.Strings
 local C = LuckyUI.C
 
--- Matches the Bank Queue window, which this hangs under.
 local WIDTH = 300
 local BANK_TAB_STRIP = 50
 local SLOT = 40
