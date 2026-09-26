@@ -210,6 +210,12 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         sortAfterDesc = "Cleans up and sorts your Warband Bank once every deposit has finished.",
     },
 
+    bankSets = {
+        title   = "Active Sets",
+        none    = "No sets are active on this character.",
+        ignored = "This character is ignored, so none of your sets run here.",
+    },
+
     bankQueue = {
         section = "Bank Queue",
     },
