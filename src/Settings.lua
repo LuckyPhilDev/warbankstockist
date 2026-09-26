@@ -131,6 +131,23 @@ local function BuildBank(group)
     group:Section(S.bankQueue.section)
     LuckyBankRun:AddModeSetting(group, { since = "1.13.0" })
     LuckyBankRun:AddSettingsToggle(group, "1.13.0")
+    group:Toggle({
+        label    = S.bankQueue.dropSlot,
+        desc     = S.bankQueue.dropSlotDesc,
+        since    = "2.2.0",
+        checked  = function() return WarbandStockistDB.bankDropSlot == true end,
+        onToggle = function(checked)
+            WarbandStockistDB.bankDropSlot = checked
+            WarbandStorage.RefreshBankDrop()
+        end,
+    })
+    group:Toggle({
+        label    = S.bankQueue.activeSets,
+        desc     = S.bankQueue.activeSetsDesc,
+        since    = "2.2.0",
+        checked  = function() return WarbandStockistDB.bankActiveSets == true end,
+        onToggle = function(checked) WarbandStockistDB.bankActiveSets = checked end,
+    })
 end
 
 function Settings.Create()
