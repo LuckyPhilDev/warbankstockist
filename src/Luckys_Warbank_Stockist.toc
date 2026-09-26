@@ -30,6 +30,7 @@ inventory.lua
 AuctionHouse.lua
 bank.lua
 BankSets.lua
+BankDrop.lua
 deposit-commands.lua
 core.lua
 

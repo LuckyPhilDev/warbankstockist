@@ -82,6 +82,14 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         currentExpansionDesc = "Only moves reagents from the current expansion. Older materials are left where they are.",
         migratedGlobal     = "Global (Migrated)",
         migratedCharacter  = "%s (Migrated)",
+        masterName         = "Always Deposit Master List",
+        masterEmpty        = "Pick up an item at the bank and drop it on the slot under the Bank Queue window to add it here.",
+    },
+
+    bankDrop = {
+        title = "Always Deposit",
+        hint  = "Drop %s here to deposit it now and on every bank visit.",
+        added = "Added %s to %s.",
     },
 
     standard = {

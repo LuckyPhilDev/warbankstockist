@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Added
+- **Always Deposit Master List** A new set every character uses that can't be deleted. Pick up an item at the bank and drop it on the slot that slides out under the Bank Queue window: it joins the list and goes into your Warband Bank there and then.
+
 ## [2.1.0] - 2026-09-26
 
 ### Added
