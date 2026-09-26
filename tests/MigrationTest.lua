@@ -6,6 +6,7 @@ dofile("../Luckys_Utils/LuckyDB.lua")
 dofile("src/Strings.lua")
 dofile("src/Defaults.lua")
 dofile("src/StockRules.lua")
+dofile("src/StandardItems.lua")
 dofile("src/StandardSets.lua")
 dofile("src/Sets.lua")
 dofile("src/Migration.lua")
@@ -139,7 +140,7 @@ check("assigned character runs its set and the warbound one", #Sets:ActiveSetsFo
 check("ranges keep 1.13 amounts", Sets:RangesFor("Lucky-Area 52")[2001].min, 20)
 check("the warbound set stays out of the ranges", count(Sets:RangesFor("Lucky-Area 52")), 2)
 check("warbound categories reach the bank pass", serialize(Sets:WarboundOptions("Lucky-Area 52")),
-    serialize({ armor = true, weapons = false, tokens = true, other = false, minGearQuality = 0 }))
+    serialize({ armor = true, weapons = false, tokens = true, other = false, minGearQuality = 0, excluded = {} }))
 check("an ignored character runs no warbound pass", Sets:WarboundOptions("Ignored-Area 52"), nil)
 
 local afterFirst = serialize(db)

@@ -16,6 +16,7 @@ common-utils.lua
 utils.lua
 character-data.lua
 StockRules.lua
+StandardItems.lua
 StandardSets.lua
 Sets.lua
 Migration.lua

@@ -28,6 +28,13 @@ local function StandardDescription(set)
     return S.standard[set.standard .. "Desc"]
 end
 
+-- The game's tables file vendor reagents and dyes under no expansion.
+local function ExpansionName(expansion)
+    if not expansion then return nil end
+    if expansion < 0 then return S.standard.noExpansion end
+    return _G["EXPANSION_NAME" .. expansion]
+end
+
 -- Reagent categories sit in a submenu of their own, ahead of the other kinds.
 local function OpenNewMenu(owner)
     MenuUtil.CreateContextMenu(owner, function(_, root)
@@ -306,8 +313,21 @@ function Settings.BuildSets(group)
         entries    = function()
             local set = EditedSet()
             if not set then return {} end
-            return set.standard and Standard.Resolve(set).items or set.items
+            return set.standard and Standard.Entries(set) or set.items
         end,
+        group      = function(itemID)
+            local set = EditedSet()
+            return set and set.standard and Standard.Expansion(itemID)
+        end,
+        excludable = function()
+            local set = EditedSet()
+            return set ~= nil and set.standard ~= nil
+        end,
+        excluded   = function(itemID)
+            local set = EditedSet()
+            return set.excluded ~= nil and set.excluded[itemID] == true
+        end,
+        setExcluded = function(itemID, on) Sets:SetExcluded(EditedSet().id, itemID, on) end,
         setQty     = function(itemID, qty) Sets:SetItem(EditedSet().id, itemID, qty) end,
         remove     = function(itemID) Sets:RemoveItem(EditedSet().id, itemID) end,
         clear      = function()
@@ -324,7 +344,10 @@ function Settings.BuildSets(group)
         end,
         tag        = function(itemID)
             local reserve = Sets:GetReserve(itemID)
-            return reserve and S.items.reserveTag:format(reserve)
+            local tags = { reserve and S.items.reserveTag:format(reserve) }
+            local set = EditedSet()
+            if set and set.standard then tags[#tags + 1] = ExpansionName(Standard.Expansion(itemID)) end
+            return #tags > 0 and table.concat(tags, "   ") or nil
         end,
     })
 

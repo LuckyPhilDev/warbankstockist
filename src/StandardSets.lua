@@ -2,6 +2,7 @@ WarbandStorage = WarbandStorage or {}
 WarbandStorage.StandardSets = {}
 
 local Standard = WarbandStorage.StandardSets
+local Data = WarbandStorage.StandardItems
 
 local TRADEGOODS = 7
 local OTHER_SUBCLASS = 11
@@ -39,10 +40,29 @@ local TREATISES = {
     { variant = 2883, spell = 423343, itemID = 245756, quest = 95137 }, -- Tailoring
 }
 
+local MIDNIGHT = 11
+
 Standard.kinds = {}
 Standard.order = {}
 
 local itemInfo = {}
+local expansionOf = {}
+
+local function IndexExpansions(items)
+    for itemID, expansion in pairs(items) do expansionOf[itemID] = expansion end
+    return items
+end
+
+-- Every item the rule can match, not just what is in your bags now.
+local function Catalog(sources, expansion)
+    local ids = {}
+    for _, source in ipairs(sources) do
+        for itemID, itemExpansion in pairs(source) do
+            if not expansion or itemExpansion == expansion then ids[itemID] = true end
+        end
+    end
+    return ids
+end
 
 -- nil while the client has not loaded the item; the next scan tries again.
 local function Info(itemID)
@@ -72,8 +92,11 @@ local function Add(key, kind)
 end
 
 for _, category in ipairs(REAGENTS) do
-    local subclasses = {}
-    for _, subclassID in ipairs(category.subclasses) do subclasses[subclassID] = true end
+    local subclasses, sources = {}, {}
+    for _, subclassID in ipairs(category.subclasses) do
+        subclasses[subclassID] = true
+        sources[#sources + 1] = IndexExpansions(Data.tradegoods[subclassID] or {})
+    end
     Add(category.key, {
         type = "deposit",
         reagent = true,
@@ -86,6 +109,9 @@ for _, category in ipairs(REAGENTS) do
             -- Withdraw All: everything the Warband Bank holds, less its Reserve.
             if set.type == "keep" then return Matching(WarbandStorage:WarbankCounts(), math.huge, matches) end
             return BagItems(matches)
+        end,
+        catalog = function(set)
+            return Catalog(sources, set.currentExpansionOnly and GetExpansionLevel())
         end,
     })
 end
@@ -101,6 +127,7 @@ Add("lumber", {
                 and info.name ~= nil and info.name:lower():find("lumber", 1, true) ~= nil
         end)
     end,
+    catalog = function() return Catalog({ Data.lumber }) end,
 })
 
 Add("housingDye", {
@@ -110,6 +137,7 @@ Add("housingDye", {
             return info.classID == HOUSING and info.subclassID == HOUSING_DYE
         end)
     end,
+    catalog = function() return Catalog({ IndexExpansions(Data.housingDye) }) end,
 })
 
 -- Warbound gear is matched bag slot by bag slot, not by item id: the same item
@@ -138,6 +166,10 @@ local function MeetsRequirements(itemID)
     return true
 end
 
+local TREATISE_ITEMS = {}
+for _, treatise in ipairs(TREATISES) do TREATISE_ITEMS[treatise.itemID] = MIDNIGHT end
+IndexExpansions(TREATISE_ITEMS)
+
 Add("treatise", {
     type = "keep",
     items = function()
@@ -151,16 +183,44 @@ Add("treatise", {
         end
         return items
     end,
+    catalog = function() return Catalog({ TREATISE_ITEMS }) end,
 })
+
+-- A kind added by a newer version of the addon has no rule here.
+local function RuleItems(set)
+    local kind = Standard.kinds[set.standard]
+    return kind and kind.items(set) or {}
+end
 
 -- The set as StockRules.Merge reads it, with its items worked out now.
 function Standard.Resolve(set)
-    local kind = Standard.kinds[set.standard]
+    local items = RuleItems(set)
+    for itemID in pairs(set.excluded or {}) do items[itemID] = nil end
     return {
         type = set.type,
         returnExtras = set.returnExtras,
         lowStockWarning = set.lowStockWarning,
-        -- A kind added by a newer version of the addon has no rule here.
-        items = kind and kind.items(set) or {},
+        items = items,
     }
+end
+
+-- What the settings list for a standard set: everything its rule can match,
+-- with the amounts it would move right now. Excluded items stay listed so they
+-- can be included again. Warbound gear is matched slot by slot, so it has no
+-- catalog and lists only what is in your bags.
+function Standard.Entries(set)
+    local kind = Standard.kinds[set.standard]
+    local entries = {}
+    if kind and kind.catalog then
+        for itemID in pairs(kind.catalog(set)) do entries[itemID] = 0 end
+    end
+    for itemID, qty in pairs(RuleItems(set)) do entries[itemID] = qty end
+    return entries
+end
+
+-- nil for an item neither bundled nor loaded by the client yet.
+function Standard.Expansion(itemID)
+    if expansionOf[itemID] then return expansionOf[itemID] end
+    local info = Info(itemID)
+    return info and info.expansionID
 end

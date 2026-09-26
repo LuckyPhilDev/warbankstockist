@@ -664,7 +664,7 @@ local function PlanWarboundQueue(self, cfg)
     local queue = { slotFilter = WarboundSlotFilter(cfg) }
     for itemID in pairs(self:WarboundBagItems(cfg)) do
         local count = C_Item.GetItemCount(itemID, false) or 0
-        if count > 0 then
+        if count > 0 and not cfg.excluded[itemID] then
             queue[#queue + 1] = { itemID = itemID, amount = count }
         end
     end
