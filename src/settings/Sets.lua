@@ -21,7 +21,10 @@ end
 local function StandardDescription(set)
     local kind = Standard.kinds[set.standard]
     if not kind then return "" end
-    if kind.reagent then return S.standard.reagentDesc:format(S.standard[set.standard]) end
+    if kind.reagent then
+        local desc = set.type == "keep" and S.standard.reagentWithdrawDesc or S.standard.reagentDesc
+        return desc:format(S.standard[set.standard])
+    end
     return S.standard[set.standard .. "Desc"]
 end
 
@@ -194,11 +197,12 @@ end
 
 -- The library only re-reads row state when the panel opens, so switching or
 -- changing a set mid-panel redraws these rows by hand.
-local function Sync(group, options, usedBy, list)
+local function Sync(group, options, typeOptions, usedBy, list)
     local set = EditedSet()
     local hasSet = set ~= nil
     local keeps = hasSet and set.type == "keep"
     local standard = hasSet and Standard.kinds[set.standard]
+    local reagent = (standard and standard.reagent) == true
 
     FillSetOptions(options)
     RedrawSelect(group.byLabel[S.sets.label])
@@ -209,15 +213,17 @@ local function Sync(group, options, usedBy, list)
         button:SetAlpha(hasSet and 1 or 0.35)
     end
 
+    typeOptions[1].label = reagent and S.sets.typeWithdrawAll or S.sets.typeKeep
     local typeRow = group.byLabel[S.sets.type]
     RedrawSelect(typeRow)
     SetRowShown(typeRow, hasSet)
-    SetRowEnabled(typeRow, hasSet and not set.standard)
+    SetRowEnabled(typeRow, hasSet and (not set.standard or reagent))
 
     local rows = {
         [S.sets.everyCharacter]   = hasSet,
-        [S.lowStock.toggle]       = keeps,
-        [S.sets.currentExpansion] = (standard and standard.reagent) == true,
+        -- Withdraw All has no Keep amount to fall short of.
+        [S.lowStock.toggle]       = keeps and not reagent,
+        [S.sets.currentExpansion] = reagent,
     }
     for _, option in ipairs(WARBOUND_OPTIONS) do
         rows[S.warbound[option]] = (standard and standard.warbound) == true
@@ -257,18 +263,19 @@ function Settings.BuildSets(group)
     AddSetButtons(group)
     local usedBy = AddUsedByRow(group)
 
+    local typeOptions = {
+        { key = "keep", label = S.sets.typeKeep },
+        { key = "deposit", label = S.sets.typeDeposit },
+    }
     group:Select({
         label    = S.sets.type,
         desc     = S.sets.typeDesc,
-        options  = {
-            { key = "keep", label = S.sets.typeKeep },
-            { key = "deposit", label = S.sets.typeDeposit },
-        },
+        options  = typeOptions,
         value    = function()
             local set = EditedSet()
             return set and set.type
         end,
-        onSelect = function(key) Sets:SetOption(EditedSet().id, "type", key) end,
+        onSelect = function(key) Sets:SetType(EditedSet().id, key) end,
     })
     AddRowTooltip(group.byLabel[S.sets.type], S.sets.type, S.sets.typeDesc)
     AddOptionToggle(group, S.sets.everyCharacter, S.sets.everyCharacterDesc, nil, "everyCharacter",
@@ -291,7 +298,8 @@ function Settings.BuildSets(group)
         end,
         showQty    = function()
             local set = EditedSet()
-            return set ~= nil and set.type == "keep"
+            local kind = set and Standard.kinds[set.standard]
+            return set ~= nil and set.type == "keep" and not (kind and kind.reagent)
         end,
         entries    = function()
             local set = EditedSet()
@@ -317,8 +325,8 @@ function Settings.BuildSets(group)
         end,
     })
 
-    Settings.OnRefresh(function() Sync(group, options, usedBy, list) end)
-    Sync(group, options, usedBy, list)
+    Settings.OnRefresh(function() Sync(group, options, typeOptions, usedBy, list) end)
+    Sync(group, options, typeOptions, usedBy, list)
 end
 
 local function FocusPopup(dialog, text)

@@ -51,7 +51,9 @@ function WarbandStorage:PrintReport()
         print(S.addon.prefix .. " " .. S.report.title)
         for _, itemID in ipairs(ids) do
             local range = ranges[itemID]
-            local line = S.report.line:format(name(itemID), itemID, C_Item.GetItemCount(itemID, false) or 0, range.min)
+            local have = C_Item.GetItemCount(itemID, false) or 0
+            local line = range.min == math.huge and S.report.lineAll:format(name(itemID), itemID, have)
+                or S.report.line:format(name(itemID), itemID, have, range.min)
             if range.max < math.huge then line = line .. S.report.extras:format(range.max) end
             local reserve = self.Sets:GetReserve(itemID)
             if reserve then line = line .. S.report.reserve:format(reserve) end

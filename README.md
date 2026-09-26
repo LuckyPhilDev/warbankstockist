@@ -9,7 +9,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Stock sets**: Build item lists for raiding, crafting, gathering, leveling, or any other purpose, and give each character as many as you like.
 - **Every Character sets**: A set can stock all your characters, new ones included, with any character left out from the Assignments page.
 - **Keep in Bags or Deposit All**: A Keep in Bags set withdraws each item up to its Keep amount. A Deposit All set sends every item on it to the Warband Bank.
-- **Standard sets**: Add ready-made sets that follow a rule instead of a list: every reagent of a category, such as Herbs or Cloth, all lumber, one unused Thalassian Treatise for each of your professions each week, or your warbound gear.
+- **Standard sets**: Add ready-made sets that follow a rule instead of a list: every reagent of a category, such as Herbs or Cloth, all lumber, one unused Thalassian Treatise for each of your professions each week, or your warbound gear. A reagent set can be switched to Withdraw All, so a selling character takes every reagent of that category from the Warband Bank, leaving each item's Reserve behind.
 - **Automatic withdrawals**: Opening the Warband Bank withdraws missing items until your bags reach the Keep amounts of the character's sets. When two sets list the same item, the larger amount wins.
 - **Return Extras**: Anything in your bags above an item's Keep amount goes back into the Warband Bank.
 - **Reserves**: The Warband Bank always keeps at least a chosen amount of an item, and only characters marked Priority withdraw below it.

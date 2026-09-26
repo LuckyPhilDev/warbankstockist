@@ -91,6 +91,12 @@ check("reserve held back from the bank", StockRules.Purchase(r, 0, 30, 25, false
 check("priority ignores the reserve", StockRules.Purchase(r, 0, 30, 25, true), 0)
 check("already stocked buys nothing", StockRules.Purchase(r, 25, 0), 0)
 
+-- Withdraw All takes whatever the bank can spare beyond its Reserve, and never buys.
+r = range({ keepSet(HUGE, true) })
+check("withdraw all takes the bank less its reserve", StockRules.Withdrawal(r, 40, 100, 30, false), 70)
+check("withdraw all never deposits", StockRules.Deposit(r, 500), 0)
+check("withdraw all never buys", StockRules.Purchase(r, 0, 0), 0)
+
 check("unlisted item has no range", StockRules.Merge({ keepSet(3, true) })[1], nil)
 
 print(string.format("%d StockRules tests passed", passed))

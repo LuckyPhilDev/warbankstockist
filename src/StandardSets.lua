@@ -52,13 +52,17 @@ local function Info(itemID)
     return itemInfo[itemID]
 end
 
-local function BagItems(matches)
+local function Matching(counts, qty, matches)
     local items = {}
-    for itemID in pairs(WarbandStorage:BagCounts()) do
+    for itemID in pairs(counts) do
         local info = Info(itemID)
-        if info and matches(info) then items[itemID] = 0 end
+        if info and matches(info) then items[itemID] = qty end
     end
     return items
+end
+
+local function BagItems(matches)
+    return Matching(WarbandStorage:BagCounts(), 0, matches)
 end
 
 local function Add(key, kind)
@@ -74,10 +78,13 @@ for _, category in ipairs(REAGENTS) do
         reagent = true,
         items = function(set)
             local expansion = set.currentExpansionOnly and GetExpansionLevel()
-            return BagItems(function(info)
+            local function matches(info)
                 return info.classID == TRADEGOODS and subclasses[info.subclassID]
                     and (not expansion or info.expansionID == expansion)
-            end)
+            end
+            -- Withdraw All: everything the Warband Bank holds, less its Reserve.
+            if set.type == "keep" then return Matching(WarbandStorage:WarbankCounts(), math.huge, matches) end
+            return BagItems(matches)
         end,
     })
 end

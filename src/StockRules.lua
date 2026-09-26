@@ -41,8 +41,9 @@ function StockRules.Deposit(range, inBags)
 end
 
 -- What the Auction House still has to supply once the Warband Bank has given
--- what it can.
+-- what it can. Withdraw All has no target to buy up to.
 function StockRules.Purchase(range, inBags, inBank, reserve, priority)
+    if range.min == math.huge then return 0 end
     local need = range.min - inBags
     return math.max(0, need - StockRules.Withdrawal(range, inBags, inBank, reserve, priority))
 end

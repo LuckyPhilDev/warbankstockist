@@ -73,9 +73,10 @@ end
 function Sets:AddStandard(kind)
     local db = DB()
     local rule = Standard.kinds[kind]
-    local set = Sets.NewSet(db, Sets.UniqueName(db, WarbandStorage.Strings.standard[kind]))
+    local set = Sets.NewSet(db, "")
     set.standard = kind
     set.type = rule.type
+    set.name = Sets.UniqueName(db, Sets.StandardName(set))
     for option, value in pairs(rule.defaults or {}) do set[option] = value end
     Changed()
     return set
@@ -118,6 +119,27 @@ end
 
 function Sets:ClearItems(id)
     DB().sets[id].items = {}
+    Changed()
+end
+
+-- A reagent set can run either way, so its name says which.
+function Sets.StandardName(set)
+    local S = WarbandStorage.Strings.standard
+    if not Standard.kinds[set.standard].reagent then return S[set.standard] end
+    return (set.type == "keep" and S.withdrawName or S.depositName):format(S[set.standard])
+end
+
+-- A standard set still under its own name, " 2" and all, is renamed to match
+-- its direction; one the player has renamed keeps their name. The bare
+-- category name is what reagent sets were called before they had a direction.
+function Sets:SetType(id, setType)
+    local db = DB()
+    local set = db.sets[id]
+    if set.type == setType then return end
+    local base = set.standard and (set.name:gsub(" %d+$", ""))
+    local ownName = base == Sets.StandardName(set) or base == WarbandStorage.Strings.standard[set.standard]
+    set.type = setType
+    if ownName then set.name = Sets.UniqueName(db, Sets.StandardName(set)) end
     Changed()
 end
 

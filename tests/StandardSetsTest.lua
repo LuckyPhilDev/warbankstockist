@@ -42,6 +42,8 @@ dofile("src/StandardSets.lua")
 dofile("src/Sets.lua")
 WarbandStorage.Settings = { Refresh = function() end }
 function WarbandStorage:BagCounts() return bags end
+local warbank = {}
+function WarbandStorage:WarbankCounts() return warbank end
 
 local Standard, Sets = WarbandStorage.StandardSets, WarbandStorage.Sets
 
@@ -76,6 +78,13 @@ check("lumber by name only", keys(items("lumber")), "3")
 check("other reagents", keys(items("other")), "3,6")
 check("deposit all sets send everything", items("herb")[1], 0)
 
+warbank = { [1] = 50, [2] = 5, [4] = 20, [5] = 1 }
+local withdraw = function(set) set = set or {}; set.standard, set.type = "herb", "keep"; return Standard.Resolve(set).items end
+check("withdraw all reads the warband bank", keys(withdraw()), "1,2")
+check("withdraw all takes everything", withdraw()[1], math.huge)
+check("withdraw all keeps the expansion filter", keys(withdraw({ currentExpansionOnly = true })), "1")
+warbank = {}
+
 bags[8], ITEMS[8] = 2, { "Late Herb", 7, 9, 11 }
 check("unloaded items wait", keys(items("herb")), "1,2")
 loaded[8] = true
@@ -97,9 +106,9 @@ check("a kind from a newer version resolves empty", keys(Standard.Resolve({ stan
 local me = "Lucky-Area52"
 WarbandStockistDB = { sets = {}, characters = { [me] = { sets = {} } }, ignoredCharacters = {}, reserves = {} }
 local herbs = Sets:AddStandard("herb")
-check("standard set named", herbs.name, "Herbs")
+check("standard set named for its direction", herbs.name, "Herbs: Deposit")
 check("standard set type", herbs.type, "deposit")
-check("second copy gets a unique name", Sets:AddStandard("herb").name, "Herbs 2")
+check("second copy gets a unique name", Sets:AddStandard("herb").name, "Herbs: Deposit 2")
 Sets:SetMember(herbs.id, me, true)
 local raiding = Sets:Create("Raiding")
 Sets:SetItem(raiding.id, 1, 5)
@@ -109,6 +118,26 @@ check("keep wins over the standard set", ranges[1].min, 5)
 check("keep wins with its extras returned", ranges[1].max, 5)
 check("other herbs deposited", ranges[8].max, 0)
 check("the unticked copy does nothing", ranges[4], nil)
+
+-- Switching direction renames a set still under its own name.
+Sets:SetType(herbs.id, "keep")
+check("withdraw set named for its direction", herbs.name, "Herbs: Withdraw")
+Sets:SetType(herbs.id, "deposit")
+check("and back again", herbs.name, "Herbs: Deposit")
+local herbs2 = Sets:Get(herbs.id + 1)
+Sets:SetType(herbs.id, "keep")
+Sets:SetType(herbs2.id, "keep")
+check("a numbered copy is renamed too, uniquely", herbs2.name, "Herbs: Withdraw 2")
+Sets:Rename(herbs2.id, "AH Mule")
+Sets:SetType(herbs2.id, "deposit")
+check("a renamed set keeps its name", herbs2.name, "AH Mule")
+check("but still changes direction", herbs2.type, "deposit")
+Sets:SetType(herbs.id, "deposit")
+herbs.name = "Herbs"
+Sets:SetType(herbs.id, "keep")
+check("a set from before directions is renamed", herbs.name, "Herbs: Withdraw")
+Sets:SetType(herbs.id, "deposit")
+check("lumber has no direction", Sets:AddStandard("lumber").name, "Lumber")
 
 -- What Lucky's Grab-bag calls to hand its settings over.
 local skip = { ["Main-Area52"] = true }

@@ -57,7 +57,7 @@ local function CurrentRanges()
     return Sets:RangesFor(WarbandStorage.Utils:GetCharacterKey())
 end
 
-local function WarbankCounts()
+function WarbandStorage:WarbankCounts()
     local counts = {}
     for _, bagID in ipairs(C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account) or {}) do
         for slot = 1, C_Container.GetContainerNumSlots(bagID) or 0 do
@@ -238,7 +238,7 @@ end
 function WarbandStorage:PlanRestock()
     local charKey = self.Utils:GetCharacterKey()
     local priority = Sets:IsPriority(charKey)
-    local bankCounts = WarbankCounts()
+    local bankCounts = self:WarbankCounts()
     local amounts = {}
     for itemID, range in pairs(Sets:RangesFor(charKey)) do
         if range.min > 0 then
