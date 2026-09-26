@@ -132,6 +132,7 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         add               = "Add",
         addTooltip        = "Adds the item to the list.",
         remove            = "Remove",
+        removeTooltip     = "Takes this item off the list.",
         exclude           = "Exclude",
         excludeTooltip    = "Leaves this item out of the set. It stays listed, greyed out, so you can include it again.",
         include           = "Include",

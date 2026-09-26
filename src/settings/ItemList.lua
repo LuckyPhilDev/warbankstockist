@@ -32,10 +32,11 @@ local function QualityIcon(itemID, greyed)
     return CreateAtlasMarkup(info.iconChat, 17, 15, 1, 0, tint, tint, tint) .. " "
 end
 
-local function ToggleButton(row, icon, title, text)
+local function RowIconButton(row, icon, title, text, color)
     local button = LuckyUI.CreateIconButton(row, {
         icon = icon,
         size = 18,
+        color = color,
         tooltip = function(tooltip)
             tooltip:SetText(title, 1, 0.82, 0)
             tooltip:AddLine(text, 1, 1, 1, true)
@@ -75,15 +76,14 @@ function ItemList:BuildRow()
     end)
     row.iconHit:SetScript("OnLeave", GameTooltip_Hide)
 
-    row.removeBtn = LuckyUI.CreateButton(row, S.items.remove, 70, 22, "danger")
-    row.removeBtn:SetPoint("RIGHT", -6, 0)
+    row.removeBtn = RowIconButton(row, "trash", S.items.remove, S.items.removeTooltip, LuckyUI.C.danger)
     row.removeBtn:SetScript("OnClick", function() opts.remove(row.itemID) end)
 
     -- Two buttons rather than one that swaps its art, so each keeps the
     -- library's tinting.
-    row.excludeBtn = ToggleButton(row, "x", S.items.exclude, S.items.excludeTooltip)
+    row.excludeBtn = RowIconButton(row, "x", S.items.exclude, S.items.excludeTooltip)
     row.excludeBtn:SetScript("OnClick", function() opts.setExcluded(row.itemID, true) end)
-    row.includeBtn = ToggleButton(row, "plus", S.items.include, S.items.includeTooltip)
+    row.includeBtn = RowIconButton(row, "plus", S.items.include, S.items.includeTooltip)
     row.includeBtn:SetScript("OnClick", function() opts.setExcluded(row.itemID, false) end)
 
     row.qtyBox = Settings.NumberBox(row, 50)
