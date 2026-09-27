@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Improved
+- **Quality Icon Placement** Choose where a reagent's quality icon sits in the item lists: before the name with every name lined up, before the name, or after it. Find it under Item Lists in the Bank settings.
+
 ## [2.2.0] - 2026-09-26
 
 ### Added

@@ -148,6 +148,23 @@ local function BuildBank(group)
         checked  = function() return WarbandStockistDB.bankActiveSets == true end,
         onToggle = function(checked) WarbandStockistDB.bankActiveSets = checked end,
     })
+
+    group:Section(S.itemLists.section)
+    group:Select({
+        label    = S.itemLists.qualityIcon,
+        desc     = S.itemLists.qualityIconDesc,
+        since    = "2.2.1",
+        options  = {
+            { key = "aligned", label = S.itemLists.qualityIconAligned },
+            { key = "before",  label = S.itemLists.qualityIconBefore },
+            { key = "after",   label = S.itemLists.qualityIconAfter },
+        },
+        value    = function() return WarbandStockistDB.qualityIconPlacement end,
+        onSelect = function(placement)
+            WarbandStockistDB.qualityIconPlacement = placement
+            Settings.Refresh()
+        end,
+    })
 end
 
 function Settings.Create()

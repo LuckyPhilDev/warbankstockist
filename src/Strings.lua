@@ -238,6 +238,15 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         activeSetsDesc = "Lists the sets this character runs at the foot of the Bank Queue window.",
     },
 
+    itemLists = {
+        section            = "Item Lists",
+        qualityIcon        = "Crafting Quality Icon",
+        qualityIconDesc    = "Where a reagent's quality icon sits in the item lists on the Sets and Reserves pages.",
+        qualityIconAligned = "Before the name, names aligned",
+        qualityIconBefore  = "Before the name",
+        qualityIconAfter   = "After the name",
+    },
+
     gold = {
         section          = "Gold",
         bracketsSection  = "Level Brackets",

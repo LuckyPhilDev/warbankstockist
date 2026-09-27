@@ -23,5 +23,6 @@ WarbandStorage.DB_DEFAULTS = {
     lowStockMinimapTint = false,
     bankDropSlot = true,
     bankActiveSets = true,
+    qualityIconPlacement = "aligned",
     minimap = {},
 }

@@ -26,12 +26,27 @@ local function WithoutRankIcon(name)
     return (name:gsub("%s*|A.-|a", ""))
 end
 
+-- A transparent texture the size of a quality icon, so names line up whether
+-- or not an item has one.
+local QUALITY_ICON_SPACER = "|TInterface\\Common\\spacer:15:17|t"
+
 -- Markup cannot be desaturated, so a greyed icon is tinted dark instead.
 local function QualityIcon(itemID, greyed)
     local info = C_TradeSkillUI.GetItemReagentQualityInfo(itemID) or C_TradeSkillUI.GetItemCraftedQualityInfo(itemID)
-    if not info then return "" end
+    if not info then return nil end
     local tint = greyed and 90 or 255
-    return CreateAtlasMarkup(info.iconChat, 17, 15, 1, 0, tint, tint, tint) .. " "
+    return CreateAtlasMarkup(info.iconChat, 17, 15, 1, 0, tint, tint, tint)
+end
+
+local function WithQualityIcon(name, icon)
+    local placement = WarbandStockistDB.qualityIconPlacement
+    if placement == "after" then
+        return icon and (name .. " " .. icon) or name
+    end
+    if icon or placement == "aligned" then
+        return (icon or QUALITY_ICON_SPACER) .. " " .. name
+    end
+    return name
 end
 
 local function RowIconButton(row, icon, title, text, color)
@@ -158,7 +173,7 @@ function ItemList:UpdateRow(row, index, itemID, qty)
     row.label:SetPoint("RIGHT", self.showQty and row.qtyLabel or rightmost, "LEFT", -8, 0)
 
     local name = WarbandStorage.Utils:GetItemName(itemID) or S.items.unknownItem:format(itemID)
-    local text = QualityIcon(itemID, excluded) .. WithoutRankIcon(name) .. " |cff6b6250(" .. itemID .. ")|r"
+    local text = WithQualityIcon(WithoutRankIcon(name), QualityIcon(itemID, excluded)) .. " |cff6b6250(" .. itemID .. ")|r"
     local tag = self.opts.tag and self.opts.tag(itemID)
     if tag then text = text .. "   " .. DIM .. tag .. "|r" end
     row.label:SetText(text)
