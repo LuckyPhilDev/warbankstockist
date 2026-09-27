@@ -35,6 +35,24 @@ local function ExpansionName(expansion)
     return _G["EXPANSION_NAME" .. expansion]
 end
 
+local function MissingReagentKinds()
+    local made = {}
+    for _, set in ipairs(Sets:All()) do
+        if set.standard then made[set.standard] = true end
+    end
+    local missing = {}
+    for _, kind in ipairs(Standard.order) do
+        if Standard.kinds[kind].reagent and not made[kind] then missing[#missing + 1] = kind end
+    end
+    return missing
+end
+
+local function AddMissingReagentSets()
+    local set
+    for _, kind in ipairs(MissingReagentKinds()) do set = Sets:AddStandard(kind) end
+    if set then EditSet(set) end
+end
+
 -- Reagent categories sit in a submenu of their own, ahead of the other kinds.
 local function OpenNewMenu(owner)
     MenuUtil.CreateContextMenu(owner, function(_, root)
@@ -46,6 +64,9 @@ local function OpenNewMenu(owner)
             local menu = Standard.kinds[kind].reagent and reagents or root
             menu:CreateButton(S.standard[kind], function() EditSet(Sets:AddStandard(kind)) end)
         end
+        reagents:CreateDivider()
+        reagents:CreateButton(S.sets.newAllReagents, AddMissingReagentSets)
+            :SetEnabled(#MissingReagentKinds() > 0)
     end)
 end
 

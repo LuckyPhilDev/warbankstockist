@@ -49,6 +49,7 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         newEmpty           = "Empty Set",
         newStandard        = "Standard Sets",
         newReagents        = "Reagents",
+        newAllReagents     = "Create All",
         rename             = "Rename",
         renameDesc         = "Give this set a new name. Characters using it keep it.",
         duplicate          = "Duplicate",
