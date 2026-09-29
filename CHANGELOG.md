@@ -1,3 +1,8 @@
+## [2.3.2] - 2026-09-29
+
+### Fixed
+- Sets on the Sets page with Current Expansion Only no longer queue timeless items like Enchanting Vellum that they hide from the item list. (Thanks for the report 2B, or not 2B)
+
 ## [2.3.1] - 2026-09-29
 
 ### Fixed
