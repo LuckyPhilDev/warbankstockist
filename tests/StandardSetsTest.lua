@@ -79,6 +79,10 @@ check("metal and stone", keys(items("metalstone")), "4")
 check("lumber by name only", keys(items("lumber")), "3")
 check("housing dyes", keys(items("housingDye")), "9")
 check("other reagents", keys(items("other")), "3,6")
+local VELLUM = 38682
+bags[VELLUM], loaded[VELLUM], ITEMS[VELLUM] = 1, true, { "Enchanting Vellum", 7, 11, 11 }
+check("bundled expansion beats the client's", items("other", { currentExpansionOnly = true })[VELLUM], nil)
+bags[VELLUM] = nil
 check("deposit all sets send everything", items("herb")[1], 0)
 
 warbank = { [1] = 50, [2] = 5, [4] = 20, [5] = 1 }

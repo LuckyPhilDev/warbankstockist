@@ -69,7 +69,10 @@ local function Info(itemID)
     if itemInfo[itemID] then return itemInfo[itemID] end
     local name, _, _, _, _, _, _, _, _, _, _, classID, subclassID, _, expansionID = C_Item.GetItemInfo(itemID)
     if not classID then return nil end
-    itemInfo[itemID] = { name = name, classID = classID, subclassID = subclassID, expansionID = expansionID }
+    -- The bundled expansion wins so the queue filters as the catalog does: the
+    -- client stamps some timeless items, like Enchanting Vellum, as current.
+    itemInfo[itemID] = { name = name, classID = classID, subclassID = subclassID,
+        expansionID = expansionOf[itemID] or expansionID }
     return itemInfo[itemID]
 end
 
