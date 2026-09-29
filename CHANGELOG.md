@@ -1,3 +1,8 @@
+## [2.3.1] - 2026-09-29
+
+### Fixed
+- Large withdrawals and deposits at the Warband Bank no longer leave items greyed out and stuck until you log out. (Thanks for the report 2B, or not 2B)
+
 ## [2.3.0] - 2026-09-28
 
 ### Added
