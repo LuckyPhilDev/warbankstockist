@@ -14,6 +14,7 @@ local depositDelay = 0.1
 local pickupDelay = 0.1
 local placeDelay = 0.05
 local perItemDelay = 0.25
+local SETTLE_TIMEOUT = 5
 
 -- Bag helpers
 local REAGENT_BAG = (Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag) or 5
@@ -131,6 +132,31 @@ local function AwaitCursorItem(onHave, onAbort)
         C_Timer.After(CURSOR_TICK, poll)
     end
     C_Timer.After(CURSOR_TICK, poll)
+end
+
+-- A slot stays locked until the server confirms the move. Starting the next
+-- move before then lets requests pile up; the server throttles some, and those
+-- slots stay locked on the client until relog.
+local function AwaitSlotSettled(bag, slot, onSettled, onStuck)
+    local left = SETTLE_TIMEOUT / LOCK_REPOLL
+    local function poll()
+        local info = C_Container.GetContainerItemInfo(bag, slot)
+        if not (info and info.isLocked) then
+            onSettled()
+            return
+        end
+        left = left - 1
+        if left <= 0 then
+            onStuck()
+            return
+        end
+        C_Timer.After(LOCK_REPOLL, poll)
+    end
+    C_Timer.After(LOCK_REPOLL, poll)
+end
+
+local function ReportStuck()
+    print(S.addon.prefix .. " " .. S.bank.stuck)
 end
 
 function WarbandStorage:FindStackableBagSlot(itemID)
@@ -260,13 +286,24 @@ end
 function WarbandStorage:RunWithdrawPlan(plan, job)
     local idx = 1
     local claimedSlots = {}
+    local step
 
     local function advance()
         idx = idx + 1
         job:Tick()
     end
 
-    local function step()
+    local function nextAfterSettle(task)
+        AwaitSlotSettled(task.bagID, task.slot, function()
+            advance()
+            job:After(STEP_GAP, step)
+        end, function()
+            ReportStuck()
+            job:Done()
+        end)
+    end
+
+    function step()
         if idx > #plan then
             self:DebugPrint("Withdrawal plan finished.")
             job:Done()
@@ -297,8 +334,7 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
             -- on a warband-bank slot transfers the stack to player bags atomically.
             self:DebugPrint(("Auto-move full stack of %d (item %d) from %d:%d"):format(toMove, task.itemID, task.bagID, task.slot))
             C_Container.UseContainerItem(task.bagID, task.slot)
-            advance()
-            job:After(STEP_GAP, step)
+            nextAfterSettle(task)
             return
         end
 
@@ -309,8 +345,7 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
         AwaitCursorItem(
             function()
                 self:PlaceCursorIntoBags(task.itemID, claimedSlots, function()
-                    advance()
-                    job:After(STEP_GAP, step)
+                    nextAfterSettle(task)
                 end)
             end,
             function()
@@ -377,7 +412,8 @@ function WarbandStorage:ProcessDepositQueue(queue, index, job)
     end
 
     local entry = queue[index]
-    self:TryDepositItem(entry.itemID, entry.amount, function()
+    self:TryDepositItem(entry.itemID, entry.amount, function(stuck)
+        if stuck then job:Done() return end
         job:Tick()
         job:After(perItemDelay, function()
             self:ProcessDepositQueue(queue, index + 1, job)
@@ -525,7 +561,18 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFi
         self:DebugPrint("Candidate bag slots by bag: " .. table.concat(parts, ", "))
     end
 
-    local function depositNext(index, remaining)
+    local depositNext
+
+    local function nextAfterSettle(bag, slot, index, remaining)
+        AwaitSlotSettled(bag, slot, function()
+            depositNext(index + 1, remaining)
+        end, function()
+            ReportStuck()
+            if callback then callback(true) end
+        end)
+    end
+
+    function depositNext(index, remaining)
         if index > #bagSlots or remaining <= 0 then
             self:DebugPrint(("Deposit complete or no more bag slots. Remaining: %d"):format(remaining or 0))
             if callback then callback() end
@@ -564,9 +611,7 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFi
                     end
 
                     self:PlaceCursorIntoBank(itemID, function()
-                        C_Timer.After(perItemDelay, function()
-                            depositNext(index + 1, remaining - toMove)
-                        end)
+                        nextAfterSettle(bag, slot, index, remaining - toMove)
                     end)
                 end)
             else
@@ -574,9 +619,7 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFi
                 C_Container.PickupContainerItem(bag, slot)
                 C_Timer.After(depositDelay, function()
                     self:PlaceCursorIntoBank(itemID, function()
-                        C_Timer.After(perItemDelay, function()
-                            depositNext(index + 1, remaining - toMove)
-                        end)
+                        nextAfterSettle(bag, slot, index, remaining - toMove)
                     end)
                 end)
             end
@@ -680,7 +723,8 @@ local function RunWarboundQueue(self, queue, index, job)
         return
     end
     local entry = queue[index]
-    self:TryDepositItem(entry.itemID, entry.amount, function()
+    self:TryDepositItem(entry.itemID, entry.amount, function(stuck)
+        if stuck then job:Done() return end
         job:Tick()
         job:After(perItemDelay, function()
             RunWarboundQueue(self, queue, index + 1, job)

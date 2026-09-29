@@ -223,6 +223,7 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
         sorting       = "Sorting",
         sortAfter     = "Sort Bank After Deposit",
         sortAfterDesc = "Cleans up and sorts your Warband Bank once every deposit has finished.",
+        stuck         = "The server stopped confirming item moves, so the rest was skipped. Reopen the bank to carry on. If items stay greyed out, log out and back in.",
     },
 
     bankSets = {
