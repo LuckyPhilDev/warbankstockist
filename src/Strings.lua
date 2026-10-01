@@ -178,19 +178,13 @@ WarbandStorage.Strings = LuckyStrings.New("WarbandStorage.Strings", {
 
     lowStock = {
         toggle       = "Low Stock Warning",
-        tooltip      = "Logging in or entering a rest area opens a small window listing the items from this set your bags are short of. It shows how many the Warband Bank can cover, with the ones you need to buy or craft in red.",
+        tooltip      = "Logging in or entering a rest area opens the Reminders window listing the items from this set your bags are short of. It shows how many the Warband Bank can cover, with the ones you need to buy or craft in red.",
         section      = "Low Stock Warning",
-        seconds      = "Show For",
-        secondsDesc  = "How long the Low Stock window stays up before fading. Hovering it restarts the count.",
-        secondsUnit  = "s",
-        stay         = "Keep Open While Resting",
-        stayDesc     = "Keeps the Low Stock window up while you are in a city or inn, until you restock or leave. It fades as usual once you head out.",
         tint         = "Red Minimap Button",
         tintDesc     = "Turns the minimap button red while any item on a Low Stock Warning set is short.",
         title        = "Low Stock",
         count        = "%d / %d",
         inBank       = "%d in bank",
-        more         = "and %d more",
     },
 
     restock = {

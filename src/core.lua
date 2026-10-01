@@ -30,9 +30,17 @@ function WarbandStorage:OnEvent(event, ...)
         WarbandStorageCharData = WarbandStorageCharData or {}
         WarbandStorage.inventory = {}
 
+        local Migration = WarbandStorage.Migration
         WarbandStorage.Utils:StoreCharacterClass()
-        WarbandStorage.Migration.Login(WarbandStockistDB, WarbandStorage.Utils:GetCharacterKey(),
+        Migration.Login(WarbandStockistDB, WarbandStorage.Utils:GetCharacterKey(),
             WarbandStorageData, WarbandStorageCharData)
+
+        Migration.LowStockToReminders(WarbandStockistDB, LuckyReminders.Saved())
+        LuckyReminders:Register("lowStock", {
+            title = S.lowStock.title,
+            order = 20,
+            rows  = function() return WarbandStorage:LowStockRows() end,
+        })
 
         WarbandStorage.Settings.Create()
 
@@ -66,19 +74,14 @@ function WarbandStorage:OnEvent(event, ...)
         if isLogin or isReload then
             -- ponytail: bag contents can still be streaming in here; a fixed
             -- delay beats tracking BAG_UPDATE_DELAYED for a one-off line.
-            C_Timer.After(2, function() WarbandStorage:WarnLowStock() end)
-            WarbandStorage.wasResting = IsResting()
-            WarbandStorage:RegisterEvent("PLAYER_UPDATE_RESTING")
+            C_Timer.After(2, function() WarbandStorage:RefreshLowStock() end)
             WarbandStorage:RegisterEvent("BAG_UPDATE_DELAYED")
         end
-
-    elseif event == "PLAYER_UPDATE_RESTING" then
-        WarbandStorage:OnRestingChanged()
 
     elseif event == "BAG_UPDATE_DELAYED" then
         -- ponytail: re-resolves every set on each bag batch; debounce if a
         -- bank run ever shows it in /wbs perf.
-        WarbandStorage:WarnLowStock(true)
+        WarbandStorage:RefreshLowStock()
 
     elseif event == "BANKFRAME_OPENED" then
             WarbandStorage:DebugPrint("Bank Opened")

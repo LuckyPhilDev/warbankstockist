@@ -189,4 +189,13 @@ fresh.sets[master.id] = nil
 Migration.Login(fresh, "Oldie-Area 52", legacyGlobal, legacyChar)
 check("a missing master list comes back", fresh.sets[fresh.masterSetId].name, "Always Deposit Master List")
 
+-- The Low Stock window's settings move to the shared Reminders window.
+local old = { lowStockSeconds = 25, lowStockStayWhileResting = true, lowStockPos = { point = "CENTER" } }
+local reminders = { stayWhileResting = false }
+Migration.LowStockToReminders(old, reminders)
+check("the timer moves across", reminders.seconds, 25)
+check("so does the position", reminders.pos.point, "CENTER")
+check("a value already set there wins", reminders.stayWhileResting, false)
+check("and the old keys are cleared", next(old), nil)
+
 print(string.format("%d Migration tests passed", passed))

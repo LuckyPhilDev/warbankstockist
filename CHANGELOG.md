@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Improved
+- **Low Stock Warning** Low stock now shows in the shared Reminders window, alongside reminders from Lucky's Grab-bag if you have it. Your timer, Keep Open While Resting choice and window position carry over, and setting the timer to 0 keeps the window up until you close it. The window can also dim after a few seconds until you hover it.
+
 ## [2.3.2] - 2026-09-29
 
 ### Fixed
