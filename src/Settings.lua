@@ -99,24 +99,7 @@ local function BuildBank(group)
     })
 
     group:Section(S.lowStock.section)
-    group:Slider({
-        label     = S.lowStock.seconds,
-        desc      = S.lowStock.secondsDesc,
-        key       = "WarbandStockistLowStockSeconds",
-        since     = "2.1.0",
-        min       = 5,
-        max       = 60,
-        suffix    = S.lowStock.secondsUnit,
-        value     = function() return WarbandStockistDB.lowStockSeconds end,
-        onChanged = function(value) WarbandStockistDB.lowStockSeconds = value end,
-    })
-    group:Toggle({
-        label    = S.lowStock.stay,
-        desc     = S.lowStock.stayDesc,
-        since    = "2.1.0",
-        checked  = function() return WarbandStockistDB.lowStockStayWhileResting == true end,
-        onToggle = function(checked) WarbandStockistDB.lowStockStayWhileResting = checked end,
-    })
+    LuckyReminders:AddSettings(group)
     group:Toggle({
         label    = S.lowStock.tint,
         desc     = S.lowStock.tintDesc,

@@ -21,7 +21,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Set management**: Create, rename, duplicate, and delete sets. A renamed set stays on every character that uses it.
 - **Searchable item lists**: Filter large sets by item name or item ID. Each item shows its rarity and crafting quality, and you choose where the quality icon sits.
 - **Gold targets**: Keep characters at a chosen gold amount using level brackets, with optional per-character overrides.
-- **Low stock warnings**: A set can open a small window at login, and when you enter a city or inn, listing its items a character's bags are short of and how many the Warband Bank can cover. It fades after a time you choose, or stays up while you are resting, and the minimap button can turn red while anything is short.
+- **Low stock warnings**: A set can add its items to the Reminders window at login, and when you enter a city or inn, listing what a character's bags are short of and how many the Warband Bank can cover. The window fades after a time you choose, stays up while you are resting, or stays until you close it, and the minimap button can turn red while anything is short.
 - **Restock from the Auction House**: A button beside the Auction House buys what your sets keep on this character that your bags are short of and the Warband Bank cannot cover. Click once to see the price, again to buy.
 - **Bank Queue**: A window beside the bank lists the items still to move, with a progress bar. Pause it mid-run, or switch to Manual mode to review the list and press Start yourself. Lucky's Grab-bag's bank moves share the same queue. The window also lists the sets this character runs.
 - **Manual transfers**: Deposit or withdraw a single item with slash commands while the Warband Bank is open.
@@ -62,7 +62,7 @@ Open settings with the minimap button, `/wbs`, or **Options > AddOns > Lucky's W
 - **Assignments**: Tick the sets each character uses, mark Priority characters, or move unused characters into the ignored section and back again.
 - **Reserves**: Set how many of each item the Warband Bank always keeps.
 - **Gold**: Set target gold by level range and add overrides for individual characters.
-- **Bank**: Sort the Warband Bank after deposits, pick Auto or Manual for the Bank Queue, or hide its window, the Always Deposit slot, or the Active Sets list. Choose where a reagent's quality icon sits in the item lists. Set how long the Low Stock window stays up, keep it open while resting, or turn the minimap button red while anything is short.
+- **Bank**: Sort the Warband Bank after deposits, pick Auto or Manual for the Bank Queue, or hide its window, the Always Deposit slot, or the Active Sets list. Choose where a reagent's quality icon sits in the item lists. Set how long the Reminders window stays up (0 keeps it until you close it), keep it open while resting, or turn the minimap button red while anything is short.
 
 The minimap button and debug logging are toggled from the buttons in the panel's title bar.
 

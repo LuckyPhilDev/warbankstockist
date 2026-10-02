@@ -90,6 +90,16 @@ function Migration.WarboundToSet(db)
     set.tokens = cfg.tokens == true
 end
 
+-- The Low Stock window became a section of the shared Reminders window, so its
+-- timer, hold and position go with it. A value already set there wins.
+function Migration.LowStockToReminders(db, reminders)
+    local moved = { lowStockSeconds = "seconds", lowStockStayWhileResting = "stayWhileResting", lowStockPos = "pos" }
+    for from, to in pairs(moved) do
+        if reminders[to] == nil then reminders[to] = db[from] end
+        db[from] = nil
+    end
+end
+
 function Migration.Upgrade(db)
     local ok, err = LuckyDB:Initialize(db, {
         version = 1,
