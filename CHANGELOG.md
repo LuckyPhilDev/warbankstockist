@@ -1,3 +1,8 @@
+## [2.4.1] - 2026-10-05
+
+### Fixed
+- Fixed an error with the settings panel. (Thanks for the report Tuulani)
+
 ## [2.4.0] - 2026-10-02
 
 ### Improved
