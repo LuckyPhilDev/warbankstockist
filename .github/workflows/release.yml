@@ -35,7 +35,7 @@ jobs:
         if: success()
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          NOTES=$(awk '/^## /{c++; if(c==2) exit} c==1 && !/^## /' CHANGELOG.md | sed '/./,$!d')
+          NOTES=$(awk '/^## \[Unreleased\]/{next} /^## /{c++; if(c==2) exit; next} c==1' CHANGELOG.md | sed '/./,$!d')
           URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/v$VERSION"
           PAYLOAD=$(jq -n \
             --arg title "Warbank Stockist v$VERSION released" \
