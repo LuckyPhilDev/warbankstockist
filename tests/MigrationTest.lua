@@ -1,8 +1,8 @@
 LuckyUtils, LuckyDB, WarbandStorage, WarbandStockistDB = nil, nil, nil, nil
 LuckyStrings = { New = function(_, strings) return strings end }
 
-dofile("../Luckys_Utils/LuckyUtils.lua")
-dofile("../Luckys_Utils/LuckyDB.lua")
+dofile("../LuckyUtils/LuckyUtils.lua")
+dofile("../LuckyUtils/LuckyDB.lua")
 dofile("src/Strings.lua")
 dofile("src/Defaults.lua")
 dofile("src/StockRules.lua")
