@@ -196,6 +196,8 @@ function Settings.Create()
         end
     end)
 
+    WarbandStorage.Perf:WatchSettingsSwitches(SettingsPanel)
+
     WarbandStorage.SettingsPanel = panel
     return panel
 end
