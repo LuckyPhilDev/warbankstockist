@@ -1,7 +1,7 @@
 WarbandStorage = WarbandStorage or {}
 WarbandStorage.Minimap = { lowCount = 0 }
 
-local ICON = LuckyMedia("promo-warbank-stockist.tga")
+local ICON = "Interface\\AddOns\\Luckys_Warbank_Stockist\\media\\icon"
 local S = WarbandStorage.Strings
 local PREFIX = S.addon.prefix .. " "
 
