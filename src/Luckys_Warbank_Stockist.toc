@@ -1,5 +1,6 @@
 ## Interface: 120100
 ## Title: Lucky's Warband Stockist
+## IconTexture: Interface\AddOns\Luckys_Warbank_Stockist\media\icon
 ## Notes: Automatically manages item quantities between your bags and the Warband Bank.
 ## Version: 2.4.1
 ## Author: Lucky Phil
