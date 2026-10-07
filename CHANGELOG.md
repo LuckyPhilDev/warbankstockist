@@ -1,4 +1,4 @@
-## [Unreleased]
+## [2.4.2] - 2026-10-07
 
 ### Added
 - **More from Lucky Phil** The row at the bottom of the What's New page now includes Lucky's Actionbars and Lucky's Loadouts, with a CurseForge link for each.
