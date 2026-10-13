@@ -1,3 +1,8 @@
+## [2.4.3] - 2026-10-13
+
+### Improved
+- **Patch 12.1.5** Updated for the new game patch, so the addon loads without being flagged out of date.
+
 ## [2.4.2] - 2026-10-07
 
 ### Added
