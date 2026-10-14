@@ -1,3 +1,8 @@
+## [2.4.4] - 2026-10-14
+
+### Fixed
+- Fixed repeated Lua errors on login since patch 12.1.5. (Thanks for the report Hellsy55)
+
 ## [2.4.3] - 2026-10-13
 
 ### Improved
