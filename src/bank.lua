@@ -159,30 +159,22 @@ local function ReportStuck()
     print(S.addon.prefix .. " " .. S.bank.stuck)
 end
 
-function WarbandStorage:FindStackableBagSlot(itemID)
-    local function slotMax(bag, slot)
-        if ItemLocation and ItemLocation.CreateFromBagAndSlot then
-            local loc = ItemLocation:CreateFromBagAndSlot(bag, slot)
-            if loc and C_Item.DoesItemExist(loc) then
-                local m = C_Item.GetItemMaxStackSize(loc)
-                if m and m > 0 then return m end
-            end
-        end
-        return select(8, C_Item.GetItemInfo(itemID))
-    end
-    for _, bag in ipairs(GetAllPlayerBagIDs()) do
-        local numSlots = C_Container.GetContainerNumSlots(bag)
-        for slot = 1, numSlots do
+-- A part-filled stack of itemID to merge count more into. One that takes all
+-- of them wins, so the merge leaves nothing behind on the cursor.
+local function FindStackableSlot(bagIDs, itemID, count)
+    local maxStack = C_Item.GetItemMaxStackSizeByID(itemID)
+    if not maxStack then return nil, nil end
+    local partBag, partSlot
+    for _, bag in ipairs(bagIDs) do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
             local info = C_Container.GetContainerItemInfo(bag, slot)
-            if info and info.itemID == itemID then
-                local maxStack = slotMax(bag, slot)
-                if maxStack and (info.stackCount or 0) < maxStack then
-                    return bag, slot
-                end
+            if info and info.itemID == itemID and info.stackCount < maxStack then
+                if info.stackCount + count <= maxStack then return bag, slot end
+                if not partBag then partBag, partSlot = bag, slot end
             end
         end
     end
-    return nil, nil
+    return partBag, partSlot
 end
 
 -- claimed: optional set of "bag:slot" strings already promised within this
@@ -209,7 +201,7 @@ end
 -- on the cursor (target stack filled up), falls back to an empty slot.
 -- Bag-side mirror of PlaceCursorIntoBank. Calls onDone once the cursor has
 -- been dealt with.
-function WarbandStorage:PlaceCursorIntoBags(itemID, claimed, onDone)
+function WarbandStorage:PlaceCursorIntoBags(itemID, count, claimed, onDone)
     local function finish() if onDone then onDone() end end
 
     if GetCursorInfo() ~= "item" then
@@ -218,7 +210,7 @@ function WarbandStorage:PlaceCursorIntoBags(itemID, claimed, onDone)
         return
     end
 
-    local destBag, destSlot = self:FindStackableBagSlot(itemID)
+    local destBag, destSlot = FindStackableSlot(GetAllPlayerBagIDs(), itemID, count)
     if destBag then
         self:DebugPrint(("Merging into existing bag stack at %d:%d"):format(destBag, destSlot))
     else
@@ -344,7 +336,7 @@ function WarbandStorage:RunWithdrawPlan(plan, job)
 
         AwaitCursorItem(
             function()
-                self:PlaceCursorIntoBags(task.itemID, claimedSlots, function()
+                self:PlaceCursorIntoBags(task.itemID, toMove, claimedSlots, function()
                     nextAfterSettle(task)
                 end)
             end,
@@ -435,49 +427,71 @@ function WarbandStorage:SortWarbankAfterDeposit()
     end)
 end
 
-function WarbandStorage:FindStackableBankSlot(itemID)
-    local function slotMax(bag, slot)
-        if ItemLocation and ItemLocation.CreateFromBagAndSlot then
-            local loc = ItemLocation:CreateFromBagAndSlot(bag, slot)
-            if loc and C_Item.DoesItemExist(loc) then
-                local m = C_Item.GetItemMaxStackSize(loc)
-                if m and m > 0 then return m end
-            end
-        end
-        return select(8, C_Item.GetItemInfo(itemID))
-    end
-    local tabIDs = C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account)
-    for _, bagID in ipairs(tabIDs) do
-        local numSlots = C_Container.GetContainerNumSlots(bagID)
-        for slot = 1, numSlots do
-            local info = C_Container.GetContainerItemInfo(bagID, slot)
-            if info and info.itemID == itemID then
-                local maxStack = slotMax(bagID, slot)
-                if maxStack and (info.stackCount or 0) < maxStack then
-                    return bagID, slot
-                end
-            end
-        end
-    end
-    return nil, nil
+local SlotFlags = Enum.BagSlotFlags
+local EXPANSION_FLAGS = { SlotFlags.ExpansionCurrent, SlotFlags.ExpansionLegacy }
+local TYPE_FLAGS = { SlotFlags.ClassEquipment, SlotFlags.ClassConsumables,
+    SlotFlags.ClassProfessionGoods, SlotFlags.ClassReagents, SlotFlags.ClassJunk }
+
+-- Which of the bank tabs' deposit filters itemID meets, mirroring the
+-- categories Blizzard's own bank uses to sort into tabs.
+local function DepositFilterFits(itemID)
+    local _, _, quality, _, _, _, _, _, _, _, _, classID, _, _, expansionID, _, isReagent = C_Item.GetItemInfo(itemID)
+    local isCurrent = expansionID == LE_EXPANSION_LEVEL_CURRENT
+    local Class = Enum.ItemClass
+    return {
+        [SlotFlags.ExpansionCurrent]     = isCurrent,
+        [SlotFlags.ExpansionLegacy]      = expansionID ~= nil and not isCurrent,
+        [SlotFlags.ClassEquipment]       = classID == Class.Armor or classID == Class.Weapon,
+        [SlotFlags.ClassConsumables]     = classID == Class.Consumable,
+        [SlotFlags.ClassProfessionGoods] = not isReagent and (classID == Class.Tradegoods or classID == Class.Container
+            or classID == Class.Profession or classID == Class.Gem),
+        [SlotFlags.ClassReagents]        = isReagent == true,
+        [SlotFlags.ClassJunk]            = quality == Enum.ItemQuality.Poor,
+    }
 end
 
-function WarbandStorage:FindEmptyBankSlot()
-    local tabIDs = C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account)
-    for _, bankBag in ipairs(tabIDs) do
-        local freeSlots = C_Container.GetContainerFreeSlots(bankBag)
-        if freeSlots and #freeSlots > 0 then
-            return bankBag, freeSlots[1]
+-- 1 when the tab's filters ask for the item, 2 when the tab has no filters,
+-- 3 when it is set aside for something else.
+local function TabRank(tabFlags, fits)
+    for _, flag in ipairs(EXPANSION_FLAGS) do
+        if FlagsUtil.IsSet(tabFlags, flag) and not fits[flag] then return 3 end
+    end
+    local typed = false
+    for _, flag in ipairs(TYPE_FLAGS) do
+        if FlagsUtil.IsSet(tabFlags, flag) then
+            if fits[flag] then return 1 end
+            typed = true
         end
     end
-    return nil, nil
+    if typed then return 3 end
+    local expansionFiltered = FlagsUtil.IsSet(tabFlags, SlotFlags.ExpansionCurrent)
+        or FlagsUtil.IsSet(tabFlags, SlotFlags.ExpansionLegacy)
+    return expansionFiltered and 1 or 2
+end
+
+-- The first free slot in the best-ranked tab that has one, so items land in
+-- the tab the player set aside for them before anywhere else.
+function WarbandStorage:FindEmptyBankSlot(itemID)
+    local fits = DepositFilterFits(itemID)
+    local bestBag, bestSlot, bestRank
+    for _, tab in ipairs(C_Bank.FetchPurchasedBankTabData(Enum.BankType.Account) or {}) do
+        local rank = TabRank(tab.depositFlags or 0, fits)
+        if not bestRank or rank < bestRank then
+            local freeSlots = C_Container.GetContainerFreeSlots(tab.ID)
+            if freeSlots and freeSlots[1] then
+                bestBag, bestSlot, bestRank = tab.ID, freeSlots[1], rank
+                if rank == 1 then break end
+            end
+        end
+    end
+    return bestBag, bestSlot
 end
 
 -- Places whatever item is currently on the cursor into the Account bank.
 -- Tries to merge into an existing stack first; if the merge leaves anything
 -- on the cursor (merge failed or only partially filled), falls back to an
 -- empty slot. Calls onDone once the cursor has been dealt with.
-function WarbandStorage:PlaceCursorIntoBank(itemID, onDone)
+function WarbandStorage:PlaceCursorIntoBank(itemID, count, onDone)
     local function finish() if onDone then onDone() end end
 
     if GetCursorInfo() ~= "item" then
@@ -486,11 +500,12 @@ function WarbandStorage:PlaceCursorIntoBank(itemID, onDone)
         return
     end
 
-    local destBag, destSlot = self:FindStackableBankSlot(itemID)
+    local tabIDs = C_Bank.FetchPurchasedBankTabIDs(Enum.BankType.Account) or {}
+    local destBag, destSlot = FindStackableSlot(tabIDs, itemID, count)
     if destBag then
         self:DebugPrint(("Merging into existing stack at %d:%d"):format(destBag, destSlot))
     else
-        destBag, destSlot = self:FindEmptyBankSlot()
+        destBag, destSlot = self:FindEmptyBankSlot(itemID)
         if destBag then
             self:DebugPrint(("Using empty bank slot %d:%d"):format(destBag, destSlot))
         end
@@ -508,7 +523,7 @@ function WarbandStorage:PlaceCursorIntoBank(itemID, onDone)
         -- If a stack merge didn't consume the whole cursor, the item is still
         -- held. Drop the remainder into a guaranteed-empty slot instead.
         if GetCursorInfo() == "item" then
-            local eBag, eSlot = self:FindEmptyBankSlot()
+            local eBag, eSlot = self:FindEmptyBankSlot(itemID)
             if eBag then
                 self:DebugPrint(("Merge left a remainder; placing into empty slot %d:%d"):format(eBag, eSlot))
                 C_Container.PickupContainerItem(eBag, eSlot)
@@ -588,11 +603,9 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFi
 
         C_Timer.After(pickupDelay, function()
             ClearCursor()
-            local lockInfo = select(3, C_Container.GetContainerItemInfo(bag, slot))
-            self:DebugPrint(("Pre-split: Item lock state at %d:%d: %s"):format(bag, slot, tostring(lockInfo)))
-
-            if lockInfo == true then
-                self:DebugPrint(("Skipping locked item at %d:%d"):format(bag, slot))
+            local info = C_Container.GetContainerItemInfo(bag, slot)
+            if not info or info.isLocked then
+                self:DebugPrint(("Skipping locked or emptied slot %d:%d"):format(bag, slot))
                 depositNext(index + 1, remaining)
                 return
             end
@@ -610,7 +623,7 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFi
                         return
                     end
 
-                    self:PlaceCursorIntoBank(itemID, function()
+                    self:PlaceCursorIntoBank(itemID, toMove, function()
                         nextAfterSettle(bag, slot, index, remaining - toMove)
                     end)
                 end)
@@ -618,7 +631,7 @@ function WarbandStorage:TryDepositItem(itemID, amountToDeposit, callback, slotFi
                 self:DebugPrint("Picking up full stack")
                 C_Container.PickupContainerItem(bag, slot)
                 C_Timer.After(depositDelay, function()
-                    self:PlaceCursorIntoBank(itemID, function()
+                    self:PlaceCursorIntoBank(itemID, toMove, function()
                         nextAfterSettle(bag, slot, index, remaining - toMove)
                     end)
                 end)
