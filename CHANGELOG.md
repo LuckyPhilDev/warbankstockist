@@ -1,29 +1,7 @@
-## [Unreleased]
+## [2.5.0] - 2026-10-26
 
 ### Added
 - **Wago Addons** Warband Stockist is now published on Wago Addons too, so you can install and update it with the Wago app.
 
-## [2.4.4] - 2026-10-14
-
-### Fixed
-- Fixed repeated Lua errors on login since patch 12.1.5. (Thanks for the report Hellsy55)
-
-## [2.4.3] - 2026-10-13
-
 ### Improved
-- **Patch 12.1.5** Updated for the new game patch, so the addon loads without being flagged out of date.
-
-## [2.4.2] - 2026-10-07
-
-### Added
-- **More from Lucky Phil** The row at the bottom of the What's New page now includes Lucky's Actionbars and Lucky's Loadouts, with a CurseForge link for each.
-
-## [2.4.1] - 2026-10-05
-
-### Fixed
-- Fixed an error with the settings panel. (Thanks for the report Tuulani)
-
-## [2.4.0] - 2026-10-02
-
-### Improved
-- **Low Stock Warning** Low stock now shows in the shared Reminders window, alongside reminders from Lucky's Grab-bag if you have it. Your timer, Keep Open While Resting choice and window position carry over, and setting the timer to 0 keeps the window up until you close it. The window can also dim after a few seconds until you hover it.
+- **Deposits** Items now go into the Warband Bank tab whose filters match them, and into a stack they fit into whole.

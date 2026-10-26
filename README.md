@@ -15,6 +15,7 @@ Keep chosen items and gold topped up across your characters using the Warband Ba
 - **Return Extras**: Anything in your bags above an item's Keep amount goes back into the Warband Bank.
 - **Reserves**: The Warband Bank always keeps at least a chosen amount of an item, and only characters marked Priority withdraw below it.
 - **Warbound auto-deposit**: A Warbound Items set deposits warbound armor, weapons, tier tokens, and anything else warbound from your bags when the bank opens, before the restock runs, on the characters you give it to. A Gear Quality option leaves armor and weapons below a chosen quality in your bags.
+- **Tab-aware deposits**: Items go into the Warband Bank tab whose filters match them, and into a stack they fit into whole.
 - **Automatic bank sorting**: Clean up and sort the Warband Bank once the deposits finish.
 - **Assignments**: See the sets every character runs at a glance, choose each character's other sets, mark Priority characters that may withdraw below your reserves, or ignore a character so none of your sets run for it.
 - **Flexible item entry**: Add items by item link or item ID, or pick up a bag item and drop or click it onto the Item ID field, and set how many to keep.
