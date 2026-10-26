@@ -25,11 +25,8 @@ jobs:
           bash <(curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh)
         env:
           CF_API_KEY: ${{ secrets.CURSEFORGE_TOKEN }}
-
-          # Optional: also attach the zip to a GitHub Release.
-          # Docs say it expects a GitHub PAT in GITHUB_OAUTH.
-          # If you don't care about GitHub releases, delete these two lines.
-          GITHUB_OAUTH: ${{ secrets.GITHUB_OAUTH }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GH_API_TOKEN: ${{ secrets.GITHUB_OAUTH }}
 
       - name: Notify Discord on success
         if: success()
