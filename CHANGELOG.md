@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Added
+- **Wago Addons** Warband Stockist is now published on Wago Addons too, so you can install and update it with the Wago app.
+
 ## [2.4.4] - 2026-10-14
 
 ### Fixed
